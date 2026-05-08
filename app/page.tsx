@@ -4,6 +4,38 @@ import { HomeEffects } from "./home-effects";
 const BOOKING_URL = "https://portal.maisonvigo.es/reserva";
 
 export default function Home() {
+  const renderWaveText = (text: string) => {
+    const chars = Array.from(text);
+    const len = chars.length;
+    return (
+      <>
+        <span className="mob-wave-text" aria-hidden={true}>
+          {chars.map((char, idx) => {
+            const delay = (len - idx - 1) * 9;
+            const safeChar = char === " " ? "\u00A0" : char;
+            return (
+              <span className="mob-wave-char-wrap" key={`${text}-${idx}`}>
+                <span
+                  className="mob-wave-char mob-wave-char--top"
+                  style={{ transitionDelay: `${delay}ms` }}
+                >
+                  {safeChar}
+                </span>
+                <span
+                  className="mob-wave-char mob-wave-char--bottom"
+                  style={{ transitionDelay: `${delay}ms` }}
+                >
+                  {safeChar}
+                </span>
+              </span>
+            );
+          })}
+        </span>
+        <span className="mob-wave-sr">{text}</span>
+      </>
+    );
+  };
+
   return (
     <>
       <HomeEffects />
@@ -34,23 +66,46 @@ export default function Home() {
       <div className="seo-warning" role="status" aria-live="polite">
         Modo no indexado activo (SEO desactivado para buscadores)
       </div>
+      <div className="cookie-banner" id="cookieBanner" role="status" aria-live="polite">
+        <p className="cookie-banner-text">
+          Este sitio recopila{" "}
+          <a href="/cookies" className="cookie-banner-link mob-link--wave">
+            {renderWaveText("cookies")}
+          </a>
+          .
+        </p>
+        <div className="cookie-banner-actions">
+          <button
+            type="button"
+            id="cookieAccept"
+            className="cookie-banner-btn mob-link--wave"
+          >
+            {renderWaveText("Aceptar")}
+          </button>
+          <button
+            type="button"
+            id="cookieReject"
+            className="cookie-banner-btn cookie-banner-btn--ghost mob-link--wave"
+          >
+            {renderWaveText("Rechazar")}
+          </button>
+        </div>
+      </div>
 
       <nav id="navbar">
         <div className="nav-start">
-          <ul className="nav-links">
-            <li>
-              <a href="#concepto">Concepto</a>
-            </li>
-            <li>
-              <a href="#servicios">Servicios</a>
-            </li>
-            <li>
-              <a href="#espacio">El Espacio</a>
-            </li>
-            <li>
-              <a href="#contacto">Contacto</a>
-            </li>
-          </ul>
+          <button
+            type="button"
+            className="hamburger"
+            id="hamburger"
+            aria-label="Abrir menú principal"
+            aria-controls="mobileMenu"
+            aria-expanded="false"
+          >
+            <span className="hamburger-label mob-link--wave">
+              {renderWaveText("Menú")}
+            </span>
+          </button>
         </div>
         <a
           href="#hero"
@@ -84,49 +139,151 @@ export default function Home() {
         <div className="nav-end">
           <a
             href={BOOKING_URL}
-            className="nav-cta"
+            className="nav-cta mob-link--wave"
+            id="openReservaPanel"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Reservar
+            {renderWaveText("Reserva una cita")}
           </a>
-          <button
-            type="button"
-            className="hamburger"
-            id="hamburger"
-            aria-label="Menú"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
         </div>
       </nav>
 
-      <div className="mobile-menu" id="mobileMenu">
-        <button type="button" className="close-btn" id="closeMenu">
-          ✕
+      <div className="mobile-menu" id="mobileMenu" aria-hidden="true">
+        <div className="mobile-menu-panel">
+          <div className="mobile-menu-inner">
+            <div className="mobile-menu-primary">
+              <a
+                href="#concepto"
+                className="mob-link mob-link--primary"
+                data-menu-image="foto1"
+              >
+                Concepto
+              </a>
+              <a
+                href="#servicios"
+                className="mob-link mob-link--primary"
+                data-menu-image="foto2"
+              >
+                Servicios
+              </a>
+              <a
+                href="#espacio"
+                className="mob-link mob-link--primary"
+                data-menu-image="foto3"
+              >
+                El Espacio
+              </a>
+            </div>
+            <div className="mobile-menu-secondary">
+              <a href="#espacio" className="mob-link mob-link--secondary mob-link--wave">
+                {renderWaveText("Galería")}
+              </a>
+              <a
+                href="#servicios"
+                className="mob-link mob-link--secondary mob-link--wave"
+              >
+                {renderWaveText("Lista de precios")}
+              </a>
+              <a href="#reserva" className="mob-link mob-link--secondary mob-link--wave">
+                {renderWaveText("Preguntas")}
+              </a>
+              <a href="#contacto" className="mob-link mob-link--secondary mob-link--wave">
+                {renderWaveText("Contactos")}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="mobile-menu-close"
+          id="closeMenu"
+          aria-label="Cerrar menú"
+        >
+          <span aria-hidden="true">×</span>
         </button>
-        <a href="#concepto" className="mob-link">
-          Concepto
-        </a>
-        <a href="#servicios" className="mob-link">
-          Servicios
-        </a>
-        <a href="#espacio" className="mob-link">
-          El Espacio
-        </a>
         <a
           href={BOOKING_URL}
-          className="mob-link mob-link--booking"
+          className="mobile-menu-book mob-link--wave"
+          id="openReservaPanelFromMenu"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Reservar cita
+          {renderWaveText("Reservar cita")}
         </a>
-        <a href="#contacto" className="mob-link">
-          Contacto
-        </a>
+
+        <div className="mobile-menu-media" aria-hidden={true}>
+          <div className="mobile-menu-media-layer is-active" data-menu-image="foto1">
+            <Image
+              src="/foto1.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={88}
+            />
+          </div>
+          <div className="mobile-menu-media-layer" data-menu-image="foto2">
+            <Image
+              src="/foto2.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={88}
+            />
+          </div>
+          <div className="mobile-menu-media-layer" data-menu-image="foto3">
+            <Image
+              src="/foto3.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={88}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="reserva-panel" id="reservaPanel" aria-hidden="true">
+        <div className="reserva-panel-media" aria-hidden={true}>
+          <Image
+            src="/foto2.jpg"
+            alt=""
+            fill
+            className="reserva-panel-media-img"
+            sizes="(max-width: 900px) 100vw, 40vw"
+            quality={88}
+          />
+        </div>
+        <div className="reserva-panel-shell">
+          <button
+            type="button"
+            className="reserva-panel-close"
+            id="closeReservaPanel"
+            aria-label="Cerrar reserva"
+          >
+            <span aria-hidden={true}>×</span>
+          </button>
+          <div className="reserva-panel-body">
+            <iframe
+              title="Reservar cita Maison Vigo"
+              src={BOOKING_URL}
+              className="reserva-panel-iframe"
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
+          <a
+            href={BOOKING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="reserva-panel-fallback mob-link--wave"
+          >
+            {renderWaveText("Abrir en nueva pestaña")}
+          </a>
+        </div>
       </div>
 
       <section id="hero">

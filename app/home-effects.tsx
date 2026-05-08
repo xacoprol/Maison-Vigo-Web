@@ -15,6 +15,13 @@ export function HomeEffects() {
     const introCompleteFallbackMs = introLogoFlightMs + 2600;
     /** Solo si falla la medición del wordmark del nav antes del vuelo */
     const introFlightEndScaleFallback = 0.33;
+    const introSeenCookie = "mv_intro_seen";
+    const introSeenMaxAgeSec = 60 * 60 * 24;
+    const cookieConsentName = "mv_cookie_consent";
+    const cookieConsentMaxAgeSec = 60 * 60 * 24 * 180;
+    const cookieBanner = document.getElementById("cookieBanner");
+    const cookieAccept = document.getElementById("cookieAccept");
+    const cookieReject = document.getElementById("cookieReject");
 
     const unionBounds = (rects: DOMRect[]) => {
       if (!rects.length) return null;
@@ -99,6 +106,7 @@ export function HomeEffects() {
     let flightTimer: number | undefined;
     let onResizeIntro: (() => void) | undefined;
     let introFinished = false;
+    let introStarted = false;
     let lockedScrollY = 0;
     let prevBodyPosition = "";
     let prevBodyTop = "";
@@ -108,8 +116,36 @@ export function HomeEffects() {
     let prevBodyOverflow = "";
     let prevBodyPaddingRight = "";
     let isScrollLocked = false;
+    let scrollLockCount = 0;
 
-    const lockScroll = () => {
+    const hasSeenIntroRecently = () => {
+      return document.cookie
+        .split(";")
+        .map((part) => part.trim())
+        .some((part) => part === `${introSeenCookie}=1`);
+    };
+
+    const getCookie = (name: string) => {
+      const found = document.cookie
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${name}=`));
+      return found ? decodeURIComponent(found.split("=")[1] ?? "") : "";
+    };
+
+    const setIntroSeenCookie = () => {
+      document.cookie = `${introSeenCookie}=1; Max-Age=${introSeenMaxAgeSec}; Path=/; SameSite=Lax`;
+    };
+
+    const setCookieConsent = (value: "accepted" | "rejected") => {
+      document.cookie = `${cookieConsentName}=${value}; Max-Age=${cookieConsentMaxAgeSec}; Path=/; SameSite=Lax`;
+    };
+
+    const hideCookieBanner = () => {
+      cookieBanner?.classList.add("cookie-banner--hidden");
+    };
+
+    const applyScrollLock = () => {
       if (isScrollLocked) return;
       isScrollLocked = true;
       lockedScrollY = window.scrollY;
@@ -135,7 +171,7 @@ export function HomeEffects() {
       }
     };
 
-    const unlockScroll = () => {
+    const clearScrollLock = () => {
       if (!isScrollLocked) return;
       isScrollLocked = false;
       document.body.style.position = prevBodyPosition;
@@ -146,6 +182,26 @@ export function HomeEffects() {
       document.body.style.overflow = prevBodyOverflow;
       document.body.style.paddingRight = prevBodyPaddingRight;
       window.scrollTo(0, lockedScrollY);
+    };
+
+    const lockScroll = () => {
+      scrollLockCount += 1;
+      if (scrollLockCount === 1) {
+        applyScrollLock();
+      }
+    };
+
+    const unlockScroll = () => {
+      if (scrollLockCount === 0) return;
+      scrollLockCount -= 1;
+      if (scrollLockCount === 0) {
+        clearScrollLock();
+      }
+    };
+
+    const resetScrollLock = () => {
+      scrollLockCount = 0;
+      clearScrollLock();
     };
 
     const finishIntro = () => {
@@ -164,6 +220,9 @@ export function HomeEffects() {
       body.classList.remove("intro-active");
       body.classList.remove("intro-logo-flight");
       unlockScroll();
+      if (introStarted) {
+        setIntroSeenCookie();
+      }
     };
 
     const onIntroFlyEnd = (e: AnimationEvent) => {
@@ -173,9 +232,11 @@ export function HomeEffects() {
       });
     };
 
-    if (prefersReducedMotion) {
+    const skipIntro = prefersReducedMotion || hasSeenIntroRecently();
+    if (skipIntro) {
       body.classList.add("intro-complete");
     } else if (introEl) {
+      introStarted = true;
       body.classList.add("intro-active");
       lockScroll();
       requestAnimationFrame(() => {
@@ -202,6 +263,11 @@ export function HomeEffects() {
       body.classList.add("intro-complete");
     }
 
+    const cookieConsent = getCookie(cookieConsentName);
+    if (cookieConsent === "accepted" || cookieConsent === "rejected") {
+      hideCookieBanner();
+    }
+
     const onScroll = () => {
       navbar.classList.toggle("scrolled", window.scrollY > 40);
       if (heroSection) {
@@ -216,14 +282,139 @@ export function HomeEffects() {
     const hamburger = document.getElementById("hamburger");
     const mobileMenu = document.getElementById("mobileMenu");
     const closeMenuEl = document.getElementById("closeMenu");
+    const reservaPanel = document.getElementById("reservaPanel");
+    const openReservaPanel = document.getElementById("openReservaPanel");
+    const openReservaPanelFromMenu = document.getElementById(
+      "openReservaPanelFromMenu",
+    );
+    const closeReservaPanel = document.getElementById("closeReservaPanel");
     const mobLinks = document.querySelectorAll<HTMLElement>(".mob-link");
+    const menuPrimaryLinks = document.querySelectorAll<HTMLElement>(
+      ".mobile-menu-primary .mob-link--primary",
+    );
+    const menuMediaLayers = document.querySelectorAll<HTMLElement>(
+      ".mobile-menu-media-layer",
+    );
 
-    const openMenu = () => mobileMenu?.classList.add("open");
-    const closeMenuFn = () => mobileMenu?.classList.remove("open");
+    const openMenu = () => {
+      if (!mobileMenu) return;
+      if (mobileMenu.classList.contains("open")) return;
+      mobileMenu.classList.add("open");
+      mobileMenu.setAttribute("aria-hidden", "false");
+      hamburger?.setAttribute("aria-expanded", "true");
+      body.classList.add("menu-open");
+      document.documentElement.classList.add("menu-open");
+      lockScroll();
+    };
+    const closeMenuFn = (preserveLock = false) => {
+      if (!mobileMenu) return;
+      if (!mobileMenu.classList.contains("open")) return;
+      mobileMenu.classList.remove("open");
+      mobileMenu.setAttribute("aria-hidden", "true");
+      hamburger?.setAttribute("aria-expanded", "false");
+      body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+      if (!preserveLock) {
+        unlockScroll();
+      }
+    };
+    const toggleMenu = () => {
+      if (!mobileMenu) return;
+      if (mobileMenu.classList.contains("open")) {
+        closeMenuFn();
+      } else {
+        openMenu();
+      }
+    };
+    const onMenuOverlayClick = (event: MouseEvent) => {
+      if (event.target === mobileMenu) {
+        closeMenuFn();
+      }
+    };
+    const onEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (reservaPanel?.classList.contains("open")) {
+          closeReservaPanelFn();
+          return;
+        }
+        closeMenuFn();
+      }
+    };
+    const openReservaPanelFn = () => {
+      if (!reservaPanel) return;
+      if (reservaPanel.classList.contains("open")) return;
+      if (mobileMenu?.classList.contains("open")) {
+        closeMenuFn(true);
+      } else {
+        lockScroll();
+      }
+      reservaPanel.classList.add("open");
+      reservaPanel.setAttribute("aria-hidden", "false");
+      body.classList.add("reserva-open");
+      document.documentElement.classList.add("reserva-open");
+    };
+    const closeReservaPanelFn = () => {
+      if (!reservaPanel) return;
+      if (!reservaPanel.classList.contains("open")) return;
+      reservaPanel.classList.remove("open");
+      reservaPanel.setAttribute("aria-hidden", "true");
+      body.classList.remove("reserva-open");
+      document.documentElement.classList.remove("reserva-open");
+      unlockScroll();
+    };
+    const onReservaOverlayClick = (event: MouseEvent) => {
+      if (event.target === reservaPanel) {
+        closeReservaPanelFn();
+      }
+    };
+    const onOpenReservaClick = (event: Event) => {
+      event.preventDefault();
+      openReservaPanelFn();
+    };
+    const onCloseMenuClick = () => closeMenuFn();
+    const setMenuImage = (imageId: string) => {
+      menuMediaLayers.forEach((layer) => {
+        layer.classList.toggle(
+          "is-active",
+          layer.dataset.menuImage === imageId,
+        );
+      });
+    };
+    const onPrimaryHover = (event: Event) => {
+      const target = event.currentTarget as HTMLElement | null;
+      const imageId = target?.dataset.menuImage;
+      if (!imageId) return;
+      setMenuImage(imageId);
+    };
+    const onPrimaryLeave = () => {
+      setMenuImage("foto1");
+    };
 
-    hamburger?.addEventListener("click", openMenu);
-    closeMenuEl?.addEventListener("click", closeMenuFn);
-    mobLinks.forEach((l) => l.addEventListener("click", closeMenuFn));
+    hamburger?.addEventListener("click", toggleMenu);
+    closeMenuEl?.addEventListener("click", onCloseMenuClick);
+    mobLinks.forEach((l) => l.addEventListener("click", onCloseMenuClick));
+    menuPrimaryLinks.forEach((link) => {
+      link.addEventListener("mouseenter", onPrimaryHover);
+      link.addEventListener("focus", onPrimaryHover);
+      link.addEventListener("mouseleave", onPrimaryLeave);
+      link.addEventListener("blur", onPrimaryLeave);
+    });
+    mobileMenu?.addEventListener("click", onMenuOverlayClick);
+    reservaPanel?.addEventListener("click", onReservaOverlayClick);
+    openReservaPanel?.addEventListener("click", onOpenReservaClick);
+    openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
+    closeReservaPanel?.addEventListener("click", closeReservaPanelFn);
+    window.addEventListener("keydown", onEsc);
+    const onCookieAccept = () => {
+      setCookieConsent("accepted");
+      hideCookieBanner();
+    };
+    const onCookieReject = () => {
+      setCookieConsent("rejected");
+      hideCookieBanner();
+    };
+    cookieAccept?.addEventListener("click", onCookieAccept);
+    cookieReject?.addEventListener("click", onCookieReject);
 
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
@@ -249,7 +440,7 @@ export function HomeEffects() {
       if (introEl) {
         introEl.removeEventListener("animationend", onIntroFlyEnd);
       }
-      unlockScroll();
+      resetScrollLock();
       body.classList.remove("intro-active");
       body.classList.remove("intro-logo-flight");
       if (introEl) {
@@ -263,9 +454,27 @@ export function HomeEffects() {
       if (heroSection) {
         heroSection.style.setProperty("--hero-scroll-progress", "0");
       }
-      hamburger?.removeEventListener("click", openMenu);
-      closeMenuEl?.removeEventListener("click", closeMenuFn);
-      mobLinks.forEach((l) => l.removeEventListener("click", closeMenuFn));
+      hamburger?.removeEventListener("click", toggleMenu);
+      closeMenuEl?.removeEventListener("click", onCloseMenuClick);
+      mobLinks.forEach((l) => l.removeEventListener("click", onCloseMenuClick));
+      menuPrimaryLinks.forEach((link) => {
+        link.removeEventListener("mouseenter", onPrimaryHover);
+        link.removeEventListener("focus", onPrimaryHover);
+        link.removeEventListener("mouseleave", onPrimaryLeave);
+        link.removeEventListener("blur", onPrimaryLeave);
+      });
+      mobileMenu?.removeEventListener("click", onMenuOverlayClick);
+      reservaPanel?.removeEventListener("click", onReservaOverlayClick);
+      openReservaPanel?.removeEventListener("click", onOpenReservaClick);
+      openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
+      closeReservaPanel?.removeEventListener("click", closeReservaPanelFn);
+      window.removeEventListener("keydown", onEsc);
+      body.classList.remove("menu-open");
+      body.classList.remove("reserva-open");
+      document.documentElement.classList.remove("menu-open");
+      document.documentElement.classList.remove("reserva-open");
+      cookieAccept?.removeEventListener("click", onCookieAccept);
+      cookieReject?.removeEventListener("click", onCookieReject);
       observer.disconnect();
     };
   }, []);
