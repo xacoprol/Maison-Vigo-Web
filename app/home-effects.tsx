@@ -99,15 +99,53 @@ export function HomeEffects() {
     let flightTimer: number | undefined;
     let onResizeIntro: (() => void) | undefined;
     let introFinished = false;
+    let lockedScrollY = 0;
+    let prevBodyPosition = "";
+    let prevBodyTop = "";
+    let prevBodyLeft = "";
+    let prevBodyRight = "";
+    let prevBodyWidth = "";
+    let prevBodyOverflow = "";
+    let prevBodyPaddingRight = "";
+    let isScrollLocked = false;
 
     const lockScroll = () => {
-      document.documentElement.style.overflow = "hidden";
+      if (isScrollLocked) return;
+      isScrollLocked = true;
+      lockedScrollY = window.scrollY;
+      const scrollbarWidth = Math.max(
+        window.innerWidth - document.documentElement.clientWidth,
+        0,
+      );
+      prevBodyPosition = document.body.style.position;
+      prevBodyTop = document.body.style.top;
+      prevBodyLeft = document.body.style.left;
+      prevBodyRight = document.body.style.right;
+      prevBodyWidth = document.body.style.width;
+      prevBodyOverflow = document.body.style.overflow;
+      prevBodyPaddingRight = document.body.style.paddingRight;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${lockedScrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
     };
 
     const unlockScroll = () => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+      if (!isScrollLocked) return;
+      isScrollLocked = false;
+      document.body.style.position = prevBodyPosition;
+      document.body.style.top = prevBodyTop;
+      document.body.style.left = prevBodyLeft;
+      document.body.style.right = prevBodyRight;
+      document.body.style.width = prevBodyWidth;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.paddingRight = prevBodyPaddingRight;
+      window.scrollTo(0, lockedScrollY);
     };
 
     const finishIntro = () => {

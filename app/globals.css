@@ -520,30 +520,30 @@ body.intro-complete #hero .hero-video-overlay {
     box-shadow 0.45s ease;
 }
 body.intro-complete .hero-inner {
-  opacity: calc(1 - var(--hero-scroll-progress) * 0.86);
-  transform: translateY(calc(var(--hero-scroll-progress) * -210px))
-    scale(calc(1 - var(--hero-scroll-progress) * 0.33));
+  opacity: calc(1 - var(--hero-scroll-progress) * 1.6);
+  transform: translateY(calc(var(--hero-scroll-progress) * -280px))
+    scale(calc(1 - var(--hero-scroll-progress) * 0.4));
   transform-origin: center 34%;
 }
 body.intro-complete .hero-title {
   animation: fadeUp 0.85s 0.12s forwards;
   opacity: calc(1 - var(--hero-scroll-progress) * 2.35);
-  transform: translateY(calc(var(--hero-scroll-progress) * -70px))
-    scale(calc(1 - var(--hero-scroll-progress) * 0.15));
+  transform: translateY(calc(var(--hero-scroll-progress) * -95px))
+    scale(calc(1 - var(--hero-scroll-progress) * 0.2));
 }
 body.intro-complete .hero-sub {
   animation: fadeUp 0.85s 0.32s forwards;
   opacity: calc(1 - var(--hero-scroll-progress) * 2.6);
-  transform: translateY(calc(var(--hero-scroll-progress) * -48px))
-    scale(calc(1 - var(--hero-scroll-progress) * 0.11));
+  transform: translateY(calc(var(--hero-scroll-progress) * -68px))
+    scale(calc(1 - var(--hero-scroll-progress) * 0.15));
 }
 body.intro-complete .hero-inner .btn-primary--hero {
   animation: fadeUp 0.85s 0.52s forwards;
 }
 body.intro-complete .hero-scroll-cta {
   opacity: calc(1 - var(--hero-scroll-progress) * 1.12);
-  transform: translateY(calc(var(--hero-scroll-progress) * -92px)) scale(
-      calc(1 - var(--hero-scroll-progress) * 0.26)
+  transform: translateY(calc(var(--hero-scroll-progress) * -128px)) scale(
+      calc(1 - var(--hero-scroll-progress) * 0.34)
     );
 }
 .hero-inner .btn-primary--hero:hover {
