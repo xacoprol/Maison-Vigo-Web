@@ -91,6 +91,26 @@ export default function Home() {
           </button>
         </div>
       </div>
+      <a
+        href="https://wa.me/34644577798"
+        className="whatsapp-fab"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir chat de WhatsApp"
+      >
+        <svg
+          className="whatsapp-fab-icon"
+          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+          aria-hidden={true}
+        >
+          <path
+            fill="currentColor"
+            d="M16.01 3.2c-7.06 0-12.79 5.72-12.79 12.78 0 2.25.59 4.45 1.7 6.39L3 29l6.83-1.78a12.74 12.74 0 0 0 6.18 1.58h.01c7.05 0 12.78-5.72 12.78-12.78S23.07 3.2 16.01 3.2Zm0 23.44h-.01a10.6 10.6 0 0 1-5.4-1.48l-.38-.23-4.06 1.06 1.08-3.96-.25-.4a10.6 10.6 0 0 1-1.64-5.6c0-5.87 4.78-10.64 10.66-10.64 2.84 0 5.52 1.1 7.53 3.11a10.56 10.56 0 0 1 3.11 7.53c0 5.88-4.78 10.64-10.64 10.64Zm5.83-7.97c-.32-.16-1.89-.93-2.18-1.04-.29-.11-.5-.16-.71.16-.2.32-.79 1.04-.97 1.25-.18.21-.36.24-.68.08-.32-.16-1.33-.49-2.53-1.56-.93-.83-1.56-1.86-1.75-2.18-.18-.32-.02-.5.14-.66.14-.14.32-.36.47-.54.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.54-.71-.55h-.61c-.21 0-.56.08-.86.4-.29.32-1.12 1.09-1.12 2.66 0 1.57 1.15 3.09 1.31 3.3.16.21 2.26 3.45 5.47 4.83.76.33 1.36.53 1.83.68.77.24 1.47.21 2.02.13.62-.09 1.89-.77 2.16-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z"
+          />
+        </svg>
+      </a>
 
       <nav id="navbar">
         <div className="nav-start">
@@ -201,7 +221,20 @@ export default function Home() {
           id="closeMenu"
           aria-label="Cerrar menú"
         >
-          <span aria-hidden="true">×</span>
+          <svg
+            className="icon icon-cross"
+            width="30"
+            height="30"
+            aria-hidden={true}
+            viewBox="0 0 30 30"
+          >
+            <path
+              d="M9 9L21 21M21 9L9 21"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
         <a
           href={BOOKING_URL}
@@ -210,7 +243,21 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {renderWaveText("Reservar cita")}
+          <svg
+            className="mobile-menu-book-ring"
+            viewBox="0 0 100 100"
+            aria-hidden={true}
+          >
+            <circle
+              className="mobile-menu-book-ring-path"
+              cx="50"
+              cy="50"
+              r="49.5"
+            />
+          </svg>
+          <span className="mobile-menu-book-label">
+            {renderWaveText("Reserva una cita")}
+          </span>
         </a>
 
         <div className="mobile-menu-media" aria-hidden={true}>
@@ -264,7 +311,20 @@ export default function Home() {
             id="closeReservaPanel"
             aria-label="Cerrar reserva"
           >
-            <span aria-hidden={true}>×</span>
+            <svg
+              className="icon icon-cross"
+              width="30"
+              height="30"
+              aria-hidden={true}
+              viewBox="0 0 30 30"
+            >
+              <path
+                d="M9 9L21 21M21 9L9 21"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
           <div className="reserva-panel-body">
             <iframe
@@ -314,82 +374,94 @@ export default function Home() {
             className="hero-scroll-cta"
             aria-label="Bajar a la sección Concepto"
           >
-            <span className="hero-scroll-cta-arrow" aria-hidden={true} />
+            <svg
+              className="hero-scroll-cta-ring"
+              viewBox="0 0 100 100"
+              aria-hidden={true}
+            >
+              <circle
+                className="hero-scroll-cta-ring-path"
+                cx="50"
+                cy="50"
+                r="49.5"
+              />
+            </svg>
+            <span className="hero-scroll-cta-arrow-wrap" aria-hidden={true}>
+              <svg
+                className="icon icon-arrow-down hero-scroll-cta-arrow hero-scroll-cta-arrow--top"
+                width="30"
+                height="30"
+                viewBox="0 0 30 30"
+              >
+                <use
+                  href="/assets/images/icons.svg?v=1776434913#arrow-down"
+                  xlinkHref="/assets/images/icons.svg?v=1776434913#arrow-down"
+                />
+              </svg>
+              <svg
+                className="icon icon-arrow-down hero-scroll-cta-arrow hero-scroll-cta-arrow--bottom"
+                width="30"
+                height="30"
+                viewBox="0 0 30 30"
+              >
+                <use
+                  href="/assets/images/icons.svg?v=1776434913#arrow-down"
+                  xlinkHref="/assets/images/icons.svg?v=1776434913#arrow-down"
+                />
+              </svg>
+            </span>
           </a>
         </div>
       </section>
 
-      <hr className="ornament" />
-
       <section id="concepto">
-        <div className="concepto-visual reveal visible">
-          <div className="concepto-visual-frame">
-            <Image
-              src="/concepto.jpg"
-              alt="Maison Vigo — espacio de peluquería canina premium en Vigo."
-              fill
-              className="concepto-visual-img"
-              sizes="(max-width: 900px) 100vw, 42vw"
-              quality={88}
+        <div className="concepto-showcase reveal visible" data-parallax-section="concepto">
+          <p className="concepto-overline" data-parallax="title-small">
+            <span>Cuidado</span>
+            <span>Perfeccionado</span>
+            <span>con los años</span>
+          </p>
+          <h2 className="concepto-title-display" data-parallax="title-main" aria-hidden={true}>
+            <img
+              src="/assets/img/perfeccion.svg"
+              alt=""
+              className="concepto-title-svg"
+              loading="lazy"
+            />
+          </h2>
+          <div className="concepto-image-shell" data-parallax="media">
+            <img
+              src="https://grigoriak.doctor/assets/images/media/landing/1.intro/background@xs.webp?v=1776434913"
+              alt=""
+              className="concepto-image-main concepto-image-main--bg"
+              loading="lazy"
+            />
+            <img
+              src="/assets/images/doberman.webp"
+              alt="Maison Vigo — retrato conceptual."
+              className="concepto-image-main concepto-image-main--top"
+              loading="lazy"
             />
           </div>
-          <span className="concepto-tag">Maison Vigo — Est. 2024</span>
-        </div>
 
-        <div
-          className="concepto-text reveal visible"
-          style={{ transitionDelay: "0.15s" }}
-        >
-          <span className="section-label">Concepto</span>
-          <h2 className="section-title">
-            Esto no es una peluquería canina.
-            <br />
-            <em>Es cuidado canino premium.</em>
-          </h2>
-          <p className="section-body">
-            Cuidamos cada detalle para que tu perro esté tranquilo, seguro y
-            bien atendido.
-            <br />
-            Sin prisas. Sin ruido. Sin estrés.
-            <br />
-            Solo atención experta en un espacio pensado para su bienestar.
+          <p className="concepto-intro-copy" data-parallax="intro-copy">
+            Cuidado experto con tecnicas precisas y una mirada estetica impecable.
+            Cada sesion se ejecuta sin prisas para lograr un resultado limpio,
+            equilibrado y elegante.
           </p>
 
-          <div className="concepto-pillars">
-            <div className="pillar">
-              <span className="pillar-num">01</span>
-              <div>
-                <p className="pillar-title">Atención individual</p>
-                <p className="pillar-text">
-                  Un solo animal por turno.
-                  <br />
-                  Sin jaulas, sin esperas.
-                </p>
-              </div>
-            </div>
-            <div className="pillar">
-              <span className="pillar-num">02</span>
-              <div>
-                <p className="pillar-title">Espacio diseñado</p>
-                <p className="pillar-text">
-                  Un entorno limpio, tranquilo y visible.
-                  <br />
-                  Cuidado desde dentro y percibido desde fuera.
-                </p>
-              </div>
-            </div>
-            <div className="pillar">
-              <span className="pillar-num">03</span>
-              <div>
-                <p className="pillar-title">Productos selectos</p>
-                <p className="pillar-text">
-                  Cosmética de alta gama.
-                  <br />
-                  Respeto real por la piel y el pelo.
-                </p>
-              </div>
-            </div>
-          </div>
+          <blockquote className="concepto-quote" data-parallax="quote">
+            <p>
+              El cuidado real no se juzga a primera vista. Solo la experiencia y
+              una tecnica afinada revelan la perfeccion que ya existe en cada
+              perro.
+            </p>
+            <footer>Maison Vigo</footer>
+          </blockquote>
+
+          <a href="#contacto" className="concepto-circle-cta mob-link--wave" data-parallax="cta">
+            {renderWaveText("Conocenos")}
+          </a>
         </div>
       </section>
 

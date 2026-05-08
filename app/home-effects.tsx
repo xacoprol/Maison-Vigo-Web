@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import Lenis from "lenis";
 
 export function HomeEffects() {
   useEffect(() => {
     const navbar = document.getElementById("navbar");
     if (!navbar) return;
     const heroSection = document.getElementById("hero");
+    const conceptoSection = document.getElementById("concepto");
     const body = document.body;
     const introEl = document.getElementById("logoIntro");
     /** Piezas terminan ~3.5s → vuelo inmediato */
@@ -101,6 +103,23 @@ export function HomeEffects() {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    let lenis: Lenis | null = null;
+    let lenisRafId: number | undefined;
+
+    if (!prefersReducedMotion) {
+      lenis = new Lenis({
+        duration: 1.08,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        wheelMultiplier: 0.9,
+        touchMultiplier: 1,
+      });
+
+      const lenisRaf = (time: number) => {
+        lenis?.raf(time);
+        lenisRafId = window.requestAnimationFrame(lenisRaf);
+      };
+      lenisRafId = window.requestAnimationFrame(lenisRaf);
+    }
 
     let introCompleteFallbackTimer: number | undefined;
     let flightTimer: number | undefined;
@@ -274,6 +293,19 @@ export function HomeEffects() {
         const maxScroll = Math.max(heroSection.clientHeight * 0.78, 1);
         const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
         heroSection.style.setProperty("--hero-scroll-progress", progress.toFixed(3));
+      }
+      if (conceptoSection) {
+        const rect = conceptoSection.getBoundingClientRect();
+        const centerDelta =
+          window.innerHeight * 0.5 - (rect.top + rect.height * 0.5);
+        const conceptProgress = Math.min(
+          Math.max(centerDelta / (window.innerHeight * 0.55), -1),
+          1,
+        );
+        conceptoSection.style.setProperty(
+          "--concepto-parallax-progress",
+          conceptProgress.toFixed(3),
+        );
       }
     };
     window.addEventListener("scroll", onScroll);
@@ -450,9 +482,16 @@ export function HomeEffects() {
       if (onResizeIntro) {
         window.removeEventListener("resize", onResizeIntro);
       }
+      if (lenisRafId) {
+        window.cancelAnimationFrame(lenisRafId);
+      }
+      lenis?.destroy();
       window.removeEventListener("scroll", onScroll);
       if (heroSection) {
         heroSection.style.setProperty("--hero-scroll-progress", "0");
+      }
+      if (conceptoSection) {
+        conceptoSection.style.setProperty("--concepto-parallax-progress", "0");
       }
       hamburger?.removeEventListener("click", toggleMenu);
       closeMenuEl?.removeEventListener("click", onCloseMenuClick);
