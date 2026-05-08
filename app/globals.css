@@ -1322,33 +1322,43 @@ hr.ornament {
 }
 .concepto-intro-copy {
   position: absolute;
-  left: clamp(8px, 2vw, 24px);
-  top: clamp(320px, 38vw, 500px);
+  left: calc(50% - 32.5vw);
+  top: clamp(470px, 49vw, 670px);
   width: min(380px, 36vw);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(244, 244, 242, 0.88);
-  transform: translateY(calc(var(--concepto-parallax-progress) * -6vh));
+  transform: translateX(-50%)
+    translateY(calc(var(--concepto-parallax-progress) * -6vh));
   will-change: transform;
   z-index: 5;
 }
 .concepto-quote {
   position: absolute;
-  right: clamp(8px, 3vw, 38px);
+  right: clamp(-78px, -3vw, -24px);
   bottom: clamp(110px, 10vw, 140px);
-  width: min(480px, 42vw);
+  width: min(620px, 50vw);
   margin: 0;
   transform: translateY(calc(var(--concepto-parallax-progress) * 9vh));
   will-change: transform;
   z-index: 5;
 }
+.concepto-quote-mark {
+  display: block;
+  margin-bottom: 10px;
+  width: 35px;
+  height: 30px;
+  color: var(--gold);
+  fill: currentColor;
+}
 .concepto-quote p {
   margin: 0;
-  font-size: clamp(20px, 2.4vw, 32px);
+  font-size: 24px;
   line-height: 1.35;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: rgba(244, 244, 242, 0.93);
 }
 .concepto-quote footer {
@@ -1360,7 +1370,7 @@ hr.ornament {
 }
 .concepto-circle-cta {
   position: absolute;
-  left: clamp(8px, 4vw, 66px);
+  left: calc(50% - 32.5vw);
   bottom: clamp(66px, 9vw, 114px);
   width: 168px;
   height: 168px;
@@ -1374,10 +1384,36 @@ hr.ornament {
   text-transform: uppercase;
   color: rgba(244, 244, 242, 0.9);
   text-decoration: none;
-  transform: translateY(calc(var(--concepto-parallax-progress) * -8vh));
+  transform: translateX(-50%)
+    translateY(calc(var(--concepto-parallax-progress) * -8vh));
   will-change: transform;
-  background: rgba(5, 5, 5, 0.28);
+  background: transparent;
   z-index: 5;
+}
+.concepto-circle-cta-label {
+  position: relative;
+  z-index: 2;
+}
+.concepto-circle-cta-ring {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+.concepto-circle-cta-ring-path {
+  fill: none;
+  stroke: rgba(212, 175, 122, 0.58);
+  stroke-width: 0.5;
+  stroke-linecap: round;
+  stroke-dasharray: 311;
+  stroke-dashoffset: 311;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.concepto-circle-cta:hover .concepto-circle-cta-ring-path,
+.concepto-circle-cta:focus-visible .concepto-circle-cta-ring-path {
+  stroke-dashoffset: 0;
 }
 
 #servicios {

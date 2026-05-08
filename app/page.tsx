@@ -437,7 +437,7 @@ export default function Home() {
               loading="lazy"
             />
             <img
-              src="/assets/images/doberman.webp"
+              src="/assets/images/caniche.webp"
               alt="Maison Vigo — retrato conceptual."
               className="concepto-image-main concepto-image-main--top"
               loading="lazy"
@@ -445,22 +445,48 @@ export default function Home() {
           </div>
 
           <p className="concepto-intro-copy" data-parallax="intro-copy">
-            Cuidado experto con tecnicas precisas y una mirada estetica impecable.
-            Cada sesion se ejecuta sin prisas para lograr un resultado limpio,
+            Cuidado experto con técnicas precisas y una mirada estética impecable.
+            Cada sesión se ejecuta sin prisas para lograr un resultado limpio,
             equilibrado y elegante.
           </p>
 
           <blockquote className="concepto-quote" data-parallax="quote">
+            <svg
+              className="icon icon-quotes concepto-quote-mark"
+              width="35"
+              height="30"
+              aria-hidden={true}
+              viewBox="0 0 35 30"
+            >
+              <path
+                fill="currentColor"
+                d="M18.2 5.4C13 8.9 10.4 13.4 10.4 18.8h7l-2.4 6.8h6.1l3.7-10.8h-7.4c.3-2.7 2.1-4.9 5.3-6.8l-4.5-2.6Z"
+              />
+            </svg>
             <p>
               El cuidado real no se juzga a primera vista. Solo la experiencia y
-              una tecnica afinada revelan la perfeccion que ya existe en cada
+              una técnica afinada revelan la perfección que ya existe en cada
               perro.
             </p>
             <footer>Maison Vigo</footer>
           </blockquote>
 
           <a href="#contacto" className="concepto-circle-cta mob-link--wave" data-parallax="cta">
-            {renderWaveText("Conocenos")}
+            <svg
+              className="concepto-circle-cta-ring"
+              viewBox="0 0 100 100"
+              aria-hidden={true}
+            >
+              <circle
+                className="concepto-circle-cta-ring-path"
+                cx="50"
+                cy="50"
+                r="49.5"
+              />
+            </svg>
+            <span className="concepto-circle-cta-label">
+              {renderWaveText("Conócenos")}
+            </span>
           </a>
         </div>
       </section>
