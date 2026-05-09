@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Política de cookies",
+  description:
+    "Información sobre el uso de cookies en el sitio web de Maison Vigo.",
+};
+
 export default function CookiesPage() {
   return (
     <main

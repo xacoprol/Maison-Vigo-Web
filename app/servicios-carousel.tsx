@@ -100,7 +100,10 @@ export function ServiciosCarousel() {
     const mobile = window.matchMedia(MOBILE_MQ).matches;
     isMobileRef.current = mobile;
 
-    const vw = vp.offsetWidth;
+    const cs = window.getComputedStyle(vp);
+    const padX =
+      (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const vw = Math.max(0, vp.clientWidth - padX);
     const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
     const cw = cells[0]?.offsetWidth ?? 0;
     const tw = tr.scrollWidth;

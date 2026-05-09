@@ -1,9 +1,10 @@
 import Image from "next/image";
+
+import { allowIndexing, bookingUrl } from "@/lib/site-config";
+
 import { HomeEffects } from "./home-effects";
 import { ServiciosCarousel } from "./servicios-carousel";
 import { WaveText } from "./wave-text";
-
-const BOOKING_URL = "https://portal.maisonvigo.es/reserva";
 
 export default function Home() {
   return (
@@ -33,9 +34,11 @@ export default function Home() {
         />
       </div>
 
-      <div className="seo-warning" role="status" aria-live="polite">
-        Modo no indexado activo (SEO desactivado para buscadores)
-      </div>
+      {!allowIndexing && (
+        <div className="seo-warning" role="status" aria-live="polite">
+          Modo no indexado activo (SEO desactivado para buscadores)
+        </div>
+      )}
       <div className="cookie-banner" id="cookieBanner" role="status" aria-live="polite">
         <p className="cookie-banner-text">
           Este sitio recopila{" "}
@@ -134,7 +137,7 @@ export default function Home() {
         </a>
         <div className="nav-end">
           <a
-            href={BOOKING_URL}
+            href={bookingUrl}
             className="nav-cta mob-link--wave"
             id="openReservaPanel"
             target="_blank"
@@ -214,7 +217,7 @@ export default function Home() {
           </svg>
         </button>
         <a
-          href={BOOKING_URL}
+          href={bookingUrl}
           className="mobile-menu-book mob-link--wave"
           id="openReservaPanelFromMenu"
           target="_blank"
@@ -306,14 +309,14 @@ export default function Home() {
           <div className="reserva-panel-body">
             <iframe
               title="Reservar cita Maison Vigo"
-              src={BOOKING_URL}
+              src={bookingUrl}
               className="reserva-panel-iframe"
               loading="lazy"
               referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
           <a
-            href={BOOKING_URL}
+            href={bookingUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="reserva-panel-fallback mob-link--wave"
@@ -479,51 +482,6 @@ export default function Home() {
         <div className="servicios-parallax-layer servicios-parallax-layer--carousel reveal">
           <div className="servicios-carousel-wrap">
             <ServiciosCarousel />
-          </div>
-        </div>
-
-        <div
-          className="services-grid reveal visible"
-          style={{ transitionDelay: "0.1s" }}
-        >
-          <div className="service-card">
-            <p className="service-num">01</p>
-            <h3 className="service-name">Baño & Secado</h3>
-            <p className="service-desc">
-              Limpieza profunda con productos específicos para cada tipo de
-              pelaje. Secado profesional y cepillado detallado.
-            </p>
-            <div className="service-includes">
-              <span className="service-include">Champú de raza</span>
-              <span className="service-include">Acondicionador</span>
-              <span className="service-include">Secado artesanal</span>
-            </div>
-          </div>
-          <div className="service-card">
-            <p className="service-num">02</p>
-            <h3 className="service-name">Corte & Estilismo</h3>
-            <p className="service-desc">
-              Técnica de tijera y máquina adaptada al estándar de raza o a la
-              preferencia del propietario. Resultado limpio y equilibrado.
-            </p>
-            <div className="service-includes">
-              <span className="service-include">Perfilado facial</span>
-              <span className="service-include">Acabado de patas</span>
-              <span className="service-include">Silueta completa</span>
-            </div>
-          </div>
-          <div className="service-card">
-            <p className="service-num">03</p>
-            <h3 className="service-name">Tratamientos</h3>
-            <p className="service-desc">
-              Rituales específicos para pieles sensibles, pelajes dañados o
-              necesidades dermatológicas. Cosmética funcional de primer nivel.
-            </p>
-            <div className="service-includes">
-              <span className="service-include">Hidratación profunda</span>
-              <span className="service-include">Tratamiento antipiel</span>
-              <span className="service-include">Mascarilla de pelo</span>
-            </div>
           </div>
         </div>
       </section>
