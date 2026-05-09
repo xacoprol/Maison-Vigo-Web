@@ -9,6 +9,8 @@ export function HomeEffects() {
     if (!navbar) return;
     const heroSection = document.getElementById("hero");
     const conceptoSection = document.getElementById("concepto");
+    const serviciosSection = document.getElementById("servicios");
+    const conceptoTitle = document.querySelector<HTMLElement>(".concepto-title-display");
     const body = document.body;
     const introEl = document.getElementById("logoIntro");
     /** Piezas terminan ~3.5s → vuelo inmediato */
@@ -136,6 +138,10 @@ export function HomeEffects() {
     let prevBodyPaddingRight = "";
     let isScrollLocked = false;
     let scrollLockCount = 0;
+    let lastScrollY = window.scrollY;
+    let conceptoTitleRevealed = false;
+
+    const getScrollY = () => (lenis ? lenis.scroll : window.scrollY);
 
     const hasSeenIntroRecently = () => {
       return document.cookie
@@ -287,29 +293,92 @@ export function HomeEffects() {
       hideCookieBanner();
     }
 
-    const onScroll = () => {
-      navbar.classList.toggle("scrolled", window.scrollY > 40);
+    const runScrollEffects = () => {
+      const currentScrollY = getScrollY();
+      const scrollDelta = currentScrollY - lastScrollY;
+      const isScrollingDown = scrollDelta > 2;
+      const isScrollingUp = scrollDelta < -2;
+      navbar.classList.toggle("scrolled", currentScrollY > 40);
       if (heroSection) {
         const maxScroll = Math.max(heroSection.clientHeight * 0.78, 1);
-        const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+        const progress = Math.min(Math.max(currentScrollY / maxScroll, 0), 1);
         heroSection.style.setProperty("--hero-scroll-progress", progress.toFixed(3));
+        const heroPassed = currentScrollY > heroSection.offsetHeight - 20;
+        if (heroPassed && isScrollingDown) {
+          navbar.classList.add("nav-hidden");
+        } else if (!heroPassed || isScrollingUp || currentScrollY < 10) {
+          navbar.classList.remove("nav-hidden");
+        }
+      } else {
+        navbar.classList.remove("nav-hidden");
       }
       if (conceptoSection) {
         const rect = conceptoSection.getBoundingClientRect();
+        const parallaxStartY = window.innerHeight * 0.68;
         const centerDelta =
-          window.innerHeight * 0.5 - (rect.top + rect.height * 0.5);
+          parallaxStartY - (rect.top + rect.height * 0.5);
         const conceptProgress = Math.min(
           Math.max(centerDelta / (window.innerHeight * 0.55), -1),
           1,
         );
+        const conceptBgProgress = Math.abs(conceptProgress);
         conceptoSection.style.setProperty(
           "--concepto-parallax-progress",
           conceptProgress.toFixed(3),
         );
+        conceptoSection.style.setProperty(
+          "--concepto-bg-parallax-progress",
+          conceptBgProgress.toFixed(3),
+        );
+        if (!conceptoTitleRevealed && rect.top < window.innerHeight * 0.58) {
+          conceptoTitle?.classList.add("is-revealed");
+          conceptoTitleRevealed = true;
+        }
+        if (serviciosSection) {
+          const sr = serviciosSection.getBoundingClientRect();
+          const ih = window.innerHeight;
+          let exitDarken = 0;
+          if (sr.top < ih) {
+            exitDarken = Math.min(Math.max((ih - sr.top) / ih, 0), 1);
+          }
+          conceptoSection.style.setProperty(
+            "--concepto-exit-darken",
+            exitDarken.toFixed(3),
+          );
+        } else {
+          conceptoSection.style.setProperty("--concepto-exit-darken", "0");
+        }
       }
+      if (serviciosSection) {
+        if (prefersReducedMotion) {
+          serviciosSection.style.setProperty("--servicios-parallax", "0");
+        } else {
+          const sr = serviciosSection.getBoundingClientRect();
+          const ih = window.innerHeight;
+          let serviciosParallax = 0;
+          if (sr.bottom > 0) {
+            /** Al bajar por la página la sección sube; avanza 0→1 y empuja título/carrusel hacia arriba */
+            const sectionH = serviciosSection.offsetHeight;
+            const travel = ih * 1.05 + Math.min(sectionH, ih * 1.35);
+            serviciosParallax = (ih * 0.92 - sr.top) / Math.max(travel, 1);
+            serviciosParallax = Math.min(Math.max(serviciosParallax, 0), 1);
+          }
+          serviciosSection.style.setProperty(
+            "--servicios-parallax",
+            serviciosParallax.toFixed(3),
+          );
+        }
+      }
+      lastScrollY = currentScrollY;
     };
-    window.addEventListener("scroll", onScroll);
-    onScroll();
+
+    let unsubscribeLenisScroll: (() => void) | undefined;
+    if (lenis) {
+      unsubscribeLenisScroll = lenis.on("scroll", runScrollEffects);
+    } else {
+      window.addEventListener("scroll", runScrollEffects, { passive: true });
+    }
+    runScrollEffects();
 
     const hamburger = document.getElementById("hamburger");
     const mobileMenu = document.getElementById("mobileMenu");
@@ -485,14 +554,21 @@ export function HomeEffects() {
       if (lenisRafId) {
         window.cancelAnimationFrame(lenisRafId);
       }
+      unsubscribeLenisScroll?.();
+      if (!lenis) {
+        window.removeEventListener("scroll", runScrollEffects);
+      }
       lenis?.destroy();
-      window.removeEventListener("scroll", onScroll);
+      navbar.classList.remove("nav-hidden");
       if (heroSection) {
         heroSection.style.setProperty("--hero-scroll-progress", "0");
       }
       if (conceptoSection) {
         conceptoSection.style.setProperty("--concepto-parallax-progress", "0");
+        conceptoSection.style.setProperty("--concepto-bg-parallax-progress", "0");
+        conceptoSection.style.setProperty("--concepto-exit-darken", "0");
       }
+      serviciosSection?.style.removeProperty("--servicios-parallax");
       hamburger?.removeEventListener("click", toggleMenu);
       closeMenuEl?.removeEventListener("click", onCloseMenuClick);
       mobLinks.forEach((l) => l.removeEventListener("click", onCloseMenuClick));

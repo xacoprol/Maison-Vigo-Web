@@ -1,41 +1,11 @@
 import Image from "next/image";
 import { HomeEffects } from "./home-effects";
+import { ServiciosCarousel } from "./servicios-carousel";
+import { WaveText } from "./wave-text";
 
 const BOOKING_URL = "https://portal.maisonvigo.es/reserva";
 
 export default function Home() {
-  const renderWaveText = (text: string) => {
-    const chars = Array.from(text);
-    const len = chars.length;
-    return (
-      <>
-        <span className="mob-wave-text" aria-hidden={true}>
-          {chars.map((char, idx) => {
-            const delay = (len - idx - 1) * 9;
-            const safeChar = char === " " ? "\u00A0" : char;
-            return (
-              <span className="mob-wave-char-wrap" key={`${text}-${idx}`}>
-                <span
-                  className="mob-wave-char mob-wave-char--top"
-                  style={{ transitionDelay: `${delay}ms` }}
-                >
-                  {safeChar}
-                </span>
-                <span
-                  className="mob-wave-char mob-wave-char--bottom"
-                  style={{ transitionDelay: `${delay}ms` }}
-                >
-                  {safeChar}
-                </span>
-              </span>
-            );
-          })}
-        </span>
-        <span className="mob-wave-sr">{text}</span>
-      </>
-    );
-  };
-
   return (
     <>
       <HomeEffects />
@@ -70,7 +40,7 @@ export default function Home() {
         <p className="cookie-banner-text">
           Este sitio recopila{" "}
           <a href="/cookies" className="cookie-banner-link mob-link--wave">
-            {renderWaveText("cookies")}
+            <WaveText text="cookies" />
           </a>
           .
         </p>
@@ -80,14 +50,14 @@ export default function Home() {
             id="cookieAccept"
             className="cookie-banner-btn mob-link--wave"
           >
-            {renderWaveText("Aceptar")}
+            <WaveText text="Aceptar" />
           </button>
           <button
             type="button"
             id="cookieReject"
             className="cookie-banner-btn cookie-banner-btn--ghost mob-link--wave"
           >
-            {renderWaveText("Rechazar")}
+            <WaveText text="Rechazar" />
           </button>
         </div>
       </div>
@@ -123,8 +93,14 @@ export default function Home() {
             aria-expanded="false"
           >
             <span className="hamburger-label mob-link--wave">
-              {renderWaveText("Menú")}
+              <WaveText text="Menú" />
             </span>
+            <img
+              src="/assets/images/iconos/menu.svg"
+              alt=""
+              className="hamburger-icon"
+              aria-hidden={true}
+            />
           </button>
         </div>
         <a
@@ -164,7 +140,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {renderWaveText("Reserva una cita")}
+            <WaveText text="Reserva una cita" />
           </a>
         </div>
       </nav>
@@ -185,7 +161,7 @@ export default function Home() {
                 className="mob-link mob-link--primary"
                 data-menu-image="foto2"
               >
-                Servicios
+                Cuidado integral
               </a>
               <a
                 href="#espacio"
@@ -194,22 +170,23 @@ export default function Home() {
               >
                 El Espacio
               </a>
+              <a
+                href="#mv-care"
+                className="mob-link mob-link--primary"
+                data-menu-image="foto3"
+              >
+                MV CARE
+              </a>
             </div>
             <div className="mobile-menu-secondary">
               <a href="#espacio" className="mob-link mob-link--secondary mob-link--wave">
-                {renderWaveText("Galería")}
-              </a>
-              <a
-                href="#servicios"
-                className="mob-link mob-link--secondary mob-link--wave"
-              >
-                {renderWaveText("Lista de precios")}
+                <WaveText text="Galería" />
               </a>
               <a href="#reserva" className="mob-link mob-link--secondary mob-link--wave">
-                {renderWaveText("Preguntas")}
+                <WaveText text="Preguntas" />
               </a>
               <a href="#contacto" className="mob-link mob-link--secondary mob-link--wave">
-                {renderWaveText("Contactos")}
+                <WaveText text="Contactos" />
               </a>
             </div>
           </div>
@@ -256,7 +233,7 @@ export default function Home() {
             />
           </svg>
           <span className="mobile-menu-book-label">
-            {renderWaveText("Reserva una cita")}
+            <WaveText text="Reserva una cita" />
           </span>
         </a>
 
@@ -341,7 +318,7 @@ export default function Home() {
             rel="noopener noreferrer"
             className="reserva-panel-fallback mob-link--wave"
           >
-            {renderWaveText("Abrir en nueva pestaña")}
+            <WaveText text="Abrir en nueva pestaña" />
           </a>
         </div>
       </div>
@@ -363,52 +340,49 @@ export default function Home() {
         </div>
 
         <div className="hero-inner">
-          <h1 className="hero-title">Más que una peluquería canina</h1>
+          <h1 className="hero-title">
+            <span className="hero-title-reveal">Más que una peluquería canina</span>
+          </h1>
           <p className="hero-sub">
-            Un espacio cuidado donde bienestar,
-            <br />
-            estética y atención van de la mano.
+            <span className="hero-sub-line">Cuidado, calma y estética</span>
+            <span className="hero-sub-line">
+              en un entorno pensado para su bienestar.
+            </span>
           </p>
           <a
             href="#concepto"
             className="hero-scroll-cta"
             aria-label="Bajar a la sección Concepto"
           >
-            <svg
-              className="hero-scroll-cta-ring"
-              viewBox="0 0 100 100"
-              aria-hidden={true}
-            >
-              <circle
-                className="hero-scroll-cta-ring-path"
-                cx="50"
-                cy="50"
-                r="49.5"
-              />
-            </svg>
-            <span className="hero-scroll-cta-arrow-wrap" aria-hidden={true}>
+            <span className="hero-scroll-cta-inner">
               <svg
-                className="icon icon-arrow-down hero-scroll-cta-arrow hero-scroll-cta-arrow--top"
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
+                className="hero-scroll-cta-ring"
+                viewBox="0 0 100 100"
+                aria-hidden={true}
               >
-                <use
-                  href="/assets/images/icons.svg?v=1776434913#arrow-down"
-                  xlinkHref="/assets/images/icons.svg?v=1776434913#arrow-down"
+                <circle
+                  className="hero-scroll-cta-ring-path"
+                  cx="50"
+                  cy="50"
+                  r="49.5"
                 />
               </svg>
-              <svg
-                className="icon icon-arrow-down hero-scroll-cta-arrow hero-scroll-cta-arrow--bottom"
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
-              >
-                <use
-                  href="/assets/images/icons.svg?v=1776434913#arrow-down"
-                  xlinkHref="/assets/images/icons.svg?v=1776434913#arrow-down"
+              <span className="hero-scroll-cta-arrow-wrap" aria-hidden={true}>
+                <img
+                  src="/assets/images/iconos/arrow-down.svg"
+                  alt=""
+                  width={30}
+                  height={30}
+                  className="hero-scroll-cta-arrow hero-scroll-cta-arrow--top"
                 />
-              </svg>
+                <img
+                  src="/assets/images/iconos/arrow-down.svg"
+                  alt=""
+                  width={30}
+                  height={30}
+                  className="hero-scroll-cta-arrow hero-scroll-cta-arrow--bottom"
+                />
+              </span>
             </span>
           </a>
         </div>
@@ -416,26 +390,32 @@ export default function Home() {
 
       <section id="concepto">
         <div className="concepto-showcase reveal visible" data-parallax-section="concepto">
-          <p className="concepto-overline" data-parallax="title-small">
-            <span>Cuidado</span>
-            <span>Perfeccionado</span>
-            <span>con los años</span>
-          </p>
-          <h2 className="concepto-title-display" data-parallax="title-main" aria-hidden={true}>
-            <img
-              src="/assets/img/perfeccion.svg"
-              alt=""
-              className="concepto-title-svg"
-              loading="lazy"
-            />
-          </h2>
-          <div className="concepto-image-shell" data-parallax="media">
+          <div className="concepto-heading">
+            <h2 className="concepto-title-display" data-parallax="title-main" aria-hidden={true}>
+              <span className="concepto-title-reveal">
+                <img
+                  src="/assets/images/detalle.svg"
+                  alt=""
+                  className="concepto-title-svg"
+                  loading="lazy"
+                />
+              </span>
+            </h2>
+            <p className="concepto-overline" data-parallax="title-small">
+              <span>Cuidado</span>
+              <span>Perfeccionado</span>
+              <span>con el tiempo</span>
+            </p>
+          </div>
+          <div className="concepto-image-shell concepto-image-shell--bg" data-parallax="media">
             <img
               src="https://grigoriak.doctor/assets/images/media/landing/1.intro/background@xs.webp?v=1776434913"
               alt=""
               className="concepto-image-main concepto-image-main--bg"
               loading="lazy"
             />
+          </div>
+          <div className="concepto-image-shell concepto-image-shell--top" data-parallax="media">
             <img
               src="/assets/images/caniche.webp"
               alt="Maison Vigo — retrato conceptual."
@@ -445,28 +425,22 @@ export default function Home() {
           </div>
 
           <p className="concepto-intro-copy" data-parallax="intro-copy">
-            Cuidado experto con técnicas precisas y una mirada estética impecable.
-            Cada sesión se ejecuta sin prisas para lograr un resultado limpio,
-            equilibrado y elegante.
+            Trabajamos cada sesión de forma tranquila y precisa, respetando el
+            bienestar, el ritmo y las necesidades de cada perro.
           </p>
 
           <blockquote className="concepto-quote" data-parallax="quote">
-            <svg
-              className="icon icon-quotes concepto-quote-mark"
-              width="35"
-              height="30"
+            <img
+              src="/assets/images/iconos/quotes.svg"
+              alt=""
+              width={35}
+              height={30}
+              className="concepto-quote-mark"
               aria-hidden={true}
-              viewBox="0 0 35 30"
-            >
-              <path
-                fill="currentColor"
-                d="M18.2 5.4C13 8.9 10.4 13.4 10.4 18.8h7l-2.4 6.8h6.1l3.7-10.8h-7.4c.3-2.7 2.1-4.9 5.3-6.8l-4.5-2.6Z"
-              />
-            </svg>
+            />
             <p>
-              El cuidado real no se juzga a primera vista. Solo la experiencia y
-              una técnica afinada revelan la perfección que ya existe en cada
-              perro.
+              Creemos que el verdadero cuidado se percibe en los pequeños
+              detalles: el ambiente, el tiempo, la técnica y la atención.
             </p>
             <footer>Maison Vigo</footer>
           </blockquote>
@@ -485,7 +459,7 @@ export default function Home() {
               />
             </svg>
             <span className="concepto-circle-cta-label">
-              {renderWaveText("Conócenos")}
+              <WaveText text="Conócenos" />
             </span>
           </a>
         </div>
@@ -494,17 +468,18 @@ export default function Home() {
       <hr className="ornament" />
 
       <section id="servicios">
-        <div className="reveal visible">
-          <span className="section-label">Servicios</span>
-          <h2 className="section-title">
-            Lo que
-            <br />
-            <em>ofrecemos</em>
-          </h2>
-          <p className="section-body">
-            Cada servicio está diseñado para adaptarse a la raza, el pelaje y
-            el carácter de tu animal.
-          </p>
+        <div className="servicios-parallax-layer servicios-parallax-layer--heading">
+          <header className="servicios-heading reveal">
+            <h2 className="servicios-heading__title">
+              <span className="hero-title-reveal">CUIDADO INTEGRAL</span>
+            </h2>
+          </header>
+        </div>
+
+        <div className="servicios-parallax-layer servicios-parallax-layer--carousel reveal">
+          <div className="servicios-carousel-wrap">
+            <ServiciosCarousel />
+          </div>
         </div>
 
         <div
