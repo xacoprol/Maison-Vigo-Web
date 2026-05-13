@@ -314,14 +314,18 @@ export function HomeEffects() {
       }
       if (conceptoSection) {
         const rect = conceptoSection.getBoundingClientRect();
-        const parallaxStartY = window.innerHeight * 0.68;
+        const ih = window.innerHeight;
+        const parallaxStartY = ih * 0.68;
         const centerDelta =
           parallaxStartY - (rect.top + rect.height * 0.5);
-        const conceptProgress = Math.min(
-          Math.max(centerDelta / (window.innerHeight * 0.55), -1),
-          1,
-        );
-        const conceptBgProgress = Math.abs(conceptProgress);
+        const denom = ih * 0.55;
+        const raw = centerDelta / denom;
+        /**
+         * Antes se acotaba a [-1, 1] y el parallax “moría” al seguir scroll en #servicios.
+         * Sube el techo para que el movimiento siga mientras la sección ya ha subido.
+         */
+        const conceptProgress = Math.min(Math.max(raw, -1.15), 2.75);
+        const conceptBgProgress = Math.min(Math.abs(conceptProgress), 1.22);
         conceptoSection.style.setProperty(
           "--concepto-parallax-progress",
           conceptProgress.toFixed(3),
