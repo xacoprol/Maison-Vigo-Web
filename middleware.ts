@@ -7,6 +7,10 @@ const ACCESS_VALUE = "granted";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next();
+  }
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/") ||

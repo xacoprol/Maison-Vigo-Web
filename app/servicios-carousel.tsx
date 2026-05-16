@@ -21,13 +21,13 @@ const ORDER_MOBILE = [
 ] as const;
 
 /**
- * Escritorio: Grooming centrado; Bienestar y Acompañamiento a los lados
- * (con 3 visibles: B | G | A).
+ * Escritorio (izquierda → derecha): Acompañamiento antes que Grooming;
+ * el track se centra como bloque de 5 (½ + 3 + ½ en el viewport).
  */
 const ORDER_DESKTOP = [
   "Bienestar",
-  "Grooming",
   "Acompañamiento",
+  "Grooming",
   "Guardería Familiar",
   "Educación",
 ] as const;
@@ -118,7 +118,9 @@ export function ServiciosCarousel() {
       const groomIdx = N + gi;
       centerX = vw / 2 - (groomIdx * cw + cw / 2);
     } else {
-      centerX = vw / 2 - (gi * cw + cw / 2);
+      /** Centrar el bloque de 5: se ven 4 celdas de ancho (½ + 3 + ½) */
+      const trackCenterPx = (N * cw) / 2;
+      centerX = vw / 2 - trackCenterPx;
     }
     centerX = Math.max(maxT, Math.min(0, centerX));
 
@@ -174,6 +176,37 @@ export function ServiciosCarousel() {
     requestAnimationFrame(() => measure());
   }, [isMobile, measure]);
 
+  /** Escritorio: barre el carrusel con la X del puntero en toda la sección #servicios (título + carrusel). */
+  useEffect(() => {
+    const section = document.getElementById("servicios");
+    if (!section) return;
+
+    const resetToCenter = () => {
+      if (reducedMotionRef.current || isMobileRef.current) return;
+      targetRef.current = centerTRef.current;
+      setHighlightedId("Grooming");
+    };
+
+    const onSectionPointerMove = (e: PointerEvent) => {
+      if (reducedMotionRef.current || isMobileRef.current) return;
+      const maxT = maxTRef.current;
+      if (maxT === 0) return;
+      const r = section.getBoundingClientRect();
+      if (r.width <= 0) return;
+      const p = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      targetRef.current = p * maxT;
+    };
+
+    section.addEventListener("pointermove", onSectionPointerMove, {
+      passive: true,
+    });
+    section.addEventListener("pointerleave", resetToCenter);
+    return () => {
+      section.removeEventListener("pointermove", onSectionPointerMove);
+      section.removeEventListener("pointerleave", resetToCenter);
+    };
+  }, []);
+
   useEffect(() => {
     const loop = () => {
       if (!reducedMotionRef.current) {
@@ -201,25 +234,6 @@ export function ServiciosCarousel() {
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [applyTransform]);
-
-  /** Escritorio: la posición X del puntero barre el carrusel */
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (reducedMotionRef.current || isMobileRef.current) return;
-    const el = rootRef.current;
-    if (!el) return;
-    const maxT = maxTRef.current;
-    if (maxT === 0) return;
-    const r = el.getBoundingClientRect();
-    if (r.width <= 0) return;
-    const p = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-    targetRef.current = p * maxT;
-  };
-
-  const onPointerLeave = useCallback(() => {
-    if (reducedMotionRef.current || isMobileRef.current) return;
-    targetRef.current = centerTRef.current;
-    setHighlightedId("Grooming");
-  }, []);
 
   const DRAG_THRESHOLD_PX = 12;
 
@@ -288,8 +302,6 @@ export function ServiciosCarousel() {
     <div
       ref={rootRef}
       className="servicios-carousel"
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
       role="region"
       aria-roledescription="carrusel"
       aria-label="Cuidado integral destacado"
@@ -309,6 +321,7 @@ export function ServiciosCarousel() {
               fill
               className="servicios-carousel__photo-img"
               sizes="(max-width: 900px) min(92vw, 572px), min(960px, 96vw)"
+              quality={88}
               priority={label === "Grooming"}
             />
           </div>

@@ -5,6 +5,7 @@ import Script from "next/script";
 import { rootMetadata } from "@/lib/seo-metadata";
 
 import { SeoJsonLd } from "./seo-json-ld";
+import "./espacio-horizontal-section.scss";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-SMQNTFF93S";
@@ -30,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${playfair.variable} ${inter.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"

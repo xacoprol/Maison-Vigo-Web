@@ -2,7 +2,9 @@ import Image from "next/image";
 
 import { allowIndexing, bookingUrl } from "@/lib/site-config";
 
+import { EspacioHorizontalSection } from "./espacio-horizontal-section";
 import { HomeEffects } from "./home-effects";
+import { RitmoCuidadoAccordion } from "./ritmo-cuidado-accordion";
 import { ServiciosCarousel } from "./servicios-carousel";
 import { WaveText } from "./wave-text";
 
@@ -160,18 +162,18 @@ export default function Home() {
                 Concepto
               </a>
               <a
+                href="#espacio"
+                className="mob-link mob-link--primary"
+                data-menu-image="foto3"
+              >
+                El espacio
+              </a>
+              <a
                 href="#servicios"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto2"
               >
                 Cuidado integral
-              </a>
-              <a
-                href="#espacio"
-                className="mob-link mob-link--primary"
-                data-menu-image="foto3"
-              >
-                El Espacio
               </a>
               <a
                 href="#mv-care"
@@ -182,9 +184,6 @@ export default function Home() {
               </a>
             </div>
             <div className="mobile-menu-secondary">
-              <a href="#espacio" className="mob-link mob-link--secondary mob-link--wave">
-                <WaveText text="Galería" />
-              </a>
               <a href="#reserva" className="mob-link mob-link--secondary mob-link--wave">
                 <WaveText text="Preguntas" />
               </a>
@@ -344,7 +343,10 @@ export default function Home() {
 
         <div className="hero-inner">
           <h1 className="hero-title">
-            <span className="hero-title-reveal">Más que una peluquería canina</span>
+            <span className="hero-title-reveal">
+              <span className="hero-title__line">Más que una</span>
+              <span className="hero-title__line">peluquería canina</span>
+            </span>
           </h1>
           <p className="hero-sub">
             <span className="hero-sub-line">Cuidado, calma y estética</span>
@@ -468,15 +470,23 @@ export default function Home() {
         </div>
       </section>
 
-      <hr className="ornament" />
+      <div className="section-separator section-separator--dark" aria-hidden={true} />
+
+      <EspacioHorizontalSection />
 
       <section id="servicios">
         <div className="servicios-parallax-layer servicios-parallax-layer--heading">
-          <header className="servicios-heading reveal">
-            <h2 className="servicios-heading__title">
-              <span className="hero-title-reveal">CUIDADO INTEGRAL</span>
-            </h2>
-          </header>
+          <div className="servicios-heading-viewport">
+            <header className="servicios-heading servicios-heading-display">
+              <h2 className="servicios-heading__title">
+                <span className="servicios-heading-reveal">
+                  Cuidado
+                  <br aria-hidden="true" />
+                  integral
+                </span>
+              </h2>
+            </header>
+          </div>
         </div>
 
         <div className="servicios-parallax-layer servicios-parallax-layer--carousel reveal">
@@ -486,95 +496,7 @@ export default function Home() {
         </div>
       </section>
 
-      <hr
-        className="ornament"
-        style={{ borderColor: "rgba(187,149,93,.1)" }}
-      />
-
-      <section id="espacio">
-        <div className="espacio-text reveal visible">
-          <span className="section-label">El Espacio</span>
-          <h2 className="section-title">
-            Transparencia
-            <br />
-            por <em>diseño</em>
-          </h2>
-          <p className="section-body">
-            Una estética que no oculta nada. La zona de trabajo es visible
-            desde el exterior a través de cristal. Nada pasa desapercibido.
-          </p>
-          <p className="section-body" style={{ marginTop: 16 }}>
-            El interiorismo fue pensado desde el inicio para transmitir orden,
-            limpieza y calma. Materiales nobles, paleta contenida, sin excesos.
-          </p>
-
-          <div className="espacio-stats">
-            <div>
-              <p className="stat-num">01</p>
-              <p className="stat-label">Animal por turno</p>
-            </div>
-            <div>
-              <p className="stat-num">100%</p>
-              <p className="stat-label">Zona visible</p>
-            </div>
-            <div>
-              <p className="stat-num">∞</p>
-              <p className="stat-label">Cuidado</p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="espacio-visual reveal visible"
-          style={{ transitionDelay: "0.2s" }}
-        >
-          <div className="espacio-panels">
-            <div className="espacio-panel espacio-panel--hero">
-              <div className="espacio-panel-bg">
-                <Image
-                  src="/foto1.jpg"
-                  alt="Interior Maison Vigo — vista frontal del espacio."
-                  fill
-                  className="espacio-panel-img"
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                  quality={88}
-                />
-              </div>
-              <span className="espacio-panel-label">
-                Interior — Vista frontal
-              </span>
-            </div>
-            <div className="espacio-panel">
-              <div className="espacio-panel-bg">
-                <Image
-                  src="/foto2.jpg"
-                  alt="Zona de trabajo Maison Vigo."
-                  fill
-                  className="espacio-panel-img"
-                  sizes="(max-width: 900px) 100vw, 25vw"
-                  quality={88}
-                />
-              </div>
-              <span className="espacio-panel-label">Zona de trabajo</span>
-            </div>
-            <div className="espacio-panel">
-              <div className="espacio-panel-bg">
-                <Image
-                  src="/foto3.jpg"
-                  alt="Zona de espera Maison Vigo."
-                  fill
-                  className="espacio-panel-img"
-                  sizes="(max-width: 900px) 100vw, 25vw"
-                  quality={88}
-                />
-              </div>
-              <span className="espacio-panel-label">Zona de espera</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <hr className="ornament" />
+      <RitmoCuidadoAccordion />
 
       <section id="reserva">
         <span className="section-label reveal visible">Reservas</span>
@@ -649,11 +571,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <hr
-        className="ornament"
-        style={{ borderColor: "rgba(187,149,93,.1)" }}
-      />
 
       <section id="contacto">
         <div className="contact-block reveal visible">

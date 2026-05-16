@@ -11,6 +11,9 @@ export function HomeEffects() {
     const conceptoSection = document.getElementById("concepto");
     const serviciosSection = document.getElementById("servicios");
     const conceptoTitle = document.querySelector<HTMLElement>(".concepto-title-display");
+    const serviciosHeadingDisplay = document.querySelector<HTMLElement>(
+      ".servicios-heading-display",
+    );
     const body = document.body;
     const introEl = document.getElementById("logoIntro");
     /** Piezas terminan ~3.5s → vuelo inmediato */
@@ -109,11 +112,17 @@ export function HomeEffects() {
     let lenisRafId: number | undefined;
 
     if (!prefersReducedMotion) {
+      const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
       lenis = new Lenis({
         duration: 1.08,
-        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        easing: lenisEase,
         wheelMultiplier: 0.9,
         touchMultiplier: 1,
+        /** Enlaces # (p. ej. hero → concepto) con scroll animado; `html` usa `scroll-behavior: auto` con Lenis */
+        anchors: {
+          duration: 1.55,
+          easing: lenisEase,
+        },
       });
 
       const lenisRaf = (time: number) => {
@@ -140,6 +149,7 @@ export function HomeEffects() {
     let scrollLockCount = 0;
     let lastScrollY = window.scrollY;
     let conceptoTitleRevealed = false;
+    let serviciosTitleRevealed = false;
 
     const getScrollY = () => (lenis ? lenis.scroll : window.scrollY);
 
@@ -371,6 +381,13 @@ export function HomeEffects() {
             "--servicios-parallax",
             serviciosParallax.toFixed(3),
           );
+        }
+      }
+      if (!serviciosTitleRevealed && serviciosHeadingDisplay) {
+        const hr = serviciosHeadingDisplay.getBoundingClientRect();
+        if (hr.top < window.innerHeight * 0.58) {
+          serviciosHeadingDisplay.classList.add("is-revealed");
+          serviciosTitleRevealed = true;
         }
       }
       lastScrollY = currentScrollY;
