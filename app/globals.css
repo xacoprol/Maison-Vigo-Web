@@ -850,6 +850,10 @@ nav.scrolled .nav-brand-piece--one {
   position: relative;
   z-index: 2;
 }
+
+.cta-reserva-label__short {
+  display: none;
+}
 .mobile-menu-book-ring {
   position: absolute;
   inset: -1px;
@@ -1641,7 +1645,7 @@ img.concepto-quote-mark {
   margin: 0;
   font-family: var(--ff-serif);
   font-weight: 400;
-  font-size: clamp(64px, 17vw, min(220px, 22vw));
+  font-size: clamp(52px, 14vw, min(176px, 18vw));
   line-height: 0.88;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1944,15 +1948,15 @@ img.concepto-quote-mark {
 /* —— El ritmo del cuidado (acordeón tipográfico) —— */
 #ritmo-cuidado.ritmo-cuidado {
   position: relative;
-  --ritmo-bg: #201b1c;
-  --servicios-bg: #201b1c;
+  --ritmo-bg: #063e45;
+  --servicios-bg: #063e45;
   --servicios-ring-duration: 1.15s;
   --servicios-ring-easing: cubic-bezier(0.16, 1, 0.3, 1);
   --ritmo-panel-duration: 1.6s;
   --ritmo-panel-easing: cubic-bezier(0.65, 0, 0.35, 1);
   --ritmo-panel-transition: var(--ritmo-panel-duration)
     var(--ritmo-panel-easing);
-  background: #201b1c;
+  background: #063e45;
   color: var(--cream);
   min-height: 100vh;
   min-height: 100svh;
@@ -2419,107 +2423,6 @@ img.concepto-quote-mark {
       0 0 0 1px rgba(187, 149, 93, 0.1);
   }
 }
-#reserva {
-  background: var(--black);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-#reserva .section-label {
-  text-align: center;
-}
-#reserva .section-title {
-  color: var(--cream);
-  text-align: center;
-}
-#reserva .section-body {
-  color: rgba(244, 244, 242, 0.4);
-  text-align: center;
-  margin: 0 auto 48px;
-}
-.reserva-form {
-  display: flex;
-  gap: 0;
-  max-width: 480px;
-  width: 100%;
-  border: 1px solid rgba(187, 149, 93, 0.3);
-}
-.reserva-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 18px 24px;
-  font-family: var(--ff-sans);
-  font-size: 13px;
-  color: var(--cream);
-  letter-spacing: 0.06em;
-}
-.reserva-input::placeholder {
-  color: rgba(244, 244, 242, 0.25);
-}
-.reserva-btn {
-  background: var(--gold);
-  border: none;
-  cursor: pointer;
-  padding: 18px 28px;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--black);
-  font-family: var(--ff-sans);
-  transition: background 0.3s;
-  white-space: nowrap;
-}
-.reserva-btn:hover {
-  background: var(--gold-lt);
-}
-.reserva-note {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(244, 244, 242, 0.2);
-  margin-top: 20px;
-}
-.reserva-options {
-  display: flex;
-  gap: 32px;
-  margin-top: 64px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.reserva-option {
-  text-align: center;
-  padding: 40px 48px;
-  border: 1px solid rgba(187, 149, 93, 0.15);
-  transition: border-color 0.3s;
-}
-.reserva-option:hover {
-  border-color: rgba(187, 149, 93, 0.4);
-}
-.reserva-option-icon {
-  font-family: var(--ff-serif);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 12px;
-}
-.reserva-option-title {
-  font-family: var(--ff-serif);
-  font-size: 20px;
-  color: var(--cream);
-  margin-bottom: 8px;
-}
-.reserva-option-desc {
-  font-size: 12px;
-  color: rgba(244, 244, 242, 0.35);
-  line-height: 1.6;
-  font-weight: 300;
-}
-
 #contacto {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -2730,7 +2633,7 @@ footer {
       calc(clamp(4px, 2vw, 12px) + 150px);
   }
   .servicios-heading__title {
-    font-size: clamp(52px, 19vw, 120px);
+    font-size: clamp(42px, 15vw, 96px);
     line-height: 0.86;
   }
   nav {
@@ -2752,6 +2655,16 @@ footer {
   .nav-links,
   .nav-cta {
     display: none;
+  }
+  .hamburger {
+    gap: 0;
+    padding: 6px;
+  }
+  .hamburger-label {
+    display: none;
+  }
+  .hamburger-icon {
+    width: 26px;
   }
   .mobile-menu {
     grid-template-columns: 1fr;
@@ -2796,6 +2709,12 @@ footer {
     width: 176px;
     height: 176px;
     font-size: 12px;
+  }
+  .mobile-menu-book .cta-reserva-label__full {
+    display: none;
+  }
+  .mobile-menu-book .cta-reserva-label__short {
+    display: inline;
   }
   .mobile-menu-book:hover {
     transform: translateY(-50%);
@@ -2883,16 +2802,6 @@ footer {
   #contacto {
     grid-template-columns: 1fr;
     gap: 40px;
-  }
-  .reserva-form {
-    flex-direction: column;
-  }
-  .reserva-input {
-    border-bottom: 1px solid rgba(187, 149, 93, 0.2);
-  }
-  .reserva-options {
-    flex-direction: column;
-    align-items: center;
   }
   footer {
     flex-direction: column;

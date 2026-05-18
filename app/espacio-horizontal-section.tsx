@@ -224,6 +224,8 @@ export class EspacioHorizontalScroll {
 
     const espacioX =
       -this.espacioCurrentProgress * this.espacioMeasure.espacioMaxTranslate;
+    const espacioPanelTravel =
+      this.espacioCurrentProgress * Math.max(this.espacioPanels.length - 1, 1);
 
     this.espacioRoot.style.setProperty(
       "--espacio-progress",
@@ -237,11 +239,18 @@ export class EspacioHorizontalScroll {
         1,
       ).toFixed(4),
     );
-    this.espacioRoot.classList.toggle(
-      "espacio--final",
-      this.espacioCurrentProgress > 0.92,
-    );
     this.espacioTrack.style.transform = `translate3d(${espacioX}px, 0, 0)`;
+    this.espacioPanels.forEach((espacioPanel, espacioIndex) => {
+      const espacioPanelParallax = this.espacioClamp(
+        espacioIndex - espacioPanelTravel,
+        -1,
+        1,
+      );
+      espacioPanel.style.setProperty(
+        "--espacio-image-parallax",
+        espacioPanelParallax.toFixed(4),
+      );
+    });
 
     if (
       this.espacioCurrentProgress !== this.espacioTargetProgress ||
@@ -259,8 +268,8 @@ export class EspacioHorizontalScroll {
     this.espacioRafId = requestAnimationFrame(this.update);
   }
 
-  private espacioClamp(espacioValue: number) {
-    return Math.min(Math.max(espacioValue, 0), 1);
+  private espacioClamp(espacioValue: number, espacioMin = 0, espacioMax = 1) {
+    return Math.min(Math.max(espacioValue, espacioMin), espacioMax);
   }
 }
 
@@ -318,7 +327,7 @@ export function EspacioHorizontalSection() {
             </article>
           ))}
         </div>
-        <div className="espacio__right-fade" aria-hidden={true} />
+        <div className="espacio__edge-fade" aria-hidden={true} />
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import { EspacioHorizontalSection } from "./espacio-horizontal-section";
 import { HomeEffects } from "./home-effects";
 import { RitmoCuidadoAccordion } from "./ritmo-cuidado-accordion";
 import { ServiciosCarousel } from "./servicios-carousel";
+import { ReservaCtaLabel } from "./reserva-cta-label";
 import { WaveText } from "./wave-text";
 
 export default function Home() {
@@ -145,7 +146,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <WaveText text="Reserva una cita" />
+            <ReservaCtaLabel />
           </a>
         </div>
       </nav>
@@ -184,9 +185,6 @@ export default function Home() {
               </a>
             </div>
             <div className="mobile-menu-secondary">
-              <a href="#reserva" className="mob-link mob-link--secondary mob-link--wave">
-                <WaveText text="Preguntas" />
-              </a>
               <a href="#contacto" className="mob-link mob-link--secondary mob-link--wave">
                 <WaveText text="Contactos" />
               </a>
@@ -221,6 +219,7 @@ export default function Home() {
           id="openReservaPanelFromMenu"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Reserva una cita"
         >
           <svg
             className="mobile-menu-book-ring"
@@ -235,7 +234,7 @@ export default function Home() {
             />
           </svg>
           <span className="mobile-menu-book-label">
-            <WaveText text="Reserva una cita" />
+            <ReservaCtaLabel compactOnMobile />
           </span>
         </a>
 
@@ -497,80 +496,6 @@ export default function Home() {
       </section>
 
       <RitmoCuidadoAccordion />
-
-      <section id="reserva">
-        <span className="section-label reveal visible">Reservas</span>
-        <h2
-          className="section-title reveal visible"
-          style={{ transitionDelay: "0.1s" }}
-        >
-          Reserva tu
-          <br />
-          <em>cita</em>
-        </h2>
-        <p
-          className="section-body reveal visible"
-          style={{ transitionDelay: "0.2s" }}
-        >
-          Escríbenos con tu nombre y el de tu compañero. Te contactaremos para
-          confirmar fecha y hora.
-        </p>
-
-        <div
-          className="reserva-form reveal visible"
-          style={{ transitionDelay: "0.3s" }}
-        >
-          <input
-            className="reserva-input"
-            type="tel"
-            placeholder="+34 600 000 000"
-            name="phone"
-            autoComplete="tel"
-          />
-          <button type="button" className="reserva-btn">
-            Contactar
-          </button>
-        </div>
-        <p
-          className="reserva-note reveal visible"
-          style={{ transitionDelay: "0.4s" }}
-        >
-          También por WhatsApp o llamada directa
-        </p>
-
-        <div
-          className="reserva-options reveal visible"
-          style={{ transitionDelay: "0.5s" }}
-        >
-          <div className="reserva-option">
-            <p className="reserva-option-icon">Teléfono</p>
-            <h3 className="reserva-option-title">Llamada</h3>
-            <p className="reserva-option-desc">
-              Lunes a sábado
-              <br />
-              9:30 — 19:00 h
-            </p>
-          </div>
-          <div className="reserva-option">
-            <p className="reserva-option-icon">Mensaje</p>
-            <h3 className="reserva-option-title">WhatsApp</h3>
-            <p className="reserva-option-desc">
-              Respuesta en menos
-              <br />
-              de 2 horas
-            </p>
-          </div>
-          <div className="reserva-option">
-            <p className="reserva-option-icon">Online</p>
-            <h3 className="reserva-option-title">Próximamente</h3>
-            <p className="reserva-option-desc">
-              Sistema de reservas
-              <br />
-              online en desarrollo
-            </p>
-          </div>
-        </div>
-      </section>
 
       <section id="contacto">
         <div className="contact-block reveal visible">
