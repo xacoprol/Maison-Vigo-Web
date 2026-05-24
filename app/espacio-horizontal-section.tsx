@@ -18,8 +18,8 @@ const espacioPanels = [
     body: (
       <>
         Maison Vigo nace como un espacio pensado para el cuidado desde la calma,
-        la observación y el tiempo.{" "}
-        Luz, materiales y ritmo acompañan cada experiencia desde la entrada.
+        la observación y el tiempo. La luz, los materiales, el aroma y el ritmo
+        acompañan cada experiencia desde la entrada.
       </>
     ),
     image: "/assets/images/el-espacio.webp",
@@ -115,6 +115,8 @@ export class EspacioHorizontalScroll {
   };
   private espacioReducedMotion = false;
   private espacioIsDestroyed = false;
+  private espacioSectionObserver: IntersectionObserver | null = null;
+  private espacioFirstIntroRevealed = false;
 
   constructor(espacioRoot: HTMLElement) {
     const espacioTrack = espacioRoot.querySelector<HTMLElement>(
@@ -138,11 +140,40 @@ export class EspacioHorizontalScroll {
     this.onResize();
     window.addEventListener("scroll", this.onScroll, { passive: true });
     window.addEventListener("resize", this.onResize);
+    if (this.espacioReducedMotion) {
+      this.espacioPanels.forEach((espacioPanel, espacioIndex) => {
+        if (espacioIndex === 0) {
+          this.espacioRevealIntro(espacioPanel);
+        } else {
+          this.espacioRevealImage(espacioPanel);
+          this.espacioRevealTitle(espacioPanel);
+        }
+      });
+    } else {
+      this.espacioSectionObserver = new IntersectionObserver(
+        ([espacioEntry]) => {
+          if (!espacioEntry?.isIntersecting || this.espacioFirstIntroRevealed) {
+            return;
+          }
+          const espacioFirstPanel = this.espacioPanels[0];
+          if (espacioFirstPanel) {
+            this.espacioRevealIntro(espacioFirstPanel);
+            this.espacioFirstIntroRevealed = true;
+          }
+          this.espacioSectionObserver?.disconnect();
+          this.espacioSectionObserver = null;
+        },
+        { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+      );
+      this.espacioSectionObserver.observe(this.espacioRoot);
+    }
     this.onScroll();
   }
 
   destroy() {
     this.espacioIsDestroyed = true;
+    this.espacioSectionObserver?.disconnect();
+    this.espacioSectionObserver = null;
     window.removeEventListener("scroll", this.onScroll);
     window.removeEventListener("resize", this.onResize);
     cancelAnimationFrame(this.espacioRafId);
@@ -221,7 +252,6 @@ export class EspacioHorizontalScroll {
     ) {
       this.espacioCurrentTitleProgress = this.espacioTargetTitleProgress;
     }
-
     const espacioX =
       -this.espacioCurrentProgress * this.espacioMeasure.espacioMaxTranslate;
     const espacioPanelTravel =
@@ -250,6 +280,14 @@ export class EspacioHorizontalScroll {
         "--espacio-image-parallax",
         espacioPanelParallax.toFixed(4),
       );
+      if (
+        !this.espacioReducedMotion &&
+        espacioIndex > 0 &&
+        Math.abs(espacioIndex - espacioPanelTravel) < 0.38
+      ) {
+        this.espacioRevealImage(espacioPanel);
+        this.espacioRevealTitle(espacioPanel);
+      }
     });
 
     if (
@@ -270,6 +308,23 @@ export class EspacioHorizontalScroll {
 
   private espacioClamp(espacioValue: number, espacioMin = 0, espacioMax = 1) {
     return Math.min(Math.max(espacioValue, espacioMin), espacioMax);
+  }
+
+  private espacioRevealIntro(espacioPanel: HTMLElement) {
+    this.espacioRevealTitle(espacioPanel);
+    this.espacioRevealImage(espacioPanel);
+  }
+
+  private espacioRevealImage(espacioPanel: HTMLElement) {
+    if (espacioPanel.classList.contains("espacio__panel--image-in")) return;
+    espacioPanel.classList.add("espacio__panel--image-in");
+  }
+
+  private espacioRevealTitle(espacioPanel: HTMLElement) {
+    const espacioTitle = espacioPanel.querySelector<HTMLElement>(".espacio__title");
+    if (espacioTitle && !espacioTitle.classList.contains("is-revealed")) {
+      espacioTitle.classList.add("is-revealed");
+    }
   }
 }
 
@@ -308,19 +363,25 @@ export function EspacioHorizontalSection() {
             >
               <div className="espacio__panel-grid">
                 <figure className="espacio__image-frame">
-                  <Image
-                    src={espacioPanel.image}
-                    alt={espacioPanel.imageAlt}
-                    fill
-                    sizes="100vw"
-                    className="espacio__image"
-                    quality={88}
-                  />
+                  <div className="espacio__image-stage">
+                    <Image
+                      src={espacioPanel.image}
+                      alt={espacioPanel.imageAlt}
+                      fill
+                      sizes="100vw"
+                      className="espacio__image"
+                      quality={88}
+                    />
+                  </div>
                 </figure>
 
                 <div className="espacio__copy">
                   <p className="espacio__eyebrow">{espacioPanel.eyebrow}</p>
-                  <h2 className="espacio__title">{espacioPanel.title}</h2>
+                  <h2 className="espacio__title">
+                    <span className="espacio__title-reveal">
+                      {espacioPanel.title}
+                    </span>
+                  </h2>
                   <p className="espacio__body">{espacioPanel.body}</p>
                 </div>
               </div>

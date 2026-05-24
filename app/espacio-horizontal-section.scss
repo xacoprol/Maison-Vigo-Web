@@ -93,6 +93,26 @@
   box-sizing: border-box;
 }
 
+@keyframes espacioImageRiseIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, clamp(56px, 10vh, 104px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes espacioImageStageZoomIn {
+  from {
+    transform: scale(1.18);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 .espacio__image-frame {
   position: absolute;
   z-index: 1;
@@ -101,14 +121,47 @@
   background: rgba(244, 244, 242, 0.04);
   box-shadow:
     0 36px 88px rgba(0, 0, 0, 0.5);
-  will-change: opacity;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+/* Panel 1: el marco sube desde abajo (solo esta foto) */
+.espacio__panel--one .espacio__image-frame {
+  transform: translate3d(0, clamp(56px, 10vh, 104px), 0);
+}
+
+.espacio__panel--one.espacio__panel--image-in .espacio__image-frame {
+  animation: espacioImageRiseIn 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.18s;
+}
+
+/* Paneles 2–4: ya visibles; solo zoom lento al centrarse */
+.espacio__panel:not(.espacio__panel--one) .espacio__image-frame {
+  opacity: 1;
+}
+
+.espacio__image-stage {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.espacio__panel:not(.espacio__panel--one) .espacio__image-stage {
+  transform: scale(1.18);
+}
+
+.espacio__panel:not(.espacio__panel--one).espacio__panel--image-in .espacio__image-stage {
+  animation: espacioImageStageZoomIn 2.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .espacio__image {
   object-fit: cover;
   object-position: center;
+  /* parallax × negativo → la imagen se desplaza de izquierda a derecha al avanzar el scroll */
   transform: scale(1.12)
-    translate3d(calc(var(--espacio-image-parallax, 0) * 34px), 0, 0);
+    translate3d(calc(var(--espacio-image-parallax, 0) * -48px), 0, 0);
   will-change: transform;
 }
 
@@ -147,6 +200,21 @@
   text-shadow: 0 20px 70px rgba(0, 0, 0, 0.56);
   transform: translate3d(0, calc((var(--espacio-progress) - 0.5) * -22px), 0);
   will-change: transform;
+}
+
+.espacio__title-reveal {
+  display: block;
+  clip-path: ellipse(52% 0% at 50% 138%);
+  transform: scale(0.8);
+  will-change: clip-path, transform;
+}
+
+.espacio__title.is-revealed .espacio__title-reveal {
+  animation: ellipseReveal 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.espacio__panel--one .espacio__title.is-revealed .espacio__title-reveal {
+  animation-duration: 2.1s;
 }
 
 .espacio__title-word--cream {
@@ -286,7 +354,9 @@
     max-width: min(42vw, 540px);
     margin: 0;
     text-align: left;
+    text-indent: clamp(180px, 30vw, 360px);
     font-size: clamp(11px, 1.08vw, 16px);
+    transform: translate3d(clamp(152px, 22vw, 300px), 0, 0);
   }
 }
 
@@ -342,6 +412,16 @@
     color: var(--espacio-gold);
   }
 
+  .espacio__title-word--gold {
+    margin-left: -30px;
+    width: fit-content;
+    transform: translate3d(
+      calc(-0.85em + var(--espacio-title-progress) * 0.85em),
+      0,
+      0
+    );
+  }
+
   .espacio__body {
     margin-left: auto;
     margin-right: auto;
@@ -351,8 +431,29 @@
 @media (prefers-reduced-motion: reduce) {
   .espacio__track,
   .espacio__title,
-  .espacio__image {
+  .espacio__image,
+  .espacio__image-stage,
+  .espacio__title-word--cream,
+  .espacio__title-word--gold {
     transform: none !important;
+  }
+
+  .espacio__panel--image-in .espacio__image-frame,
+  .espacio__image-frame {
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) !important;
+    animation: none !important;
+  }
+
+  .espacio__panel:not(.espacio__panel--one).espacio__panel--image-in .espacio__image-stage {
+    transform: scale(1) !important;
+    animation: none !important;
+  }
+
+  .espacio__title.is-revealed .espacio__title-reveal {
+    animation: none;
+    clip-path: ellipse(84% 128% at 50% 100%);
+    transform: none;
   }
 }
 
@@ -482,6 +583,13 @@
       max-width: min(calc(100vw - 40px), 36ch);
       font-size: clamp(10px, 2.85vw, 14px);
       text-indent: clamp(40px, 12vw, 80px);
+      transform: translate3d(clamp(76px, 18vw, 132px), 0, 0);
+    }
+  }
+
+  .espacio__panel--four {
+    .espacio__title-word--gold {
+      margin-left: -30px;
     }
   }
 

@@ -241,24 +241,6 @@ body.intro-complete .nav-brand-anim {
   opacity: 1;
 }
 
-.seo-warning {
-  position: fixed;
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
-  z-index: 120;
-  padding: 8px 14px;
-  border: 1px solid rgba(187, 149, 93, 0.55);
-  background: rgba(11, 11, 11, 0.85);
-  color: rgba(244, 244, 242, 0.95);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
 .cookie-banner {
   position: fixed;
   left: calc(var(--nav-pad-x) + 4px);
@@ -1328,13 +1310,6 @@ section {
   color: var(--muted);
   max-width: 540px;
   font-weight: 300;
-}
-.section-separator {
-  position: relative;
-  height: clamp(72px, 10vw, 180px);
-}
-.section-separator--dark {
-  background: #050505;
 }
 #concepto {
   --concepto-parallax-progress: 0;
@@ -2582,15 +2557,6 @@ footer {
 @media (max-width: 900px) {
   :root {
     --nav-pad-x: 32px;
-  }
-  .seo-warning {
-    left: 14px;
-    right: 14px;
-    bottom: 10px;
-    transform: none;
-    text-align: center;
-    letter-spacing: 0.08em;
-    white-space: normal;
   }
   section {
     padding: 80px 28px;

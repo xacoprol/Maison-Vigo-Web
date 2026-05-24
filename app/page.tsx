@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { allowIndexing, bookingUrl } from "@/lib/site-config";
+import { bookingUrl } from "@/lib/site-config";
 
 import { EspacioHorizontalSection } from "./espacio-horizontal-section";
 import { HomeEffects } from "./home-effects";
@@ -37,11 +37,6 @@ export default function Home() {
         />
       </div>
 
-      {!allowIndexing && (
-        <div className="seo-warning" role="status" aria-live="polite">
-          Modo no indexado activo (SEO desactivado para buscadores)
-        </div>
-      )}
       <div className="cookie-banner" id="cookieBanner" role="status" aria-live="polite">
         <p className="cookie-banner-text">
           Este sitio recopila{" "}
@@ -468,8 +463,6 @@ export default function Home() {
           </a>
         </div>
       </section>
-
-      <div className="section-separator section-separator--dark" aria-hidden={true} />
 
       <EspacioHorizontalSection />
 

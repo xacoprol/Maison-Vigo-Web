@@ -37,8 +37,21 @@ export function rootMetadata(): Metadata {
     },
     description: siteConfig.defaultDescription,
     applicationName: siteConfig.shortName,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: siteConfig.shortName,
+      statusBarStyle: "black-translucent",
+    },
     icons: {
-      icon: "/favicon.svg",
+      icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+      apple: [
+        {
+          url: "/icons/apple-touch-icon.png",
+          sizes: "180x180",
+          type: "image/png",
+        },
+      ],
     },
     robots: allowIndexing ? productionRobots : stagingRobots,
     alternates: {
