@@ -1791,7 +1791,7 @@ img.concepto-quote-mark {
   inset: 10%;
   z-index: 0;
   border-radius: 999px;
-  background: var(--servicios-bg, #050505);
+  background: transparent;
 }
 .servicios-carousel__plus {
   position: relative;
@@ -2225,7 +2225,7 @@ img.concepto-quote-mark {
   border-color: transparent;
 }
 .ritmo-cuidado__item--open .ritmo-cuidado__toggle .servicios-carousel__badge-disc {
-  background: var(--ritmo-bg, #201b1c);
+  background: transparent;
 }
 .ritmo-cuidado__toggle-mark .servicios-carousel__badge-disc {
   position: absolute;
