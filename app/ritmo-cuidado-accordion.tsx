@@ -292,7 +292,8 @@ export function RitmoCuidadoAccordion() {
                             height={IMG_PANEL_H}
                             className="ritmo-cuidado__img"
                             sizes="(max-width: 900px) 88vw, min(520px, 72vw)"
-                            quality={88}
+                            quality={75}
+                            loading="lazy"
                           />
                         </div>
                         <div className="ritmo-cuidado__desc">
@@ -326,7 +327,8 @@ export function RitmoCuidadoAccordion() {
                 height={TIJERA_H}
                 className="ritmo-cuidado__float-img ritmo-cuidado__float-img--tijera"
                 sizes="360px"
-                quality={88}
+                quality={75}
+                loading="lazy"
               />
             </span>
           </div>
@@ -348,7 +350,8 @@ export function RitmoCuidadoAccordion() {
                 height={DESLANADOR_H}
                 className="ritmo-cuidado__float-img ritmo-cuidado__float-img--deslanador"
                 sizes="330px"
-                quality={88}
+                quality={75}
+                loading="lazy"
               />
             </span>
           </div>

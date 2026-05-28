@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -8,6 +9,8 @@ import {
   useRef,
   useState,
 } from "react";
+
+import { servicioSlugFromLabel } from "@/lib/servicios-data";
 
 import { WaveText } from "./wave-text";
 
@@ -78,6 +81,7 @@ export function ServiciosCarousel() {
   const isMobileRef = useRef(false);
   const rafRef = useRef<number>(0);
   const reducedMotionRef = useRef(false);
+  const sectionInViewRef = useRef(false);
   /** Móvil: arrastre horizontal; puntero inicial hasta umbral de movimiento */
   const mobileDragRef = useRef<{
     pointerId: number | null;
@@ -208,8 +212,19 @@ export function ServiciosCarousel() {
   }, []);
 
   useEffect(() => {
+    const section = document.getElementById("servicios");
+    const observer =
+      section &&
+      new IntersectionObserver(
+        ([entry]) => {
+          sectionInViewRef.current = Boolean(entry?.isIntersecting);
+        },
+        { rootMargin: "20% 0px", threshold: 0 },
+      );
+    if (section && observer) observer.observe(section);
+
     const loop = () => {
-      if (!reducedMotionRef.current) {
+      if (!reducedMotionRef.current && sectionInViewRef.current) {
         const cur = currentRef.current;
         const tgt = targetRef.current;
         let next = cur + (tgt - cur) * 0.038;
@@ -232,7 +247,10 @@ export function ServiciosCarousel() {
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      observer?.disconnect();
+      cancelAnimationFrame(rafRef.current);
+    };
   }, [applyTransform]);
 
   const DRAG_THRESHOLD_PX = 12;
@@ -321,7 +339,7 @@ export function ServiciosCarousel() {
               fill
               className="servicios-carousel__photo-img"
               sizes="(max-width: 900px) min(92vw, 572px), min(960px, 96vw)"
-              quality={88}
+              quality={75}
               priority={label === "Grooming"}
             />
           </div>
@@ -343,12 +361,17 @@ export function ServiciosCarousel() {
               key={isMobile ? `m-${idx}-${label}` : `d-${label}`}
               className="servicios-carousel__cell"
             >
-              <button
-                type="button"
+              <Link
+                href={`/servicios/${servicioSlugFromLabel(label) ?? ""}`}
                 className="servicios-carousel__orb"
                 aria-label={`${label}. ${SERVICE_SUBTITLES[label]}`}
                 onPointerEnter={() => setHighlightedId(label)}
                 onFocus={() => setHighlightedId(label)}
+                onClick={(event) => {
+                  if (mobileDragRef.current.active) {
+                    event.preventDefault();
+                  }
+                }}
               >
                 <svg
                   className="servicios-carousel__ring"
@@ -391,7 +414,7 @@ export function ServiciosCarousel() {
                     {SERVICE_SUBTITLES[label]}
                   </span>
                 </span>
-              </button>
+              </Link>
             </div>
           ))}
         </div>

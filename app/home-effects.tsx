@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import Lenis from "lenis";
 
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+
+/**
+ * Efectos exclusivos de la home: animación de intro (logoIntro → wordmark nav)
+ * y parallaxes / reveals de hero, concepto y servicios. La UI persistente
+ * (Lenis, hamburguesa, cookies, reserva) vive en `<SiteEffects />`.
+ *
+ * Se sincroniza con Lenis a través del evento `mv-scroll` emitido por
+ * SiteEffects; si no hay smooth scroll, cae a `scroll` nativo.
+ */
 export function HomeEffects() {
   useEffect(() => {
     const navbar = document.getElementById("navbar");
@@ -10,25 +19,22 @@ export function HomeEffects() {
     const heroSection = document.getElementById("hero");
     const conceptoSection = document.getElementById("concepto");
     const serviciosSection = document.getElementById("servicios");
-    const conceptoTitle = document.querySelector<HTMLElement>(".concepto-title-display");
+    const conceptoTitle = document.querySelector<HTMLElement>(
+      ".concepto-title-display",
+    );
     const serviciosHeadingDisplay = document.querySelector<HTMLElement>(
       ".servicios-heading-display",
     );
     const body = document.body;
     const introEl = document.getElementById("logoIntro");
-    /** Piezas terminan ~3.5s → vuelo inmediato */
     const introLogoFlightMs = 3500;
-    /** Si no llega animationend (raro), cerrar intro igualmente */
     const introCompleteFallbackMs = introLogoFlightMs + 2600;
-    /** Solo si falla la medición del wordmark del nav antes del vuelo */
     const introFlightEndScaleFallback = 0.33;
     const introSeenCookie = "mv_intro_seen";
     const introSeenMaxAgeSec = 60 * 60 * 24;
-    const cookieConsentName = "mv_cookie_consent";
-    const cookieConsentMaxAgeSec = 60 * 60 * 24 * 180;
-    const cookieBanner = document.getElementById("cookieBanner");
-    const cookieAccept = document.getElementById("cookieAccept");
-    const cookieReject = document.getElementById("cookieReject");
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     const unionBounds = (rects: DOMRect[]) => {
       if (!rects.length) return null;
@@ -56,7 +62,9 @@ export function HomeEffects() {
       );
       if (!introPieces.length) return;
 
-      const introRects = introPieces.map((piece) => piece.getBoundingClientRect());
+      const introRects = introPieces.map((piece) =>
+        piece.getBoundingClientRect(),
+      );
       const introUnion = unionBounds(introRects);
       if (!introUnion) return;
 
@@ -69,8 +77,10 @@ export function HomeEffects() {
       const tw = introWordmark?.getBoundingClientRect();
       const nw = navWordmark?.getBoundingClientRect();
 
-      let alignIntroCx = introUnion.left + (introUnion.right - introUnion.left) / 2;
-      let alignIntroCy = introUnion.top + (introUnion.bottom - introUnion.top) / 2;
+      let alignIntroCx =
+        introUnion.left + (introUnion.right - introUnion.left) / 2;
+      let alignIntroCy =
+        introUnion.top + (introUnion.bottom - introUnion.top) / 2;
       if (tw && tw.width > 0) {
         alignIntroCx = tw.left + tw.width / 2;
         alignIntroCy = tw.top + tw.height / 2;
@@ -81,7 +91,6 @@ export function HomeEffects() {
       let targetScale = introFlightEndScaleFallback;
 
       if (tw && tw.width > 0 && nw && nw.width > 0) {
-        /** Misma anchura visual que el wordmark del header: no “crece” al cambiar al nav */
         targetScale = nw.width / tw.width;
         alignNavCx = nw.left + nw.width / 2;
         alignNavCy = nw.top + nw.height / 2;
@@ -97,146 +106,37 @@ export function HomeEffects() {
       const viewportCenterX = window.innerWidth / 2;
       const viewportCenterY = window.innerHeight / 2;
       const targetX =
-        alignNavCx - viewportCenterX - (alignIntroCx - viewportCenterX) * targetScale;
+        alignNavCx -
+        viewportCenterX -
+        (alignIntroCx - viewportCenterX) * targetScale;
       const targetY =
-        alignNavCy - viewportCenterY - (alignIntroCy - viewportCenterY) * targetScale;
+        alignNavCy -
+        viewportCenterY -
+        (alignIntroCy - viewportCenterY) * targetScale;
       introEl.style.setProperty("--logo-intro-target-x", `${targetX}px`);
       introEl.style.setProperty("--logo-intro-target-y", `${targetY}px`);
       introEl.style.setProperty("--logo-intro-target-scale", `${targetScale}`);
     };
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    let lenis: Lenis | null = null;
-    let lenisRafId: number | undefined;
-
-    if (!prefersReducedMotion) {
-      const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
-      lenis = new Lenis({
-        duration: 1.08,
-        easing: lenisEase,
-        wheelMultiplier: 0.9,
-        touchMultiplier: 1,
-        /** Enlaces # (p. ej. hero → concepto) con scroll animado; `html` usa `scroll-behavior: auto` con Lenis */
-        anchors: {
-          duration: 1.55,
-          easing: lenisEase,
-        },
-      });
-
-      const lenisRaf = (time: number) => {
-        lenis?.raf(time);
-        lenisRafId = window.requestAnimationFrame(lenisRaf);
-      };
-      lenisRafId = window.requestAnimationFrame(lenisRaf);
-    }
 
     let introCompleteFallbackTimer: number | undefined;
     let flightTimer: number | undefined;
     let onResizeIntro: (() => void) | undefined;
     let introFinished = false;
     let introStarted = false;
-    let lockedScrollY = 0;
-    let prevBodyPosition = "";
-    let prevBodyTop = "";
-    let prevBodyLeft = "";
-    let prevBodyRight = "";
-    let prevBodyWidth = "";
-    let prevBodyOverflow = "";
-    let prevBodyPaddingRight = "";
-    let isScrollLocked = false;
-    let scrollLockCount = 0;
-    let lastScrollY = window.scrollY;
     let conceptoTitleRevealed = false;
     let serviciosTitleRevealed = false;
+    let serviciosParallaxTarget = 0;
+    let serviciosParallaxCurrent = 0;
+    let lastScrollY = window.scrollY;
 
-    const getScrollY = () => (lenis ? lenis.scroll : window.scrollY);
-
-    const hasSeenIntroRecently = () => {
-      return document.cookie
+    const hasSeenIntroRecently = () =>
+      document.cookie
         .split(";")
         .map((part) => part.trim())
         .some((part) => part === `${introSeenCookie}=1`);
-    };
-
-    const getCookie = (name: string) => {
-      const found = document.cookie
-        .split(";")
-        .map((part) => part.trim())
-        .find((part) => part.startsWith(`${name}=`));
-      return found ? decodeURIComponent(found.split("=")[1] ?? "") : "";
-    };
 
     const setIntroSeenCookie = () => {
       document.cookie = `${introSeenCookie}=1; Max-Age=${introSeenMaxAgeSec}; Path=/; SameSite=Lax`;
-    };
-
-    const setCookieConsent = (value: "accepted" | "rejected") => {
-      document.cookie = `${cookieConsentName}=${value}; Max-Age=${cookieConsentMaxAgeSec}; Path=/; SameSite=Lax`;
-    };
-
-    const hideCookieBanner = () => {
-      cookieBanner?.classList.add("cookie-banner--hidden");
-    };
-
-    const applyScrollLock = () => {
-      if (isScrollLocked) return;
-      isScrollLocked = true;
-      lockedScrollY = window.scrollY;
-      const scrollbarWidth = Math.max(
-        window.innerWidth - document.documentElement.clientWidth,
-        0,
-      );
-      prevBodyPosition = document.body.style.position;
-      prevBodyTop = document.body.style.top;
-      prevBodyLeft = document.body.style.left;
-      prevBodyRight = document.body.style.right;
-      prevBodyWidth = document.body.style.width;
-      prevBodyOverflow = document.body.style.overflow;
-      prevBodyPaddingRight = document.body.style.paddingRight;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${lockedScrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
-      if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-    };
-
-    const clearScrollLock = () => {
-      if (!isScrollLocked) return;
-      isScrollLocked = false;
-      document.body.style.position = prevBodyPosition;
-      document.body.style.top = prevBodyTop;
-      document.body.style.left = prevBodyLeft;
-      document.body.style.right = prevBodyRight;
-      document.body.style.width = prevBodyWidth;
-      document.body.style.overflow = prevBodyOverflow;
-      document.body.style.paddingRight = prevBodyPaddingRight;
-      window.scrollTo(0, lockedScrollY);
-    };
-
-    const lockScroll = () => {
-      scrollLockCount += 1;
-      if (scrollLockCount === 1) {
-        applyScrollLock();
-      }
-    };
-
-    const unlockScroll = () => {
-      if (scrollLockCount === 0) return;
-      scrollLockCount -= 1;
-      if (scrollLockCount === 0) {
-        clearScrollLock();
-      }
-    };
-
-    const resetScrollLock = () => {
-      scrollLockCount = 0;
-      clearScrollLock();
     };
 
     const finishIntro = () => {
@@ -247,24 +147,21 @@ export function HomeEffects() {
       }
       introEl.removeEventListener("animationend", onIntroFlyEnd);
       /**
-       * `intro-complete` antes que quitar `intro-active`: si no, deja de aplicarse
-       * `logoIntroMove` y el transform del overlay vuelve a identidad un instante
-       * antes de `display:none` → flash/salto al mostrar el nav.
+       * `intro-complete` antes que quitar `intro-active`: si no, deja de
+       * aplicarse `logoIntroMove` y el transform del overlay vuelve a
+       * identidad un instante antes de `display:none` → flash/salto al
+       * mostrar el nav.
        */
       body.classList.add("intro-complete");
       body.classList.remove("intro-active");
       body.classList.remove("intro-logo-flight");
       unlockScroll();
-      if (introStarted) {
-        setIntroSeenCookie();
-      }
+      if (introStarted) setIntroSeenCookie();
     };
 
     const onIntroFlyEnd = (e: AnimationEvent) => {
       if (e.animationName !== "logoIntroMove") return;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(finishIntro);
-      });
+      requestAnimationFrame(() => requestAnimationFrame(finishIntro));
     };
 
     const skipIntro = prefersReducedMotion || hasSeenIntroRecently();
@@ -298,42 +195,93 @@ export function HomeEffects() {
       body.classList.add("intro-complete");
     }
 
-    const cookieConsent = getCookie(cookieConsentName);
-    if (cookieConsent === "accepted" || cookieConsent === "rejected") {
-      hideCookieBanner();
-    }
+    const updateServiciosParallaxTarget = (serviciosRect?: DOMRect) => {
+      if (!serviciosSection || prefersReducedMotion) {
+        serviciosParallaxTarget = 0;
+        return;
+      }
+      const sr = serviciosRect ?? serviciosSection.getBoundingClientRect();
+      const ih = window.innerHeight;
+      if (sr.bottom <= 0) {
+        serviciosParallaxTarget = sr.top < 0 ? 1 : 0;
+        return;
+      }
+      const sectionH = serviciosSection.offsetHeight;
+      const travel = ih * 0.88 + Math.min(sectionH * 0.52, ih * 0.82);
+      serviciosParallaxTarget = (ih * 0.86 - sr.top) / Math.max(travel, 1);
+      serviciosParallaxTarget = Math.min(
+        Math.max(serviciosParallaxTarget, 0),
+        1,
+      );
+    };
 
-    const runScrollEffects = () => {
-      const currentScrollY = getScrollY();
+    let serviciosRafId = 0;
+    const tickServiciosParallax = () => {
+      if (!serviciosSection) {
+        serviciosRafId = 0;
+        return;
+      }
+      if (prefersReducedMotion) {
+        serviciosSection.style.setProperty("--servicios-parallax", "0");
+        serviciosParallaxCurrent = 0;
+        serviciosParallaxTarget = 0;
+        serviciosRafId = 0;
+        return;
+      }
+      const diff = serviciosParallaxTarget - serviciosParallaxCurrent;
+      if (Math.abs(diff) < 0.0006) {
+        serviciosParallaxCurrent = serviciosParallaxTarget;
+      } else {
+        serviciosParallaxCurrent += diff * 0.11;
+      }
+      serviciosSection.style.setProperty(
+        "--servicios-parallax",
+        serviciosParallaxCurrent.toFixed(3),
+      );
+      if (serviciosParallaxCurrent !== serviciosParallaxTarget) {
+        serviciosRafId = window.requestAnimationFrame(tickServiciosParallax);
+      } else {
+        serviciosRafId = 0;
+      }
+    };
+    const ensureServiciosRaf = () => {
+      if (!serviciosRafId) {
+        serviciosRafId = window.requestAnimationFrame(tickServiciosParallax);
+      }
+    };
+
+    const runScrollEffects = (scrollY?: number) => {
+      const currentScrollY =
+        typeof scrollY === "number" ? scrollY : window.scrollY;
       const scrollDelta = currentScrollY - lastScrollY;
       const isScrollingDown = scrollDelta > 2;
       const isScrollingUp = scrollDelta < -2;
-      navbar.classList.toggle("scrolled", currentScrollY > 40);
+      const ih = window.innerHeight;
       if (heroSection) {
         const maxScroll = Math.max(heroSection.clientHeight * 0.78, 1);
         const progress = Math.min(Math.max(currentScrollY / maxScroll, 0), 1);
-        heroSection.style.setProperty("--hero-scroll-progress", progress.toFixed(3));
+        heroSection.style.setProperty(
+          "--hero-scroll-progress",
+          progress.toFixed(3),
+        );
         const heroPassed = currentScrollY > heroSection.offsetHeight - 20;
         if (heroPassed && isScrollingDown) {
           navbar.classList.add("nav-hidden");
         } else if (!heroPassed || isScrollingUp || currentScrollY < 10) {
           navbar.classList.remove("nav-hidden");
         }
-      } else {
-        navbar.classList.remove("nav-hidden");
       }
+      /**
+       * Cachear el rect de servicios: lo usaban `concepto-exit-darken` y
+       * `updateServiciosParallaxTarget`, antes haciendo 2 lecturas por frame.
+       */
+      const serviciosRect = serviciosSection?.getBoundingClientRect();
       if (conceptoSection) {
         const rect = conceptoSection.getBoundingClientRect();
-        const ih = window.innerHeight;
         const parallaxStartY = ih * 0.68;
-        const centerDelta =
-          parallaxStartY - (rect.top + rect.height * 0.5);
+        const centerDelta = parallaxStartY - (rect.top + rect.height * 0.5);
         const denom = ih * 0.55;
         const raw = centerDelta / denom;
-        /**
-         * Antes se acotaba a [-1, 1] y el parallax “moría” al seguir scroll en #servicios.
-         * Sube el techo para que el movimiento siga mientras la sección ya ha subido.
-         */
         const conceptProgress = Math.min(Math.max(raw, -1.15), 2.75);
         const conceptBgProgress = Math.min(Math.abs(conceptProgress), 1.22);
         conceptoSection.style.setProperty(
@@ -344,17 +292,15 @@ export function HomeEffects() {
           "--concepto-bg-parallax-progress",
           conceptBgProgress.toFixed(3),
         );
-        if (!conceptoTitleRevealed && rect.top < window.innerHeight * 0.58) {
+        if (!conceptoTitleRevealed && rect.top < ih * 0.58) {
           conceptoTitle?.classList.add("is-revealed");
           conceptoTitleRevealed = true;
         }
-        if (serviciosSection) {
-          const sr = serviciosSection.getBoundingClientRect();
-          const ih = window.innerHeight;
-          let exitDarken = 0;
-          if (sr.top < ih) {
-            exitDarken = Math.min(Math.max((ih - sr.top) / ih, 0), 1);
-          }
+        if (serviciosRect) {
+          const exitDarken =
+            serviciosRect.top < ih
+              ? Math.min(Math.max((ih - serviciosRect.top) / ih, 0), 1)
+              : 0;
           conceptoSection.style.setProperty(
             "--concepto-exit-darken",
             exitDarken.toFixed(3),
@@ -363,29 +309,11 @@ export function HomeEffects() {
           conceptoSection.style.setProperty("--concepto-exit-darken", "0");
         }
       }
-      if (serviciosSection) {
-        if (prefersReducedMotion) {
-          serviciosSection.style.setProperty("--servicios-parallax", "0");
-        } else {
-          const sr = serviciosSection.getBoundingClientRect();
-          const ih = window.innerHeight;
-          let serviciosParallax = 0;
-          if (sr.bottom > 0) {
-            /** Al bajar por la página la sección sube; avanza 0→1 y empuja título/carrusel hacia arriba */
-            const sectionH = serviciosSection.offsetHeight;
-            const travel = ih * 1.05 + Math.min(sectionH, ih * 1.35);
-            serviciosParallax = (ih * 0.92 - sr.top) / Math.max(travel, 1);
-            serviciosParallax = Math.min(Math.max(serviciosParallax, 0), 1);
-          }
-          serviciosSection.style.setProperty(
-            "--servicios-parallax",
-            serviciosParallax.toFixed(3),
-          );
-        }
-      }
+      updateServiciosParallaxTarget(serviciosRect);
+      ensureServiciosRaf();
       if (!serviciosTitleRevealed && serviciosHeadingDisplay) {
         const hr = serviciosHeadingDisplay.getBoundingClientRect();
-        if (hr.top < window.innerHeight * 0.58) {
+        if (hr.top < ih * 0.58) {
           serviciosHeadingDisplay.classList.add("is-revealed");
           serviciosTitleRevealed = true;
         }
@@ -393,164 +321,18 @@ export function HomeEffects() {
       lastScrollY = currentScrollY;
     };
 
-    let unsubscribeLenisScroll: (() => void) | undefined;
-    if (lenis) {
-      unsubscribeLenisScroll = lenis.on("scroll", runScrollEffects);
-    } else {
-      window.addEventListener("scroll", runScrollEffects, { passive: true });
-    }
-    runScrollEffects();
-
-    const hamburger = document.getElementById("hamburger");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const closeMenuEl = document.getElementById("closeMenu");
-    const reservaPanel = document.getElementById("reservaPanel");
-    const openReservaPanel = document.getElementById("openReservaPanel");
-    const openReservaPanelFromMenu = document.getElementById(
-      "openReservaPanelFromMenu",
-    );
-    const closeReservaPanel = document.getElementById("closeReservaPanel");
-    const mobLinks = document.querySelectorAll<HTMLElement>(".mob-link");
-    const menuPrimaryLinks = document.querySelectorAll<HTMLElement>(
-      ".mobile-menu-primary .mob-link--primary",
-    );
-    const menuMediaLayers = document.querySelectorAll<HTMLElement>(
-      ".mobile-menu-media-layer",
-    );
-
-    const openMenu = () => {
-      if (!mobileMenu) return;
-      if (mobileMenu.classList.contains("open")) return;
-      mobileMenu.classList.add("open");
-      mobileMenu.setAttribute("aria-hidden", "false");
-      hamburger?.setAttribute("aria-expanded", "true");
-      body.classList.add("menu-open");
-      document.documentElement.classList.add("menu-open");
-      lockScroll();
-    };
-    const closeMenuFn = (preserveLock = false) => {
-      if (!mobileMenu) return;
-      if (!mobileMenu.classList.contains("open")) return;
-      mobileMenu.classList.remove("open");
-      mobileMenu.setAttribute("aria-hidden", "true");
-      hamburger?.setAttribute("aria-expanded", "false");
-      body.classList.remove("menu-open");
-      document.documentElement.classList.remove("menu-open");
-      if (!preserveLock) {
-        unlockScroll();
-      }
-    };
-    const toggleMenu = () => {
-      if (!mobileMenu) return;
-      if (mobileMenu.classList.contains("open")) {
-        closeMenuFn();
-      } else {
-        openMenu();
-      }
-    };
-    const onMenuOverlayClick = (event: MouseEvent) => {
-      if (event.target === mobileMenu) {
-        closeMenuFn();
-      }
-    };
-    const onEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (reservaPanel?.classList.contains("open")) {
-          closeReservaPanelFn();
-          return;
-        }
-        closeMenuFn();
-      }
-    };
-    const openReservaPanelFn = () => {
-      if (!reservaPanel) return;
-      if (reservaPanel.classList.contains("open")) return;
-      if (mobileMenu?.classList.contains("open")) {
-        closeMenuFn(true);
-      } else {
-        lockScroll();
-      }
-      reservaPanel.classList.add("open");
-      reservaPanel.setAttribute("aria-hidden", "false");
-      body.classList.add("reserva-open");
-      document.documentElement.classList.add("reserva-open");
-    };
-    const closeReservaPanelFn = () => {
-      if (!reservaPanel) return;
-      if (!reservaPanel.classList.contains("open")) return;
-      reservaPanel.classList.remove("open");
-      reservaPanel.setAttribute("aria-hidden", "true");
-      body.classList.remove("reserva-open");
-      document.documentElement.classList.remove("reserva-open");
-      unlockScroll();
-    };
-    const onReservaOverlayClick = (event: MouseEvent) => {
-      if (event.target === reservaPanel) {
-        closeReservaPanelFn();
-      }
-    };
-    const onOpenReservaClick = (event: Event) => {
-      event.preventDefault();
-      openReservaPanelFn();
-    };
-    const onCloseMenuClick = () => closeMenuFn();
-    const setMenuImage = (imageId: string) => {
-      menuMediaLayers.forEach((layer) => {
-        layer.classList.toggle(
-          "is-active",
-          layer.dataset.menuImage === imageId,
-        );
-      });
-    };
-    const onPrimaryHover = (event: Event) => {
-      const target = event.currentTarget as HTMLElement | null;
-      const imageId = target?.dataset.menuImage;
-      if (!imageId) return;
-      setMenuImage(imageId);
-    };
-    const onPrimaryLeave = () => {
-      setMenuImage("foto1");
+    const onMvScroll = (event: Event) => {
+      const y = (event as CustomEvent<{ y: number }>).detail?.y;
+      runScrollEffects(typeof y === "number" ? y : undefined);
     };
 
-    hamburger?.addEventListener("click", toggleMenu);
-    closeMenuEl?.addEventListener("click", onCloseMenuClick);
-    mobLinks.forEach((l) => l.addEventListener("click", onCloseMenuClick));
-    menuPrimaryLinks.forEach((link) => {
-      link.addEventListener("mouseenter", onPrimaryHover);
-      link.addEventListener("focus", onPrimaryHover);
-      link.addEventListener("mouseleave", onPrimaryLeave);
-      link.addEventListener("blur", onPrimaryLeave);
-    });
-    mobileMenu?.addEventListener("click", onMenuOverlayClick);
-    reservaPanel?.addEventListener("click", onReservaOverlayClick);
-    openReservaPanel?.addEventListener("click", onOpenReservaClick);
-    openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
-    closeReservaPanel?.addEventListener("click", closeReservaPanelFn);
-    window.addEventListener("keydown", onEsc);
-    const onCookieAccept = () => {
-      setCookieConsent("accepted");
-      hideCookieBanner();
-    };
-    const onCookieReject = () => {
-      setCookieConsent("rejected");
-      hideCookieBanner();
-    };
-    cookieAccept?.addEventListener("click", onCookieAccept);
-    cookieReject?.addEventListener("click", onCookieReject);
-
-    const reveals = document.querySelectorAll(".reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("visible");
-            observer.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    reveals.forEach((r) => observer.observe(r));
+    /**
+     * `mv-scroll` lo emite SiteEffects para CADA evento de scroll (con o sin
+     * Lenis), así que ya no hace falta suscribirse también a `scroll` nativo:
+     * doblaba el trabajo en cada wheel-tick.
+     */
+    window.addEventListener("mv-scroll", onMvScroll);
+    runScrollEffects(window.scrollY);
 
     return () => {
       if (introCompleteFallbackTimer) {
@@ -561,57 +343,31 @@ export function HomeEffects() {
       }
       if (introEl) {
         introEl.removeEventListener("animationend", onIntroFlyEnd);
-      }
-      resetScrollLock();
-      body.classList.remove("intro-active");
-      body.classList.remove("intro-logo-flight");
-      if (introEl) {
         introEl.classList.remove("is-playing");
         introEl.classList.remove("logo-intro--fly");
       }
       if (onResizeIntro) {
         window.removeEventListener("resize", onResizeIntro);
       }
-      if (lenisRafId) {
-        window.cancelAnimationFrame(lenisRafId);
+      window.removeEventListener("mv-scroll", onMvScroll);
+      if (serviciosRafId) {
+        window.cancelAnimationFrame(serviciosRafId);
       }
-      unsubscribeLenisScroll?.();
-      if (!lenis) {
-        window.removeEventListener("scroll", runScrollEffects);
-      }
-      lenis?.destroy();
       navbar.classList.remove("nav-hidden");
       if (heroSection) {
         heroSection.style.setProperty("--hero-scroll-progress", "0");
       }
       if (conceptoSection) {
         conceptoSection.style.setProperty("--concepto-parallax-progress", "0");
-        conceptoSection.style.setProperty("--concepto-bg-parallax-progress", "0");
+        conceptoSection.style.setProperty(
+          "--concepto-bg-parallax-progress",
+          "0",
+        );
         conceptoSection.style.setProperty("--concepto-exit-darken", "0");
       }
       serviciosSection?.style.removeProperty("--servicios-parallax");
-      hamburger?.removeEventListener("click", toggleMenu);
-      closeMenuEl?.removeEventListener("click", onCloseMenuClick);
-      mobLinks.forEach((l) => l.removeEventListener("click", onCloseMenuClick));
-      menuPrimaryLinks.forEach((link) => {
-        link.removeEventListener("mouseenter", onPrimaryHover);
-        link.removeEventListener("focus", onPrimaryHover);
-        link.removeEventListener("mouseleave", onPrimaryLeave);
-        link.removeEventListener("blur", onPrimaryLeave);
-      });
-      mobileMenu?.removeEventListener("click", onMenuOverlayClick);
-      reservaPanel?.removeEventListener("click", onReservaOverlayClick);
-      openReservaPanel?.removeEventListener("click", onOpenReservaClick);
-      openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
-      closeReservaPanel?.removeEventListener("click", closeReservaPanelFn);
-      window.removeEventListener("keydown", onEsc);
-      body.classList.remove("menu-open");
-      body.classList.remove("reserva-open");
-      document.documentElement.classList.remove("menu-open");
-      document.documentElement.classList.remove("reserva-open");
-      cookieAccept?.removeEventListener("click", onCookieAccept);
-      cookieReject?.removeEventListener("click", onCookieReject);
-      observer.disconnect();
+      body.classList.remove("intro-active");
+      body.classList.remove("intro-logo-flight");
     };
   }, []);
 

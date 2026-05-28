@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { servicioSlugs } from "@/lib/servicios-data";
 import { allowIndexing, siteUrl } from "@/lib/site-config";
 
 /** Amplía esta lista cuando añadas páginas indexables. */
@@ -7,6 +8,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   if (!allowIndexing) return [];
 
   const now = new Date();
+  const servicios = servicioSlugs.map((slug) => ({
+    url: `${siteUrl}/servicios/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
   return [
     {
       url: siteUrl,
@@ -14,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    ...servicios,
     {
       url: `${siteUrl}/cookies`,
       lastModified: now,

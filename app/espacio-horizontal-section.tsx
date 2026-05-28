@@ -117,6 +117,7 @@ export class EspacioHorizontalScroll {
   private espacioIsDestroyed = false;
   private espacioSectionObserver: IntersectionObserver | null = null;
   private espacioFirstIntroRevealed = false;
+  private espacioSyncedScrollY: number | null = null;
 
   constructor(espacioRoot: HTMLElement) {
     const espacioTrack = espacioRoot.querySelector<HTMLElement>(
@@ -138,8 +139,13 @@ export class EspacioHorizontalScroll {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     this.onResize();
-    window.addEventListener("scroll", this.onScroll, { passive: true });
+    /**
+     * `mv-scroll` se emite por SiteEffects en todos los casos (con o sin
+     * Lenis). Antes escuchábamos también `scroll` nativo y duplicábamos
+     * la cadena de `getBoundingClientRect` en cada wheel-tick.
+     */
     window.addEventListener("resize", this.onResize);
+    window.addEventListener("mv-scroll", this.onMvScroll);
     if (this.espacioReducedMotion) {
       this.espacioPanels.forEach((espacioPanel, espacioIndex) => {
         if (espacioIndex === 0) {
@@ -174,14 +180,42 @@ export class EspacioHorizontalScroll {
     this.espacioIsDestroyed = true;
     this.espacioSectionObserver?.disconnect();
     this.espacioSectionObserver = null;
-    window.removeEventListener("scroll", this.onScroll);
     window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("mv-scroll", this.onMvScroll);
     cancelAnimationFrame(this.espacioRafId);
     this.espacioRafId = 0;
   }
 
+  onMvScroll = (espacioEvent: Event) => {
+    const espacioY = (espacioEvent as CustomEvent<{ y: number }>).detail?.y;
+    if (typeof espacioY === "number") {
+      this.espacioSyncedScrollY = espacioY;
+      this.onScroll();
+    }
+  };
+
+  private espacioGetScrollY() {
+    return this.espacioSyncedScrollY ?? window.scrollY ?? window.pageYOffset;
+  }
+
   onScroll = () => {
-    const espacioScrollY = window.scrollY || window.pageYOffset;
+    const espacioRect = this.espacioRoot.getBoundingClientRect();
+    const espacioViewportH = window.innerHeight;
+    const espacioSettled =
+      Math.abs(this.espacioTargetProgress - this.espacioCurrentProgress) <
+        0.002 &&
+      Math.abs(
+        this.espacioTargetTitleProgress - this.espacioCurrentTitleProgress,
+      ) < 0.002;
+    if (
+      espacioSettled &&
+      (espacioRect.bottom < -espacioViewportH * 0.25 ||
+        espacioRect.top > espacioViewportH * 1.35)
+    ) {
+      return;
+    }
+
+    const espacioScrollY = this.espacioGetScrollY();
     const espacioRawProgress =
       (espacioScrollY - this.espacioMeasure.espacioStart) /
       this.espacioMeasure.espacioDistance;
@@ -201,7 +235,7 @@ export class EspacioHorizontalScroll {
 
   onResize = () => {
     const espacioRect = this.espacioRoot.getBoundingClientRect();
-    const espacioScrollY = window.scrollY || window.pageYOffset;
+    const espacioScrollY = this.espacioGetScrollY();
     const espacioViewportW = window.innerWidth;
     const espacioViewportH = window.innerHeight;
     const espacioPanelCount = Math.max(this.espacioPanels.length, 1);
@@ -283,9 +317,15 @@ export class EspacioHorizontalScroll {
       if (
         !this.espacioReducedMotion &&
         espacioIndex > 0 &&
-        Math.abs(espacioIndex - espacioPanelTravel) < 0.38
+        espacioIndex - espacioPanelTravel < 0.92
       ) {
         this.espacioRevealImage(espacioPanel);
+      }
+      if (
+        !this.espacioReducedMotion &&
+        espacioIndex > 0 &&
+        Math.abs(espacioIndex - espacioPanelTravel) < 0.38
+      ) {
         this.espacioRevealTitle(espacioPanel);
       }
     });
@@ -370,7 +410,7 @@ export function EspacioHorizontalSection() {
                       fill
                       sizes="100vw"
                       className="espacio__image"
-                      quality={88}
+                      quality={75}
                     />
                   </div>
                 </figure>

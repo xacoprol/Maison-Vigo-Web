@@ -1588,17 +1588,18 @@ img.concepto-quote-mark {
   z-index: 12;
   transform: translate3d(
     0,
-    calc(var(--servicios-parallax, 0) * min(56px, 6.5vw)),
+    calc(var(--servicios-parallax, 0) * min(40px, 4.6vw)),
     0
   );
 }
 .servicios-parallax-layer--carousel {
   position: relative;
   z-index: 1;
-  transform: translateY(
-    calc(var(--servicios-parallax, 0) * min(-72px, -8vw))
+  transform: translate3d(
+    0,
+    calc(var(--servicios-parallax, 0) * min(-44px, -5vw)),
+    0
   );
-  will-change: transform;
 }
 .servicios-heading-viewport {
   width: 100vw;
@@ -1613,8 +1614,8 @@ img.concepto-quote-mark {
   margin-right: 0;
   width: 100%;
   text-align: center;
-  padding: calc(clamp(64px, 11vw, 140px) + 150px) clamp(24px, 5vw, 64px)
-    calc(clamp(16px, 2.5vw, 28px) + 150px);
+  padding: calc(clamp(64px, 11vw, 140px) + 100px) clamp(24px, 5vw, 64px)
+    calc(clamp(16px, 2.5vw, 28px) + 100px);
 }
 .servicios-heading__title {
   margin: 0;
@@ -1760,6 +1761,8 @@ img.concepto-quote-mark {
   padding: 0;
   background: transparent;
   color: rgba(244, 244, 242, 0.92);
+  /* El orbe es un `<a>`; evita el subrayado por defecto del navegador. */
+  text-decoration: none;
   cursor: pointer;
   overflow: visible;
   transition: border-color 0.45s ease, color 0.35s ease;
@@ -1923,15 +1926,30 @@ img.concepto-quote-mark {
 /* —— El ritmo del cuidado (acordeón tipográfico) —— */
 #ritmo-cuidado.ritmo-cuidado {
   position: relative;
-  --ritmo-bg: #063e45;
-  --servicios-bg: #063e45;
+  /**
+   * `--ritmo-bg` se sigue usando como color sólido para piezas internas
+   * (p. ej. el disco de la insignia abierta), así que mantenemos un tono que
+   * armonice con la textura `bgpasos.webp`.
+   */
+  --ritmo-bg: #1a1614;
+  --servicios-bg: #1a1614;
   --servicios-ring-duration: 1.15s;
   --servicios-ring-easing: cubic-bezier(0.16, 1, 0.3, 1);
   --ritmo-panel-duration: 1.6s;
   --ritmo-panel-easing: cubic-bezier(0.65, 0, 0.35, 1);
   --ritmo-panel-transition: var(--ritmo-panel-duration)
     var(--ritmo-panel-easing);
-  background: #063e45;
+  /**
+   * Fondo: capa negra translúcida + textura `bgpasos` repetida sobre
+   * color neutral. La capa atenúa el patrón sin perder la textura.
+   */
+  background-color: var(--ritmo-bg);
+  background-image:
+    linear-gradient(rgba(11, 11, 11, 0.5), rgba(11, 11, 11, 0.5)),
+    url("/assets/images/bgpasos.webp");
+  background-repeat: no-repeat, repeat;
+  background-position: center, center top;
+  background-size: cover, auto;
   color: var(--cream);
   min-height: 100vh;
   min-height: 100svh;
@@ -2400,53 +2418,176 @@ img.concepto-quote-mark {
 }
 #contacto {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  align-items: start;
   gap: 64px;
+  background: var(--black);
+  color: var(--cream);
+}
+.contact-block--brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.contact-block--align-end {
+  justify-self: end;
+  text-align: left;
+}
+.contact-block--align-end .contact-label,
+.contact-block--align-end .contact-info {
+  text-align: left;
+}
+.contact-block--align-center-r {
+  justify-self: end;
+}
+.contact-block--align-center-l {
+  justify-self: start;
+}
+.contact-brand-logo {
+  width: clamp(72px, 9vw, 120px);
+  height: auto;
+  opacity: 0.92;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
 }
 .contact-block .contact-label {
   font-size: 9px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-lt);
   margin-bottom: 20px;
   display: block;
 }
 .contact-block p {
   font-size: 14px;
   line-height: 1.8;
-  color: var(--muted);
+  color: rgba(244, 244, 242, 0.78);
   font-weight: 300;
 }
-.contact-block a {
-  color: var(--black);
-  text-decoration: none;
-  border-bottom: 1px solid var(--line);
-  transition: border-color 0.3s;
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(244, 244, 242, 0.82);
+  font-weight: 300;
 }
-.contact-block a:hover {
-  border-color: var(--gold);
+.contact-line {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+a.contact-line:hover .contact-icon,
+a.contact-line:focus-visible .contact-icon {
+  color: var(--gold-lt);
+  transform: translateY(-1px);
+}
+a.contact-line:hover .contact-text,
+a.contact-line:focus-visible .contact-text {
+  color: var(--cream);
+}
+.contact-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--gold-lt);
+  opacity: 0.85;
+  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+.contact-text {
+  display: inline-block;
+  color: rgba(244, 244, 242, 0.82);
+  transition: color 0.3s ease;
 }
 
-footer {
+.site-footer {
   background: var(--black);
-  padding: 40px 48px;
+  color: var(--cream);
+}
+.site-footer__contacto {
+  padding-bottom: clamp(48px, 6vw, 88px);
+}
+.footer-bar {
+  padding: 32px 48px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+  border-top: 1px solid rgba(244, 244, 242, 0.08);
 }
 .footer-logo {
   font-family: var(--ff-serif);
   font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(244, 244, 242, 0.4);
+  color: rgba(244, 244, 242, 0.7);
+}
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  flex-wrap: wrap;
+}
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(244, 244, 242, 0.78);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  transition: color 0.3s ease;
+}
+.footer-social-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--gold-lt);
+  opacity: 0.85;
+  transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+.footer-social-link:hover,
+.footer-social-link:focus-visible {
+  color: var(--cream);
+}
+.footer-social-link:hover .footer-social-icon,
+.footer-social-link:focus-visible .footer-social-icon {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.footer-social-handle {
+  display: inline-block;
 }
 .footer-copy {
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: rgba(244, 244, 242, 0.2);
+  color: rgba(244, 244, 242, 0.45);
+}
+.footer-legal {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 24px);
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.footer-legal-link {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.55);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.footer-legal-link:hover,
+.footer-legal-link:focus-visible {
+  color: var(--gold-lt);
 }
 
 @keyframes fadeUp {
@@ -2769,9 +2910,19 @@ footer {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  footer {
+  .contact-block--brand {
+    justify-content: center;
+  }
+  .contact-brand-logo {
+    width: clamp(96px, 22vw, 132px);
+  }
+  .footer-bar {
     flex-direction: column;
     text-align: center;
+    padding: 28px 24px 36px;
+  }
+  .site-footer__contacto {
+    padding-bottom: clamp(32px, 8vw, 64px);
   }
 }
 @media (max-width: 480px) {
