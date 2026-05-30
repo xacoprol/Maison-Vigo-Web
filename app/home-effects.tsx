@@ -125,6 +125,9 @@ export function HomeEffects() {
     let introStarted = false;
     let conceptoTitleRevealed = false;
     let serviciosTitleRevealed = false;
+    const serviciosCarouselReveal = document.querySelector<HTMLElement>(
+      ".servicios-carousel-wrap.reveal",
+    );
     let serviciosParallaxTarget = 0;
     let serviciosParallaxCurrent = 0;
     let lastScrollY = window.scrollY;
@@ -156,6 +159,7 @@ export function HomeEffects() {
       body.classList.remove("intro-active");
       body.classList.remove("intro-logo-flight");
       unlockScroll();
+      document.body.dispatchEvent(new Event("mv-intro-complete"));
       if (introStarted) setIntroSeenCookie();
     };
 
@@ -316,7 +320,17 @@ export function HomeEffects() {
         if (hr.top < ih * 0.58) {
           serviciosHeadingDisplay.classList.add("is-revealed");
           serviciosTitleRevealed = true;
+          serviciosCarouselReveal?.classList.add("visible");
         }
+      }
+      if (
+        serviciosCarouselReveal &&
+        !serviciosCarouselReveal.classList.contains("visible") &&
+        serviciosRect &&
+        serviciosRect.top < ih * 0.9 &&
+        serviciosRect.bottom > ih * 0.08
+      ) {
+        serviciosCarouselReveal.classList.add("visible");
       }
       lastScrollY = currentScrollY;
     };

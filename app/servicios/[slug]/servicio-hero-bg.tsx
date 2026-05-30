@@ -11,8 +11,7 @@ type ServicioHeroBgProps = {
 /**
  * Imagen de fondo del hero de cada servicio. Pintamos `opacity: 0` y solo
  * activamos el fade (`is-loaded` → transition en CSS) cuando la imagen está
- * lista. Usamos `onLoadingComplete` y comprobación de `complete` por si la
- * imagen ya estaba en caché y `onLoad` no llega a dispararse.
+ * lista. Comprobamos `complete` por si la imagen ya estaba en caché.
  */
 export function ServicioHeroBg({ src, alt }: ServicioHeroBgProps) {
   const [loaded, setLoaded] = useState(false);
@@ -20,6 +19,7 @@ export function ServicioHeroBg({ src, alt }: ServicioHeroBgProps) {
 
   const markLoaded = useCallback(() => {
     setLoaded(true);
+    document.body.dispatchEvent(new Event("servicio-hero-media-ready"));
   }, []);
 
   useEffect(() => {
@@ -40,7 +40,6 @@ export function ServicioHeroBg({ src, alt }: ServicioHeroBgProps) {
       quality={82}
       className={loaded ? "servicio__hero-bg is-loaded" : "servicio__hero-bg"}
       onLoad={markLoaded}
-      onLoadingComplete={markLoaded}
       onError={markLoaded}
     />
   );

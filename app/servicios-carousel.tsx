@@ -8,6 +8,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 import { servicioSlugFromLabel } from "@/lib/servicios-data";
@@ -62,11 +63,32 @@ const SERVICE_SUBTITLES: Record<ServiceId, string> = {
 
 const N = ORDER_MOBILE.length;
 
+function subscribeMediaQuery(
+  query: string,
+  onStoreChange: () => void,
+): () => void {
+  const mq = window.matchMedia(query);
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+const subscribeMobileMq = (onStoreChange: () => void) =>
+  subscribeMediaQuery(MOBILE_MQ, onStoreChange);
+
+const getMobileMqSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
+
+/** SSR / hidratación: siempre escritorio hasta montar en cliente. */
+const getMobileMqServerSnapshot = () => false;
+
 function wrapTranslate(x: number, maxT: number, cycle: number): number {
   let v = x;
   while (v > 0) v -= cycle;
   while (v < maxT) v += cycle;
   return v;
+}
+
+function isServiceId(value: string): value is ServiceId {
+  return value in SERVICE_IMAGES;
 }
 
 export function ServiciosCarousel() {
@@ -90,17 +112,55 @@ export function ServiciosCarousel() {
     active: boolean;
   }>({ pointerId: null, startX: 0, startTarget: 0, active: false });
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
-  const [isMobile, setIsMobile] = useState(false);
+  const highlightedIdRef = useRef<ServiceId>("Grooming");
+  const isMobile = useSyncExternalStore(
+    subscribeMobileMq,
+    getMobileMqSnapshot,
+    getMobileMqServerSnapshot,
+  );
 
   const applyTransform = useCallback((x: number) => {
     const tr = trackRef.current;
     if (tr) tr.style.transform = `translate3d(${x}px,0,0)`;
   }, []);
 
-  const measure = useCallback(() => {
+  const setHighlight = useCallback((id: ServiceId) => {
+    if (highlightedIdRef.current === id) return;
+    highlightedIdRef.current = id;
+    setHighlightedId(id);
+  }, []);
+
+  /** Foto central según el orbe más cercano al centro del viewport. */
+  const syncHighlightFromTranslate = useCallback(
+    (translateX: number, cellW: number, labels: readonly string[]) => {
+      const vp = viewportRef.current;
+      if (!vp || cellW < 8 || labels.length === 0) return;
+
+      const cs = window.getComputedStyle(vp);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      const padR = parseFloat(cs.paddingRight) || 0;
+      const centerX = padL + (vp.clientWidth - padL - padR) / 2;
+
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < labels.length; i++) {
+        const cellCenter = i * cellW + cellW / 2 + translateX;
+        const dist = Math.abs(cellCenter - centerX);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      }
+      const label = labels[bestIdx];
+      if (isServiceId(label)) setHighlight(label);
+    },
+    [setHighlight],
+  );
+
+  const measure = useCallback((): boolean => {
     const vp = viewportRef.current;
     const tr = trackRef.current;
-    if (!vp || !tr) return;
+    if (!vp || !tr) return false;
     const mobile = window.matchMedia(MOBILE_MQ).matches;
     isMobileRef.current = mobile;
 
@@ -109,8 +169,19 @@ export function ServiciosCarousel() {
       (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     const vw = Math.max(0, vp.clientWidth - padX);
     const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-    const cw = cells[0]?.offsetWidth ?? 0;
-    const tw = tr.scrollWidth;
+    if (cells.length === 0) return false;
+
+    /** Ancho explícito: el track es `max-content` y el % no resuelve bien en flex. */
+    const cellW = mobile ? vw / 2.5 : vw / 4;
+    cells.forEach((cell) => {
+      cell.style.flex = `0 0 ${cellW}px`;
+      cell.style.width = `${cellW}px`;
+    });
+
+    const cw = cellW;
+    if (cw < 8 || vw < 8) return false;
+
+    const tw = cw * cells.length;
     const maxT = Math.min(0, vw - tw);
     maxTRef.current = maxT;
     cyclePxRef.current = cw * N;
@@ -134,51 +205,81 @@ export function ServiciosCarousel() {
       currentRef.current = centerX;
       targetRef.current = centerX;
       applyTransform(centerX);
-      return;
+      return true;
     }
     currentRef.current = centerX;
     targetRef.current = centerX;
     applyTransform(centerX);
-  }, [applyTransform]);
+    const labels = mobile
+      ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
+      : [...ORDER_DESKTOP];
+    syncHighlightFromTranslate(centerX, cw, labels);
+    return true;
+  }, [applyTransform, syncHighlightFromTranslate]);
+
+  /** Reintenta hasta que el layout del track tenga medidas reales. */
+  const measureWithRetry = useCallback(() => {
+    if (measure()) return;
+    let attempts = 0;
+    const maxAttempts = 48;
+    const tick = () => {
+      if (measure() || attempts >= maxAttempts) return;
+      attempts += 1;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [measure]);
 
   useLayoutEffect(() => {
     reducedMotionRef.current = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const mq = window.matchMedia(MOBILE_MQ);
-    setIsMobile(mq.matches);
-    isMobileRef.current = mq.matches;
-  }, []);
+    isMobileRef.current = isMobile;
+    measureWithRetry();
+  }, [isMobile, measureWithRetry]);
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MQ);
-    const onMq = () => {
-      const m = mq.matches;
-      setIsMobile(m);
-      isMobileRef.current = m;
-      requestAnimationFrame(() => measure());
-    };
-    mq.addEventListener("change", onMq);
-    return () => mq.removeEventListener("change", onMq);
-  }, [measure]);
-
-  useEffect(() => {
-    measure();
-    const ro = new ResizeObserver(() => measure());
+    measureWithRetry();
+    const ro = new ResizeObserver(() => measureWithRetry());
     const vp = viewportRef.current;
     const tr = trackRef.current;
     if (vp) ro.observe(vp);
     if (tr) ro.observe(tr);
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", measureWithRetry);
+
+    const onFontsReady = () => measureWithRetry();
+    document.fonts?.ready.then(onFontsReady);
+
+    const onIntroComplete = () => measureWithRetry();
+    document.body.addEventListener("mv-intro-complete", onIntroComplete);
+
+    const revealLayer = document.querySelector(
+      ".servicios-carousel-wrap.reveal",
+    );
+    const revealObserver =
+      revealLayer &&
+      new MutationObserver(() => {
+        if (revealLayer.classList.contains("visible")) measureWithRetry();
+      });
+    if (revealLayer && revealObserver) {
+      revealObserver.observe(revealLayer, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+      if (revealLayer.classList.contains("visible")) measureWithRetry();
+    }
+
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", measure);
+      revealObserver?.disconnect();
+      window.removeEventListener("resize", measureWithRetry);
+      document.body.removeEventListener("mv-intro-complete", onIntroComplete);
     };
-  }, [measure]);
+  }, [measureWithRetry]);
 
   useEffect(() => {
-    requestAnimationFrame(() => measure());
-  }, [isMobile, measure]);
+    measureWithRetry();
+  }, [isMobile, measureWithRetry]);
 
   /** Escritorio: barre el carrusel con la X del puntero en toda la sección #servicios (título + carrusel). */
   useEffect(() => {
@@ -188,28 +289,28 @@ export function ServiciosCarousel() {
     const resetToCenter = () => {
       if (reducedMotionRef.current || isMobileRef.current) return;
       targetRef.current = centerTRef.current;
-      setHighlightedId("Grooming");
+      setHighlight("Grooming");
     };
 
     const onSectionPointerMove = (e: PointerEvent) => {
       if (reducedMotionRef.current || isMobileRef.current) return;
       const maxT = maxTRef.current;
-      if (maxT === 0) return;
       const r = section.getBoundingClientRect();
       if (r.width <= 0) return;
       const p = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-      targetRef.current = p * maxT;
+      targetRef.current = maxT === 0 ? centerTRef.current : p * maxT;
     };
 
     section.addEventListener("pointermove", onSectionPointerMove, {
       passive: true,
+      capture: true,
     });
     section.addEventListener("pointerleave", resetToCenter);
     return () => {
-      section.removeEventListener("pointermove", onSectionPointerMove);
+      section.removeEventListener("pointermove", onSectionPointerMove, true);
       section.removeEventListener("pointerleave", resetToCenter);
     };
-  }, []);
+  }, [setHighlight]);
 
   useEffect(() => {
     const section = document.getElementById("servicios");
@@ -217,7 +318,9 @@ export function ServiciosCarousel() {
       section &&
       new IntersectionObserver(
         ([entry]) => {
-          sectionInViewRef.current = Boolean(entry?.isIntersecting);
+          const visible = Boolean(entry?.isIntersecting);
+          sectionInViewRef.current = visible;
+          if (visible) measureWithRetry();
         },
         { rootMargin: "20% 0px", threshold: 0 },
       );
@@ -243,15 +346,36 @@ export function ServiciosCarousel() {
 
         currentRef.current = next;
         applyTransform(currentRef.current);
+
+        const vp = viewportRef.current;
+        const tr = trackRef.current;
+        if (vp && tr) {
+          const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+          const cw = cells[0]?.offsetWidth ?? 0;
+          if (cw >= 8) {
+            const labels = isMobileRef.current
+              ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
+              : [...ORDER_DESKTOP];
+            syncHighlightFromTranslate(currentRef.current, cw, labels);
+          }
+        }
       }
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
+
+    const onMvScroll = () => {
+      if (!sectionInViewRef.current) return;
+      measureWithRetry();
+    };
+    window.addEventListener("mv-scroll", onMvScroll);
+
     return () => {
       observer?.disconnect();
+      window.removeEventListener("mv-scroll", onMvScroll);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [applyTransform]);
+  }, [applyTransform, measureWithRetry, syncHighlightFromTranslate]);
 
   const DRAG_THRESHOLD_PX = 12;
 
@@ -365,8 +489,8 @@ export function ServiciosCarousel() {
                 href={`/servicios/${servicioSlugFromLabel(label) ?? ""}`}
                 className="servicios-carousel__orb"
                 aria-label={`${label}. ${SERVICE_SUBTITLES[label]}`}
-                onPointerEnter={() => setHighlightedId(label)}
-                onFocus={() => setHighlightedId(label)}
+                onPointerEnter={() => setHighlight(label)}
+                onFocus={() => setHighlight(label)}
                 onClick={(event) => {
                   if (mobileDragRef.current.active) {
                     event.preventDefault();

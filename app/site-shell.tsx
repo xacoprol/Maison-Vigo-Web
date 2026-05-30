@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { bookingUrl } from "@/lib/site-config";
 
@@ -86,7 +87,7 @@ export function SiteShell() {
             />
           </button>
         </div>
-        <a href="/" className="nav-brand" aria-label="Maison Vigo — inicio">
+        <Link href="/" className="nav-brand" aria-label="Maison Vigo — inicio">
           <div className="nav-brand-anim" aria-hidden={true}>
             <img
               src="/logo-anim/anim-1.svg"
@@ -110,7 +111,7 @@ export function SiteShell() {
               className="nav-brand-piece nav-brand-piece--three"
             />
           </div>
-        </a>
+        </Link>
         <div className="nav-end">
           <a
             href={bookingUrl}
@@ -128,42 +129,42 @@ export function SiteShell() {
         <div className="mobile-menu-panel">
           <div className="mobile-menu-inner">
             <div className="mobile-menu-primary">
-              <a
+              <Link
                 href="/#concepto"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto1"
               >
                 Concepto
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#espacio"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto3"
               >
                 El espacio
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#servicios"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto2"
               >
                 Cuidado integral
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#mv-care"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto3"
               >
                 MV CARE
-              </a>
+              </Link>
             </div>
             <div className="mobile-menu-secondary">
-              <a
+              <Link
                 href="/#contacto"
                 className="mob-link mob-link--secondary mob-link--wave"
               >
                 <WaveText text="Contactos" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

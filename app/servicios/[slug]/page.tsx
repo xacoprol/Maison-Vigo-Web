@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { getServicioSlideshowSlides } from "@/lib/servicio-slideshow-data";
 import { getServicio, servicioSlugs } from "@/lib/servicios-data";
 import { siteConfig } from "@/lib/site-config";
 
+import { ServicioBodyText } from "./servicio-body-text";
+import { ServicioEffects } from "./servicio-effects";
 import { ServicioHeroBg } from "./servicio-hero-bg";
+import { ServicioPageClient } from "./servicio-page-client";
+import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
+import { ServicioServiciosSection } from "./servicio-servicios-section";
 import "./servicio.css";
 
 type Params = { slug: string };
@@ -44,13 +50,17 @@ export default async function ServicioPage({
   if (!servicio) notFound();
 
   return (
+    <ServicioPageClient>
     <main className="servicio">
+      <ServicioEffects />
       <section
         className="servicio__hero"
         aria-label={`Servicio: ${servicio.title}`}
       >
-        <ServicioHeroBg src={servicio.image} alt={servicio.imageAlt} />
-        <span className="servicio__hero-overlay" aria-hidden={true} />
+        <div className="servicio__hero-media">
+          <ServicioHeroBg src={servicio.image} alt={servicio.imageAlt} />
+          <span className="servicio__hero-overlay" aria-hidden={true} />
+        </div>
 
         <div className="servicio__hero-inner">
           <div className="servicio__hero-title-block">
@@ -72,13 +82,23 @@ export default async function ServicioPage({
               </span>
             ) : null}
           </div>
-          <p className="servicio__hero-lead">{servicio.subtitle}</p>
+          <div className="servicio__hero-lead-wrap">
+            <p className="servicio__hero-lead">{servicio.subtitle}</p>
+          </div>
+        </div>
+
+        <div
+          id="servicio-body"
+          className="servicio__hero-body"
+          aria-label={`Sobre ${servicio.title}`}
+        >
+          <ServicioBodyText key={servicio.slug}>{servicio.body}</ServicioBodyText>
         </div>
 
         <a
-          href="#servicio-body"
+          href="/#contacto"
           className="servicio__scroll-cta"
-          aria-label="Bajar al contenido del servicio"
+          aria-label="Bajar a contacto"
         >
           <span className="servicio__scroll-cta-inner">
             <svg
@@ -116,15 +136,13 @@ export default async function ServicioPage({
         </a>
       </section>
 
-      <section
-        id="servicio-body"
-        className="servicio__body-section reveal"
-        aria-label={`Sobre ${servicio.title}`}
-      >
-        <div className="servicio__body-inner">
-          <p className="servicio__body-text">{servicio.body}</p>
-        </div>
-      </section>
+      <ServicioScrollCarousel
+        key={servicio.slug}
+        slides={getServicioSlideshowSlides(servicio.slug)}
+      />
+
+      <ServicioServiciosSection slug={servicio.slug} />
     </main>
+    </ServicioPageClient>
   );
 }

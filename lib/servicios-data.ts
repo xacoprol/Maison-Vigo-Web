@@ -42,9 +42,9 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
       "observación, la calma y el respeto por el ritmo de cada perro. " +
       "Trabajamos el cuidado del manto, la higiene y la estética desde una " +
       "experiencia tranquila y personalizada, priorizando siempre su " +
-      "bienestar físico y emocional. Más que una sesión de peluquería, " +
-      "buscamos que cada visita se convierta en un momento positivo, " +
-      "cuidado y adaptado a sus necesidades.",
+      "bienestar físico y emocional.\n\n" +
+      "Más que una sesión de peluquería, buscamos que cada visita se " +
+      "convierta en un momento positivo, cuidado y adaptado a sus necesidades.",
   },
   bienestar: {
     slug: "bienestar",
@@ -88,13 +88,12 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     image: "/acompanamiento.webp",
     imageAlt: "Acompañamiento personalizado Maison Vigo.",
     subtitle:
-      "Presencia y cuidado personalizado en momentos donde no puedes estar con ellos.",
+      "Presencia y cuidado en momentos donde no puedes estar con ellos.",
     body:
-      "Hay momentos que necesitan algo más que un servicio. Maison Vigo " +
-      "ofrece acompañamiento personalizado en situaciones especiales, " +
-      "adaptándonos a las necesidades de cada familia para seguir cuidando " +
-      "desde la cercanía, la confianza y la continuidad. Una forma de " +
-      "estar presentes también fuera de la rutina habitual.",
+      "Hay momentos que necesitan algo más que un servicio. Acompañamientos " +
+      "personalizados para seguir cuidando desde la cercanía, la confianza " +
+      "y la continuidad. Una forma de estar presentes también fuera de la " +
+      "rutina habitual.",
   },
   educacion: {
     slug: "educacion",

@@ -62,7 +62,7 @@ export default function Home() {
             </span>
           </p>
           <a
-            href="#concepto"
+            href="/#concepto"
             className="hero-scroll-cta"
             aria-label="Bajar a la sección Concepto"
           >
@@ -157,7 +157,7 @@ export default function Home() {
             <footer>Maison Vigo</footer>
           </blockquote>
 
-          <a href="#contacto" className="concepto-circle-cta mob-link--wave" data-parallax="cta">
+          <a href="/#contacto" className="concepto-circle-cta mob-link--wave" data-parallax="cta">
             <svg
               className="concepto-circle-cta-ring"
               viewBox="0 0 100 100"
@@ -194,8 +194,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="servicios-parallax-layer servicios-parallax-layer--carousel reveal">
-          <div className="servicios-carousel-wrap">
+        <div className="servicios-parallax-layer servicios-parallax-layer--carousel">
+          <div className="servicios-carousel-wrap reveal">
             <ServiciosCarousel />
           </div>
         </div>

@@ -3,6 +3,13 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 
+import {
+  buildSectionUrl,
+  isHomePathname,
+  parseHomeSectionLink,
+  sanitizeUrlHash,
+  sectionIdFromHash,
+} from "@/lib/hash-nav";
 import { lockScroll, resetScrollLock, unlockScroll } from "@/lib/scroll-lock";
 
 /**
@@ -26,22 +33,14 @@ export function SiteEffects() {
     ).matches;
     let lenis: Lenis | null = null;
     let lenisRafId: number | undefined;
+    const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
 
     if (!prefersReducedMotion) {
-      const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
       lenis = new Lenis({
         duration: 1.08,
         easing: lenisEase,
         wheelMultiplier: 0.9,
         touchMultiplier: 1,
-        /**
-         * Enlaces # (p. ej. hero → concepto) con scroll animado;
-         * `html` usa `scroll-behavior: auto` con Lenis.
-         */
-        anchors: {
-          duration: 1.55,
-          easing: lenisEase,
-        },
       });
 
       const lenisRaf = (time: number) => {
@@ -49,6 +48,7 @@ export function SiteEffects() {
         lenisRafId = window.requestAnimationFrame(lenisRaf);
       };
       lenisRafId = window.requestAnimationFrame(lenisRaf);
+      window.__mvLenis = lenis;
     }
 
     /**
@@ -68,7 +68,10 @@ export function SiteEffects() {
     let unsubscribeLenis: (() => void) | undefined;
     const onNativeScroll = () => onScroll(window.scrollY);
     if (lenis) {
-      unsubscribeLenis = lenis.on("scroll", () => onScroll(lenis.scroll));
+      unsubscribeLenis = lenis.on("scroll", () => {
+        onScroll(lenis.scroll);
+        window.ScrollTrigger?.update();
+      });
     } else {
       window.addEventListener("scroll", onNativeScroll, { passive: true });
     }
@@ -206,6 +209,52 @@ export function SiteEffects() {
     };
     const onPrimaryLeave = () => setMenuImage("foto1");
 
+    const scrollToHomeSection = (sectionId: string) => {
+      const target = document.getElementById(sectionId);
+      if (!target) return;
+      if (lenis) {
+        lenis.scrollTo(target, {
+          duration: 1.55,
+          easing: lenisEase,
+        });
+      } else {
+        target.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+      }
+    };
+
+    /**
+     * En la home, un href relativo (#servicios) sobre /#concepto genera
+     * #concepto#servicios. Forzamos un único hash y scroll con Lenis.
+     */
+    const onHashLinkClick = (event: MouseEvent) => {
+      const anchor = (event.target as Element).closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href?.includes("#")) return;
+
+      const parsed = parseHomeSectionLink(href);
+      if (!parsed || !isHomePathname(parsed.pathname)) return;
+      if (!isHomePathname(window.location.pathname)) return;
+
+      event.preventDefault();
+      history.replaceState(history.state, "", buildSectionUrl(parsed.sectionId));
+      scrollToHomeSection(parsed.sectionId);
+      if (mobileMenu?.classList.contains("open")) closeMenuFn();
+    };
+
+    const onHashChange = () => {
+      sanitizeUrlHash();
+      const sectionId = sectionIdFromHash(window.location.hash);
+      if (!sectionId || !isHomePathname(window.location.pathname)) return;
+      requestAnimationFrame(() => scrollToHomeSection(sectionId));
+    };
+
+    sanitizeUrlHash();
+    window.addEventListener("hashchange", onHashChange);
+    document.addEventListener("click", onHashLinkClick, true);
+
     hamburger?.addEventListener("click", toggleMenu);
     closeMenuEl?.addEventListener("click", onCloseMenuClick);
     mobLinks.forEach((l) => l.addEventListener("click", onCloseMenuClick));
@@ -223,23 +272,27 @@ export function SiteEffects() {
     window.addEventListener("keydown", onEsc);
 
     const reveals = document.querySelectorAll(".reveal");
-    const observer = new IntersectionObserver(
+    const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             e.target.classList.add("visible");
-            observer.unobserve(e.target);
+            revealObserver.unobserve(e.target);
           }
         });
       },
-      { threshold: 0.12 },
+      {
+        threshold: 0.06,
+        rootMargin: "0px 0px 12% 0px",
+      },
     );
-    reveals.forEach((r) => observer.observe(r));
+    reveals.forEach((r) => revealObserver.observe(r));
 
     return () => {
       if (lenisRafId) window.cancelAnimationFrame(lenisRafId);
       unsubscribeLenis?.();
       if (!lenis) window.removeEventListener("scroll", onNativeScroll);
+      delete window.__mvLenis;
       lenis?.destroy();
       cookieAccept?.removeEventListener("click", onCookieAccept);
       cookieReject?.removeEventListener("click", onCookieReject);
@@ -258,7 +311,9 @@ export function SiteEffects() {
       openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
       closeReservaPanel?.removeEventListener("click", closeReservaPanelFn);
       window.removeEventListener("keydown", onEsc);
-      observer.disconnect();
+      window.removeEventListener("hashchange", onHashChange);
+      document.removeEventListener("click", onHashLinkClick, true);
+      revealObserver.disconnect();
       navbar.classList.remove("scrolled");
       body.classList.remove("menu-open");
       body.classList.remove("reserva-open");
