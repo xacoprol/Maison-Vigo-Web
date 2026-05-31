@@ -449,8 +449,7 @@
   display: block;
   background: #1a1a1a;
   border-top: 1px solid rgba(187, 149, 93, 0.22);
-  padding: clamp(40px, 5vw, 56px) var(--nav-pad-x, 48px)
-    clamp(48px, 6vw, 72px);
+  padding: clamp(40px, 5vw, 56px) var(--nav-pad-x, 48px);
 }
 
 .servicio__back-crumbs {

@@ -70,6 +70,7 @@ export function ServicioScrollCarousel({
   } | null>(null);
   const slideshowReadyRef = useRef(false);
   const pendingSlideRef = useRef<number | null>(null);
+  const activeStepRef = useRef(0);
   const [activeStep, setActiveStep] = useState(0);
 
   const applyMobileSlide = useCallback((index: number) => {
@@ -99,14 +100,13 @@ export function ServicioScrollCarousel({
   }, []);
 
   const scrollToSlideshowProgress = useCallback(
-    (index: number) => {
+    (index: number, options?: { immediate?: boolean }) => {
       const slideCount = slides.length;
       if (slideCount === 0) return false;
 
       const progress =
         slideCount <= 1 ? 0 : index / Math.max(slideCount - 1, 1);
 
-      window.ScrollTrigger?.refresh();
       const trigger =
         scrollTriggerRef.current ??
         (window.ScrollTrigger?.getById("servicio-slideshow") as
@@ -118,14 +118,20 @@ export function ServicioScrollCarousel({
       const scrollY =
         trigger.start + (trigger.end - trigger.start) * progress;
       const lenis = window.__mvLenis;
+      const immediate = options?.immediate ?? true;
 
       if (lenis) {
+        lenis.stop();
         lenis.scrollTo(scrollY, {
-          duration: 1.2,
+          immediate,
+          ...(immediate ? {} : { duration: 0.55 }),
           onComplete: () => {
             window.ScrollTrigger?.update();
           },
         });
+        if (immediate) {
+          window.ScrollTrigger?.update();
+        }
       } else {
         trigger.scroll(scrollY);
         window.ScrollTrigger?.update();
@@ -137,6 +143,7 @@ export function ServicioScrollCarousel({
   );
 
   const setActiveStepUi = useCallback((index: number) => {
+    activeStepRef.current = index;
     setActiveStep(index);
     stepsRef.current
       ?.querySelectorAll<HTMLElement>(".servicio-slideshow__step")
@@ -152,9 +159,8 @@ export function ServicioScrollCarousel({
       const wrap = wrapRef.current;
       if (!wrap || index < 0 || index >= slides.length) return;
 
-      setActiveStepUi(index);
-
       if (wrap.classList.contains("servicio-slideshow-wrap--mobile-all")) {
+        setActiveStepUi(index);
         applyMobileSlide(index);
         wrap
           .querySelector<HTMLElement>(`[data-servicio-slide="${index}"]`)
@@ -167,7 +173,12 @@ export function ServicioScrollCarousel({
         return;
       }
 
-      if (!scrollToSlideshowProgress(index)) {
+      if (index === activeStepRef.current) return;
+
+      const from = activeStepRef.current;
+      const isAdjacent = Math.abs(index - from) === 1;
+
+      if (!scrollToSlideshowProgress(index, { immediate: !isAdjacent })) {
         pendingSlideRef.current = index;
       }
     },
@@ -412,8 +423,7 @@ export function ServicioScrollCarousel({
         const pendingIndex = pendingSlideRef.current;
         if (pendingIndex !== null) {
           pendingSlideRef.current = null;
-          scrollToSlideshowProgress(pendingIndex);
-          setActiveStepUi(pendingIndex);
+          scrollToSlideshowProgress(pendingIndex, { immediate: true });
         }
       } catch {
         wrap.classList.add("servicio-slideshow-wrap--mobile-all");
