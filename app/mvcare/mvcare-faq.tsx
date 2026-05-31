@@ -2,22 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  getServicioServiciosItems,
-  type ServicioServiciosItem,
-} from "@/lib/servicio-servicios-data";
-import type { ServicioSlug } from "@/lib/servicios-data";
+import type { MvcareFaqItem } from "@/lib/mvcare-content";
 
-import "./servicio-servicios-section.css";
+import "./mvcare-faq-accordion.css";
+import "./mvcare-faq.css";
 
-type ServicioServiciosSectionProps = {
-  slug: ServicioSlug;
+type MvcareFaqProps = {
+  items: MvcareFaqItem[];
 };
 
-export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps) {
-  const items: ServicioServiciosItem[] = getServicioServiciosItems(slug);
-  const rootRef = useRef<HTMLElement>(null);
-  const floatRef = useRef<HTMLDivElement>(null);
+export function MvcareFaq({ items }: MvcareFaqProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [inView, setInView] = useState(false);
 
@@ -37,118 +32,25 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
     return () => obs.disconnect();
   }, []);
 
-  useEffect(() => {
-    const float = floatRef.current;
-    const section = rootRef.current;
-    if (!float || !section) return;
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    let targetY = 0;
-    let currentY = 0;
-    let rafId = 0;
-
-    const readTarget = () => {
-      const rect = float.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const anchor = rect.top + rect.height * 0.45;
-      return (anchor - vh * 0.42) * 0.06;
-    };
-
-    const applyY = (y: number) => {
-      float.style.setProperty("--servicio-servicios-float-y", `${y.toFixed(1)}px`);
-    };
-
-    const tick = () => {
-      const diff = targetY - currentY;
-      if (Math.abs(diff) < 0.15) {
-        currentY = targetY;
-      } else {
-        currentY += diff * 0.12;
-      }
-      applyY(currentY);
-      if (Math.abs(targetY - currentY) > 0.15) {
-        rafId = requestAnimationFrame(tick);
-      } else {
-        rafId = 0;
-      }
-    };
-
-    const schedule = () => {
-      if (prefersReducedMotion) {
-        targetY = 0;
-        currentY = 0;
-        applyY(0);
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = 0;
-        return;
-      }
-      targetY = readTarget();
-      if (!rafId) rafId = requestAnimationFrame(tick);
-    };
-
-    schedule();
-    window.addEventListener("mv-scroll", schedule);
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
-    const unsubLenis = window.__mvLenis?.on("scroll", schedule);
-
-    return () => {
-      unsubLenis?.();
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("mv-scroll", schedule);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      float.style.removeProperty("--servicio-servicios-float-y");
-    };
-  }, []);
-
   const toggle = useCallback((i: number) => {
     setOpenIndex((prev) => (prev === i ? null : i));
   }, []);
 
   return (
-    <section
+    <div
       ref={rootRef}
       className={
-        "servicio-servicios" + (inView ? " servicio-servicios--inview" : "")
+        "servicio-servicios mvcare-faq-accordion" +
+        (inView ? " servicio-servicios--inview" : "")
       }
-      aria-labelledby="servicio-servicios-heading"
     >
       <div className="servicio-servicios__inner">
-        <div className="servicio-servicios__title-zone">
-          <h2
-            className="servicio-servicios__title"
-            id="servicio-servicios-heading"
-          >
-            <span className="servicio-servicios__title-anchor">
-              <span
-                ref={floatRef}
-                className="servicio-servicios__float"
-                aria-hidden={true}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/images/servicios.png"
-                  alt=""
-                  width={480}
-                  height={686}
-                  decoding="async"
-                />
-              </span>
-              <span className="servicio-servicios__title-text">Servicios</span>
-            </span>
-          </h2>
-        </div>
-
         <ul className="servicio-servicios__list" role="list">
-          {items.map((step, i) => {
+          {items.map((item, i) => {
             const isOpen = openIndex === i;
             return (
               <li
-                key={step.title}
+                key={item.question}
                 className={
                   "servicio-servicios__item" +
                   (isOpen ? " servicio-servicios__item--open" : "") +
@@ -160,8 +62,8 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                     type="button"
                     className="servicio-servicios__trigger"
                     aria-expanded={isOpen}
-                    aria-controls={`servicio-servicios-panel-${i}`}
-                    id={`servicio-servicios-trigger-${i}`}
+                    aria-controls={`mvcare-faq-panel-${i}`}
+                    id={`mvcare-faq-trigger-${i}`}
                     onClick={() => toggle(i)}
                     style={{
                       transitionDelay: inView ? `${0.06 + i * 0.07}s` : "0s",
@@ -169,9 +71,9 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                   >
                     <span
                       className="servicio-servicios__trigger-title"
-                      data-title={step.title}
+                      data-title={item.question}
                     >
-                      {step.title}
+                      {item.question}
                     </span>
                     <span className="servicio-servicios__toggle" aria-hidden={true}>
                       <svg
@@ -222,9 +124,9 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                   </button>
 
                   <div
-                    id={`servicio-servicios-panel-${i}`}
+                    id={`mvcare-faq-panel-${i}`}
                     role="region"
-                    aria-labelledby={`servicio-servicios-trigger-${i}`}
+                    aria-labelledby={`mvcare-faq-trigger-${i}`}
                     aria-hidden={!isOpen}
                     className={
                       "servicio-servicios__panel" +
@@ -233,9 +135,7 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                   >
                     <div className="servicio-servicios__panel-inner">
                       <div className="servicio-servicios__desc">
-                        {step.desc.map((paragraph) => (
-                          <p key={paragraph}>{paragraph}</p>
-                        ))}
+                        <p>{item.answer}</p>
                       </div>
                     </div>
                   </div>
@@ -245,6 +145,6 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
           })}
         </ul>
       </div>
-    </section>
+    </div>
   );
 }

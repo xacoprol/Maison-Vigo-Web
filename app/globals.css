@@ -361,7 +361,7 @@ body.intro-complete .nav-brand-anim {
   background: var(--gold-lt);
 }
 
-nav {
+nav#navbar {
   position: fixed;
   top: 0;
   left: 0;
@@ -382,32 +382,32 @@ nav {
   will-change: transform, opacity;
 }
 /* Barra “sticky”: fondo oscuro + blur (JS añade .scrolled) */
-nav.scrolled {
+nav#navbar.scrolled {
   background: rgba(11, 11, 11, 0.78);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 0 var(--nav-pad-x);
   border-bottom: 1px solid rgba(187, 149, 93, 0.22);
 }
-nav.scrolled .nav-links a {
+nav#navbar.scrolled .nav-links a {
   color: rgba(244, 244, 242, 0.55);
 }
-nav.scrolled .nav-links a:hover {
+nav#navbar.scrolled .nav-links a:hover {
   color: var(--gold);
 }
-nav.scrolled .nav-cta {
+nav#navbar.scrolled .nav-cta {
   color: var(--cream);
   border-color: transparent;
   background: transparent;
   box-shadow: none;
 }
-nav.scrolled .nav-cta:hover {
+nav#navbar.scrolled .nav-cta:hover {
   background: transparent;
   border-color: transparent;
   color: var(--gold-lt);
   box-shadow: none;
 }
-nav.nav-hidden {
+nav#navbar.nav-hidden {
   transform: translateY(calc(-100% - 12px));
   opacity: 0;
   pointer-events: none;
@@ -476,13 +476,13 @@ nav.nav-hidden {
 }
 
 /* Sticky: no se encoge .nav-brand-anim; solo se ocultan wordmark y línea → queda la M */
-nav.scrolled .nav-brand-piece--two,
-nav.scrolled .nav-brand-piece--three {
+nav#navbar.scrolled .nav-brand-piece--two,
+nav#navbar.scrolled .nav-brand-piece--three {
   opacity: 0;
   pointer-events: none;
 }
 
-nav.scrolled .nav-brand-piece--one {
+nav#navbar.scrolled .nav-brand-piece--one {
   transform: translate(-50%, -50%);
   transition-delay: 0.12s;
 }
@@ -494,12 +494,12 @@ nav.scrolled .nav-brand-piece--one {
     transition-duration: 0.01ms;
   }
 
-  nav.scrolled .nav-brand-piece--two,
-  nav.scrolled .nav-brand-piece--three {
+  nav#navbar.scrolled .nav-brand-piece--two,
+  nav#navbar.scrolled .nav-brand-piece--three {
     opacity: 0;
   }
 
-  nav.scrolled .nav-brand-piece--one {
+  nav#navbar.scrolled .nav-brand-piece--one {
     transform: translate(-50%, -50%);
   }
 
@@ -1586,6 +1586,7 @@ img.concepto-quote-mark {
 .servicios-parallax-layer--heading {
   position: relative;
   z-index: 12;
+  pointer-events: none;
   transform: translate3d(
     0,
     calc(var(--servicios-parallax, 0) * min(40px, 4.6vw)),
@@ -1608,6 +1609,7 @@ img.concepto-quote-mark {
   left: 0;
   margin-left: calc(50% - 50vw);
   box-sizing: border-box;
+  pointer-events: none;
 }
 .servicios-heading {
   margin-left: 0;
@@ -1681,6 +1683,8 @@ img.concepto-quote-mark {
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+  /* Separación respecto al titular «Servicios» */
+  padding-top: clamp(48px, 9vw, 112px);
   /* Evita que el aro y los bordes se corten en los círculos laterales (p. ej. Bienestar) */
   padding-inline: clamp(14px, 3vw, 36px);
   /* Hueco bajo el track para subtítulo al hover (compacto para no alargar el bloque negro) */
@@ -2074,12 +2078,9 @@ img.concepto-quote-mark {
   outline-offset: 4px;
 }
 .ritmo-cuidado__trigger-body {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.03em;
-  max-width: 100%;
+  position: relative;
+  display: inline-block;
+  max-width: calc(100% - clamp(36px, 5vw, 56px));
   box-sizing: border-box;
   font-size: clamp(36px, 6.5vw, 96px);
 }
@@ -2124,14 +2125,15 @@ img.concepto-quote-mark {
   color: var(--cream);
 }
 .ritmo-cuidado__toggle {
-  position: relative;
+  position: absolute;
+  left: 100%;
+  top: 50%;
   z-index: 2;
-  flex-shrink: 0;
-  align-self: center;
   box-sizing: border-box;
   width: clamp(24px, 0.4em, 38px);
   height: clamp(24px, 0.4em, 38px);
-  margin: -0.08em 0 0 0.1em;
+  margin: 0 0 0 0.12em;
+  transform: translateY(-50%);
   border-radius: 999px;
   border: 1px solid rgba(187, 149, 93, 0.36);
   display: grid;
@@ -2300,9 +2302,10 @@ img.concepto-quote-mark {
   line-height: 1.65;
   font-weight: 300;
   letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--cream);
-  max-width: min(68ch, 100%);
-  margin: clamp(24px, 3vw, 42px) 0 clamp(18px, 2.6vw, 36px);
+  max-width: min(88ch, 92%);
+  margin: clamp(24px, 3vw, 42px) auto clamp(18px, 2.6vw, 36px);
   padding-right: 0;
   text-align: center;
   text-wrap: pretty;
@@ -2312,6 +2315,47 @@ img.concepto-quote-mark {
 }
 .ritmo-cuidado__desc p + p {
   margin-top: 0.55em;
+}
+.ritmo-cuidado__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(10px, 1.4vw, 16px);
+  margin-top: 1.25em;
+  padding: clamp(12px, 1.6vw, 16px) clamp(18px, 2.4vw, 28px);
+  background: var(--black);
+  border: 1px solid rgba(187, 149, 93, 0.38);
+  text-decoration: none;
+  transition:
+    border-color 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.ritmo-cuidado__more-text {
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cream);
+  line-height: 1;
+}
+.ritmo-cuidado__more-logo {
+  display: block;
+  width: clamp(56px, 9vw, 84px);
+  height: auto;
+  flex-shrink: 0;
+}
+.ritmo-cuidado__more:hover,
+.ritmo-cuidado__more:focus-visible {
+  background: #050505;
+  border-color: var(--gold);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+.ritmo-cuidado__more:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
 }
 .ritmo-cuidado__img-wrap {
   position: relative;
@@ -2401,7 +2445,7 @@ img.concepto-quote-mark {
     font-size: clamp(14px, 3.35vw, 17px);
     margin-top: clamp(20px, 5vw, 30px);
     margin-bottom: clamp(18px, 5vw, 28px);
-    max-width: 100%;
+    max-width: min(88ch, 96%);
     padding-right: 0;
   }
   .ritmo-cuidado__img-wrap {
@@ -2734,10 +2778,10 @@ a.contact-line:focus-visible .contact-text {
     font-size: clamp(42px, 15vw, 96px);
     line-height: 0.86;
   }
-  nav {
+  nav#navbar {
     padding: 24px var(--nav-pad-x);
   }
-  nav.scrolled {
+  nav#navbar.scrolled {
     padding: 0 var(--nav-pad-x);
   }
   .nav-brand {

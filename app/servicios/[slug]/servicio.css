@@ -223,12 +223,13 @@
   margin: 0;
   max-width: min(380px, 58vw);
   font-family: var(--ff-sans);
-  font-size: clamp(11px, 0.95vw, 13px);
+  font-size: 16px;
   line-height: 1.55;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(244, 244, 242, 0.78);
+  color: var(--cream);
   text-align: center;
+  white-space: pre-line;
   opacity: 0;
   transform: translate3d(0, 24px, 0);
   will-change: opacity, transform;
@@ -387,16 +388,16 @@
  * Equivalente a text-offset__offset --4 / --2:md.
  */
 .servicio-text-offset {
-  --servicio-text-offset-unit: clamp(14px, 3.2vw, 32px);
+  --servicio-text-offset-unit: clamp(20px, 4.4vw, 44px);
 }
 
 .servicio-text-offset--4 {
-  text-indent: calc(4 * var(--servicio-text-offset-unit));
+  text-indent: calc(7 * var(--servicio-text-offset-unit));
 }
 
 @media (min-width: 768px) {
   .servicio-text-offset--2-md {
-    text-indent: calc(2 * var(--servicio-text-offset-unit));
+    text-indent: calc(5 * var(--servicio-text-offset-unit));
   }
 }
 
@@ -435,6 +436,58 @@
 
 .servicio__body-copy--scroll:not(.is-revealed) .servicio__body-text {
   text-shadow: none;
+}
+
+.servicio__back {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  background: #1a1a1a;
+  border-top: 1px solid rgba(187, 149, 93, 0.22);
+  padding: clamp(40px, 5vw, 56px) var(--nav-pad-x, 48px)
+    clamp(48px, 6vw, 72px);
+}
+
+.servicio__back-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35em 0.55em;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--ff-sans);
+  font-size: clamp(10px, 0.85vw, 12px);
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.48);
+}
+
+.servicio__back-crumb a {
+  color: var(--gold-lt);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.servicio__back-crumb a:hover,
+.servicio__back-crumb a:focus-visible {
+  color: var(--cream);
+  outline: none;
+}
+
+.servicio__back-crumb--current {
+  color: rgba(244, 244, 242, 0.78);
+}
+
+.servicio__back-crumb--sep {
+  color: rgba(244, 244, 242, 0.28);
+  user-select: none;
 }
 
 @media (max-width: 900px) {

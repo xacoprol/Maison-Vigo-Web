@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...servicios,
     {
+      url: `${siteUrl}/mvcare`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
       url: `${siteUrl}/cookies`,
       lastModified: now,
       changeFrequency: "yearly",

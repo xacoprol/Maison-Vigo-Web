@@ -28,11 +28,11 @@ const GROOMING_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
   },
   {
     caption:
-      "Trabajamos respetando los tiempos y emociones de cada perro para que la experiencia sea tranquila, positiva y segura.",
-    headline1: "Bienestar durante",
-    headline2: "la sesión",
+      "Un manto cuidado no solo mejora la estética. Buscamos favorecer la salud de la piel, prevenir problemas y mantener el pelo en las mejores condiciones entre sesiones.",
+    headline1: "Resultados",
+    headline2: "saludables",
     image: "/assets/images/secado.webp",
-    imageAlt: "Bienestar durante la sesión de grooming.",
+    imageAlt: "Resultados saludables del cuidado del manto en Maison Vigo.",
   },
 ];
 

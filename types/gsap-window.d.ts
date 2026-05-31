@@ -34,7 +34,14 @@ declare global {
       registerPlugin: (...plugins: unknown[]) => void;
       refresh: () => void;
       getAll: () => Array<{ kill: () => void; vars: { trigger?: Element } }>;
-      getById: (id: string) => { kill: () => void } | undefined;
+      getById: (id: string) =>
+        | {
+            kill: () => void;
+            start: number;
+            end: number;
+            scroll: (position: number) => void;
+          }
+        | undefined;
       update: () => void;
       refresh: () => void;
       scrollerProxy: (

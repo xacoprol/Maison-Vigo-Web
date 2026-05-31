@@ -115,7 +115,6 @@ export class EspacioHorizontalScroll {
   };
   private espacioReducedMotion = false;
   private espacioIsDestroyed = false;
-  private espacioSectionObserver: IntersectionObserver | null = null;
   private espacioFirstIntroRevealed = false;
   private espacioSyncedScrollY: number | null = null;
 
@@ -155,31 +154,12 @@ export class EspacioHorizontalScroll {
           this.espacioRevealTitle(espacioPanel);
         }
       });
-    } else {
-      this.espacioSectionObserver = new IntersectionObserver(
-        ([espacioEntry]) => {
-          if (!espacioEntry?.isIntersecting || this.espacioFirstIntroRevealed) {
-            return;
-          }
-          const espacioFirstPanel = this.espacioPanels[0];
-          if (espacioFirstPanel) {
-            this.espacioRevealIntro(espacioFirstPanel);
-            this.espacioFirstIntroRevealed = true;
-          }
-          this.espacioSectionObserver?.disconnect();
-          this.espacioSectionObserver = null;
-        },
-        { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
-      );
-      this.espacioSectionObserver.observe(this.espacioRoot);
     }
     this.onScroll();
   }
 
   destroy() {
     this.espacioIsDestroyed = true;
-    this.espacioSectionObserver?.disconnect();
-    this.espacioSectionObserver = null;
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("mv-scroll", this.onMvScroll);
     cancelAnimationFrame(this.espacioRafId);
@@ -201,6 +181,7 @@ export class EspacioHorizontalScroll {
   onScroll = () => {
     const espacioRect = this.espacioRoot.getBoundingClientRect();
     const espacioViewportH = window.innerHeight;
+    this.espacioMaybeRevealFirstIntro(espacioRect, espacioViewportH);
     const espacioSettled =
       Math.abs(this.espacioTargetProgress - this.espacioCurrentProgress) <
         0.002 &&
@@ -314,6 +295,18 @@ export class EspacioHorizontalScroll {
         "--espacio-image-parallax",
         espacioPanelParallax.toFixed(4),
       );
+      if (espacioIndex === 1 || espacioIndex === 2 || espacioIndex === 3) {
+        /* Sincronizado con la foto: parallax 1→-1, desplazamiento dorado 0→1 */
+        const espacioGoldShift = this.espacioClamp(
+          (1 - espacioPanelParallax) / 2,
+          0,
+          1,
+        );
+        espacioPanel.style.setProperty(
+          "--espacio-gold-shift",
+          espacioGoldShift.toFixed(4),
+        );
+      }
       if (
         !this.espacioReducedMotion &&
         espacioIndex > 0 &&
@@ -348,6 +341,25 @@ export class EspacioHorizontalScroll {
 
   private espacioClamp(espacioValue: number, espacioMin = 0, espacioMax = 1) {
     return Math.min(Math.max(espacioValue, espacioMin), espacioMax);
+  }
+
+  /** Cuando el sticky se fija (llegada a la sección), sube la foto del panel 1. */
+  private espacioMaybeRevealFirstIntro(
+    espacioRect: DOMRect,
+    espacioViewportH: number,
+  ) {
+    if (this.espacioReducedMotion || this.espacioFirstIntroRevealed) return;
+
+    const espacioPinned =
+      espacioRect.top <= 4 &&
+      espacioRect.bottom >= espacioViewportH * 0.72;
+    if (!espacioPinned) return;
+
+    const espacioFirstPanel = this.espacioPanels[0];
+    if (!espacioFirstPanel) return;
+
+    this.espacioRevealIntro(espacioFirstPanel);
+    this.espacioFirstIntroRevealed = true;
   }
 
   private espacioRevealIntro(espacioPanel: HTMLElement) {

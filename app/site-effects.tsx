@@ -255,6 +255,15 @@ export function SiteEffects() {
     window.addEventListener("hashchange", onHashChange);
     document.addEventListener("click", onHashLinkClick, true);
 
+    if (isHomePathname(window.location.pathname)) {
+      const initialSection = sectionIdFromHash(window.location.hash);
+      if (initialSection) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => scrollToHomeSection(initialSection));
+        });
+      }
+    }
+
     hamburger?.addEventListener("click", toggleMenu);
     closeMenuEl?.addEventListener("click", onCloseMenuClick);
     mobLinks.forEach((l) => l.addEventListener("click", onCloseMenuClick));
@@ -266,8 +275,15 @@ export function SiteEffects() {
     });
     mobileMenu?.addEventListener("click", onMenuOverlayClick);
     reservaPanel?.addEventListener("click", onReservaOverlayClick);
+    const onOpenReservaDelegated = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest(".js-open-reserva-panel")) return;
+      onOpenReservaClick(event);
+    };
+
     openReservaPanel?.addEventListener("click", onOpenReservaClick);
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
+    document.addEventListener("click", onOpenReservaDelegated);
     closeReservaPanel?.addEventListener("click", closeReservaPanelFn);
     window.addEventListener("keydown", onEsc);
 
@@ -309,6 +325,7 @@ export function SiteEffects() {
       reservaPanel?.removeEventListener("click", onReservaOverlayClick);
       openReservaPanel?.removeEventListener("click", onOpenReservaClick);
       openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
+      document.removeEventListener("click", onOpenReservaDelegated);
       closeReservaPanel?.removeEventListener("click", closeReservaPanelFn);
       window.removeEventListener("keydown", onEsc);
       window.removeEventListener("hashchange", onHashChange);

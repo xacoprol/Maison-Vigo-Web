@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RITMO_CUIDADO_STEPS } from "@/lib/ritmo-cuidado-steps";
@@ -247,6 +248,27 @@ export function RitmoCuidadoAccordion() {
                           {step.desc.map((paragraph) => (
                             <p key={paragraph}>{paragraph}</p>
                           ))}
+                          {step.moreHref && step.moreLead ? (
+                            <Link
+                              href={step.moreHref}
+                              className="ritmo-cuidado__more"
+                            >
+                              <span className="ritmo-cuidado__more-text">
+                                {step.moreLead}
+                              </span>
+                              {step.moreLogoSrc ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={step.moreLogoSrc}
+                                  alt={step.moreLogoAlt ?? "MV Care"}
+                                  width={248}
+                                  height={74}
+                                  className="ritmo-cuidado__more-logo"
+                                  decoding="async"
+                                />
+                              ) : null}
+                            </Link>
+                          ) : null}
                         </div>
                       </div>
                     </div>

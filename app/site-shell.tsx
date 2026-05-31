@@ -151,7 +151,7 @@ export function SiteShell() {
                 Cuidado integral
               </Link>
               <Link
-                href="/#mv-care"
+                href="/mvcare"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto3"
               >

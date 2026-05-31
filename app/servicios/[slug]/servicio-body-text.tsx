@@ -74,7 +74,7 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
       if (Math.abs(targetO - currentO) < 0.002) {
         currentO = targetO;
       } else {
-        currentO += (targetO - currentO) * 0.14;
+        currentO += (targetO - currentO) * 0.22;
       }
 
       if (Math.abs(targetY - currentY) < 0.2) {

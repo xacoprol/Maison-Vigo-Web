@@ -35,16 +35,12 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     carouselLabel: "Grooming",
     image: "/grooming.webp",
     imageAlt: "Sesión de grooming en Maison Vigo.",
-    subtitle:
-      "Cuidado estético realizado de forma tranquila, precisa y personalizada.",
+    subtitle: "Dermocosmética y cuidado\nadaptado a cada perro.",
     body:
-      "Cada sesión de grooming en Maison Vigo está pensada desde la " +
-      "observación, la calma y el respeto por el ritmo de cada perro. " +
-      "Trabajamos el cuidado del manto, la higiene y la estética desde una " +
-      "experiencia tranquila y personalizada, priorizando siempre su " +
-      "bienestar físico y emocional.\n\n" +
-      "Más que una sesión de peluquería, buscamos que cada visita se " +
-      "convierta en un momento positivo, cuidado y adaptado a sus necesidades.",
+      "Cada sesión de grooming está diseñada para cuidar la piel, el manto y " +
+      "el bienestar de cada perro desde un enfoque respetuoso y personalizado. " +
+      "Combinamos conocimiento técnico, dermocosmética y observación para " +
+      "ofrecer un cuidado adaptado a sus necesidades reales.",
   },
   bienestar: {
     slug: "bienestar",

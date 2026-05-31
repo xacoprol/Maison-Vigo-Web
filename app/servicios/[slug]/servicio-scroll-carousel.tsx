@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ServicioSlideshowSlide } from "@/lib/servicio-slideshow-data";
 import { SERVICIO_SLIDESHOW_SLIDES } from "@/lib/servicio-slideshow-data";
@@ -63,6 +63,116 @@ export function ServicioScrollCarousel({
   const wrapRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLElement>(null);
   const stepsRef = useRef<HTMLElement>(null);
+  const scrollTriggerRef = useRef<{
+    start: number;
+    end: number;
+    scroll: (position: number) => void;
+  } | null>(null);
+  const slideshowReadyRef = useRef(false);
+  const pendingSlideRef = useRef<number | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
+
+  const applyMobileSlide = useCallback((index: number) => {
+    const root = wrapRef.current;
+    if (!root) return;
+
+    root.dataset.activeSlide = String(index);
+
+    root.querySelectorAll<HTMLElement>(".servicio-slideshow__caption").forEach(
+      (el, i) => {
+        el.classList.toggle("is-active", i === index);
+      },
+    );
+    root.querySelectorAll<HTMLElement>(".servicio-slideshow__media-slide").forEach(
+      (el, i) => {
+        el.classList.toggle("is-active", i === index);
+      },
+    );
+    root
+      .querySelectorAll<HTMLElement>(".servicio-slideshow__headline-line-item")
+      .forEach((el) => {
+        const isMatch = el.classList.contains(
+          `servicio-slideshow__headline-line-item--${index}`,
+        );
+        el.style.display = isMatch ? "" : "none";
+      });
+  }, []);
+
+  const scrollToSlideshowProgress = useCallback(
+    (index: number) => {
+      const slideCount = slides.length;
+      if (slideCount === 0) return false;
+
+      const progress =
+        slideCount <= 1 ? 0 : index / Math.max(slideCount - 1, 1);
+
+      window.ScrollTrigger?.refresh();
+      const trigger =
+        scrollTriggerRef.current ??
+        (window.ScrollTrigger?.getById("servicio-slideshow") as
+          | { start: number; end: number; scroll: (position: number) => void }
+          | undefined);
+
+      if (!trigger) return false;
+
+      const scrollY =
+        trigger.start + (trigger.end - trigger.start) * progress;
+      const lenis = window.__mvLenis;
+
+      if (lenis) {
+        lenis.scrollTo(scrollY, {
+          duration: 1.2,
+          onComplete: () => {
+            window.ScrollTrigger?.update();
+          },
+        });
+      } else {
+        trigger.scroll(scrollY);
+        window.ScrollTrigger?.update();
+      }
+
+      return true;
+    },
+    [slides.length],
+  );
+
+  const setActiveStepUi = useCallback((index: number) => {
+    setActiveStep(index);
+    stepsRef.current
+      ?.querySelectorAll<HTMLElement>(".servicio-slideshow__step")
+      .forEach((step, i) => {
+        const isActive = i === index;
+        step.classList.toggle("is-active", isActive);
+        step.setAttribute("aria-current", isActive ? "step" : "false");
+      });
+  }, []);
+
+  const goToSlide = useCallback(
+    (index: number) => {
+      const wrap = wrapRef.current;
+      if (!wrap || index < 0 || index >= slides.length) return;
+
+      setActiveStepUi(index);
+
+      if (wrap.classList.contains("servicio-slideshow-wrap--mobile-all")) {
+        applyMobileSlide(index);
+        wrap
+          .querySelector<HTMLElement>(`[data-servicio-slide="${index}"]`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      if (!slideshowReadyRef.current) {
+        pendingSlideRef.current = index;
+        return;
+      }
+
+      if (!scrollToSlideshowProgress(index)) {
+        pendingSlideRef.current = index;
+      }
+    },
+    [applyMobileSlide, scrollToSlideshowProgress, setActiveStepUi, slides.length],
+  );
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -76,6 +186,8 @@ export function ServicioScrollCarousel({
 
     if (!desktopMq.matches || prefersReducedMotion) {
       wrap.classList.add("servicio-slideshow-wrap--mobile-all");
+      applyMobileSlide(0);
+      setActiveStepUi(0);
       return;
     }
 
@@ -124,15 +236,7 @@ export function ServicioScrollCarousel({
           root.querySelectorAll(".servicio-slideshow__media-slide"),
         );
 
-        const setActiveStep = (index: number) => {
-          stepsRef.current
-            ?.querySelectorAll<HTMLElement>(".servicio-slideshow__step")
-            .forEach((step, i) => {
-              const isActive = i === index;
-              step.classList.toggle("is-active", isActive);
-              step.setAttribute("aria-current", isActive ? "step" : "false");
-            });
-        };
+        const slideCount = slides.length;
 
         gsap.set(captions, { opacity: 0 });
         gsap.set(captions[0], { opacity: 1 });
@@ -165,15 +269,27 @@ export function ServicioScrollCarousel({
             invalidateOnRefresh: false,
             onUpdate: (self: { progress: number }) => {
               const idx = Math.min(
-                2,
-                Math.max(0, Math.floor(self.progress * 2.999)),
+                slideCount - 1,
+                Math.max(0, Math.floor(self.progress * slideCount * 0.999)),
               );
-              setActiveStep(idx);
+              setActiveStepUi(idx);
             },
           },
         });
 
         timeline = tl;
+        const slideshowTrigger = ScrollTrigger.getById(
+          "servicio-slideshow",
+        ) as
+          | {
+              start: number;
+              end: number;
+              scroll: (position: number) => void;
+            }
+          | undefined;
+        if (slideshowTrigger) {
+          scrollTriggerRef.current = slideshowTrigger;
+        }
 
         tl.to(images[0], { scale: 1, duration: SEG * 0.8 }, 0);
 
@@ -199,7 +315,7 @@ export function ServicioScrollCarousel({
 
         syncHeadlineRowHeights();
 
-        const slideCount = headlineLine1.length;
+        const headlineSlideCount = headlineLine1.length;
         const headlineYForSlide = (lineIndex: number, activeSlide: number) => {
           if (lineIndex === activeSlide) return 0;
           if (lineIndex < activeSlide) return -HEADLINE_OFF;
@@ -208,7 +324,7 @@ export function ServicioScrollCarousel({
 
         /** Estados fijos en la timeline (scrub no usa gsap.set fuera del tl). */
         const lockHeadlineSlide = (activeSlide: number, at: number) => {
-          for (let i = 0; i < slideCount; i += 1) {
+          for (let i = 0; i < headlineSlideCount; i += 1) {
             const y = headlineYForSlide(i, activeSlide);
             const z = i === activeSlide ? 2 : 1;
             tl.set(
@@ -287,10 +403,18 @@ export function ServicioScrollCarousel({
         transitionTo(1, 2, SEG * 2);
         tl.to(images[2], { scale: 1, duration: SEG * 0.8 }, SEG * 2);
 
-        setActiveStep(0);
+        setActiveStepUi(0);
         ScrollTrigger.refresh();
         headlineEl?.classList.add("servicio-slideshow__headline--ready");
         didInit = true;
+        slideshowReadyRef.current = true;
+
+        const pendingIndex = pendingSlideRef.current;
+        if (pendingIndex !== null) {
+          pendingSlideRef.current = null;
+          scrollToSlideshowProgress(pendingIndex);
+          setActiveStepUi(pendingIndex);
+        }
       } catch {
         wrap.classList.add("servicio-slideshow-wrap--mobile-all");
       }
@@ -311,15 +435,18 @@ export function ServicioScrollCarousel({
 
     return () => {
       killed = true;
+      slideshowReadyRef.current = false;
+      pendingSlideRef.current = null;
       window.clearTimeout(startTimer);
       desktopMq.removeEventListener("change", onResize);
       timeline?.kill();
+      scrollTriggerRef.current = null;
       window.ScrollTrigger?.getById("servicio-slideshow")?.kill();
       wrapRef.current
         ?.querySelector(".servicio-slideshow__headline")
         ?.classList.remove("servicio-slideshow__headline--ready");
     };
-  }, []);
+  }, [applyMobileSlide, scrollToSlideshowProgress, setActiveStepUi, slides.length]);
 
   return (
     <div
@@ -345,16 +472,23 @@ export function ServicioScrollCarousel({
               aria-live="polite"
             >
               {slides.map((slide, index) => (
-                <div
+                <button
                   key={`step-${index}`}
+                  type="button"
                   className={
                     "servicio-slideshow__step" +
-                    (index === 0 ? " is-active" : "")
+                    (index === activeStep ? " is-active" : "")
                   }
-                  aria-current={index === 0 ? "step" : undefined}
+                  aria-current={index === activeStep ? "step" : undefined}
+                  aria-label={`Ir a la diapositiva ${index + 1}: ${slide.headline1} ${slide.headline2}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    goToSlide(index);
+                  }}
                 >
                   <span className="servicio-slideshow__step-num">{index + 1}</span>
-                </div>
+                </button>
               ))}
             </nav>
           </div>
@@ -364,6 +498,7 @@ export function ServicioScrollCarousel({
               {slides.map((slide, index) => (
                 <div
                   key={`media-${index}`}
+                  data-servicio-slide={index}
                   className={
                     "servicio-slideshow__media-slide" +
                     ` servicio-slideshow__media-slide--${index}`

@@ -5,6 +5,7 @@ import { getServicioSlideshowSlides } from "@/lib/servicio-slideshow-data";
 import { getServicio, servicioSlugs } from "@/lib/servicios-data";
 import { siteConfig } from "@/lib/site-config";
 
+import { ServicioBackNav } from "./servicio-back-nav";
 import { ServicioBodyText } from "./servicio-body-text";
 import { ServicioEffects } from "./servicio-effects";
 import { ServicioHeroBg } from "./servicio-hero-bg";
@@ -143,6 +144,7 @@ export default async function ServicioPage({
 
       <ServicioServiciosSection slug={servicio.slug} />
     </main>
+    <ServicioBackNav currentTitle={servicio.title} />
     </ServicioPageClient>
   );
 }

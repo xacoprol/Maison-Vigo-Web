@@ -1,0 +1,27 @@
+/** FAQ MV Care: acordeón servicio-servicios, sin padding de sección completa */
+.mvcare-faq-section .mvcare-faq-accordion.servicio-servicios {
+  padding: 0;
+  background: transparent;
+  color: var(--cream);
+}
+
+.mvcare-faq-section .mvcare-faq-accordion .servicio-servicios__trigger-title {
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.45;
+  letter-spacing: 0.12em;
+}
+
+.mvcare-faq-section .mvcare-faq-accordion .servicio-servicios__desc {
+  text-transform: none;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  color: rgba(244, 244, 242, 0.82);
+}
+
+@media (max-width: 900px) {
+  .mvcare-faq-section .mvcare-faq-accordion .servicio-servicios__trigger-title {
+    font-size: 14px;
+  }
+}

@@ -113,6 +113,7 @@ export function ServiciosCarousel() {
   }>({ pointerId: null, startX: 0, startTarget: 0, active: false });
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
   const highlightedIdRef = useRef<ServiceId>("Grooming");
+  const hoverIdRef = useRef<ServiceId | null>(null);
   const isMobile = useSyncExternalStore(
     subscribeMobileMq,
     getMobileMqSnapshot,
@@ -288,6 +289,7 @@ export function ServiciosCarousel() {
 
     const resetToCenter = () => {
       if (reducedMotionRef.current || isMobileRef.current) return;
+      hoverIdRef.current = null;
       targetRef.current = centerTRef.current;
       setHighlight("Grooming");
     };
@@ -350,13 +352,20 @@ export function ServiciosCarousel() {
         const vp = viewportRef.current;
         const tr = trackRef.current;
         if (vp && tr) {
-          const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-          const cw = cells[0]?.offsetWidth ?? 0;
-          if (cw >= 8) {
-            const labels = isMobileRef.current
-              ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
-              : [...ORDER_DESKTOP];
-            syncHighlightFromTranslate(currentRef.current, cw, labels);
+          const hoverId = hoverIdRef.current;
+          if (hoverId) {
+            setHighlight(hoverId);
+          } else {
+            const cells = tr.querySelectorAll<HTMLElement>(
+              ".servicios-carousel__cell",
+            );
+            const cw = cells[0]?.offsetWidth ?? 0;
+            if (cw >= 8) {
+              const labels = isMobileRef.current
+                ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
+                : [...ORDER_DESKTOP];
+              syncHighlightFromTranslate(currentRef.current, cw, labels);
+            }
           }
         }
       }
@@ -375,7 +384,7 @@ export function ServiciosCarousel() {
       window.removeEventListener("mv-scroll", onMvScroll);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [applyTransform, measureWithRetry, syncHighlightFromTranslate]);
+  }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
 
   const DRAG_THRESHOLD_PX = 12;
 
@@ -489,8 +498,38 @@ export function ServiciosCarousel() {
                 href={`/servicios/${servicioSlugFromLabel(label) ?? ""}`}
                 className="servicios-carousel__orb"
                 aria-label={`${label}. ${SERVICE_SUBTITLES[label]}`}
-                onPointerEnter={() => setHighlight(label)}
-                onFocus={() => setHighlight(label)}
+                onPointerEnter={() => {
+                  hoverIdRef.current = label;
+                  setHighlight(label);
+                }}
+                onPointerLeave={() => {
+                  if (hoverIdRef.current !== label) return;
+                  hoverIdRef.current = null;
+                  const vp = viewportRef.current;
+                  const tr = trackRef.current;
+                  if (!vp || !tr) return;
+                  const cells = tr.querySelectorAll<HTMLElement>(
+                    ".servicios-carousel__cell",
+                  );
+                  const cw = cells[0]?.offsetWidth ?? 0;
+                  if (cw < 8) return;
+                  const labels = isMobileRef.current
+                    ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
+                    : [...ORDER_DESKTOP];
+                  syncHighlightFromTranslate(
+                    currentRef.current,
+                    cw,
+                    labels,
+                  );
+                }}
+                onFocus={() => {
+                  hoverIdRef.current = label;
+                  setHighlight(label);
+                }}
+                onBlur={() => {
+                  if (hoverIdRef.current !== label) return;
+                  hoverIdRef.current = null;
+                }}
                 onClick={(event) => {
                   if (mobileDragRef.current.active) {
                     event.preventDefault();

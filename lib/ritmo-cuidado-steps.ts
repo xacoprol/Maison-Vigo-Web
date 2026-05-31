@@ -2,6 +2,10 @@ export type RitmoCuidadoStep = {
   title: string;
   img: string;
   desc: string[];
+  moreHref?: string;
+  moreLead?: string;
+  moreLogoSrc?: string;
+  moreLogoAlt?: string;
 };
 
 export const RITMO_CUIDADO_STEPS: RitmoCuidadoStep[] = [
@@ -58,5 +62,9 @@ export const RITMO_CUIDADO_STEPS: RitmoCuidadoStep[] = [
       "MV Care reúne historial, recomendaciones y continuidad personalizada para cada perro.",
       "Una forma más tranquila de acompañar su bienestar.",
     ],
+    moreHref: "/mvcare",
+    moreLead: "Saber más sobre",
+    moreLogoSrc: "/assets/images/mvcare.svg",
+    moreLogoAlt: "MV Care",
   },
 ];
