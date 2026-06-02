@@ -6,7 +6,7 @@ function MaintenanceFallback() {
     <main className="maintenance-page">
       <div className="maintenance-overlay" />
       <section className="maintenance-card">
-        <p className="maintenance-copy">Web en mantenimiento</p>
+        <p className="maintenance-copy">Una pausa con calma. Volvemos pronto.</p>
       </section>
     </main>
   );

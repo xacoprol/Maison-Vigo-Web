@@ -29,7 +29,7 @@ export function MaintenanceClient() {
           className="maintenance-logo"
         />
 
-        <p className="maintenance-copy">Web en mantenimiento</p>
+        <p className="maintenance-copy">Una pausa con calma. Volvemos pronto.</p>
 
         <form className="maintenance-form" method="post" action="/api/maintenance-login">
           <label htmlFor="maintenancePassword" className="maintenance-label">

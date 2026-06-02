@@ -18,6 +18,10 @@
   --nav-pad-x: 78px;
   --ff-serif: var(--font-playfair), Georgia, serif;
   --ff-sans: var(--font-inter), system-ui, sans-serif;
+  --panel-reveal-duration: 1.35s;
+  --panel-reveal-ease: cubic-bezier(0.76, 0, 0.24, 1);
+  --panel-reveal-delay: 0.14s;
+  --panel-media-width: clamp(320px, 40vw, 520px);
 }
 
 html {
@@ -588,8 +592,8 @@ nav#navbar.scrolled .nav-brand-piece--one {
   max-width: 100%;
   height: 100dvh;
   z-index: 240;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 40vw);
+  display: block;
+  overflow: hidden;
   pointer-events: none;
   opacity: 1;
   visibility: hidden;
@@ -606,14 +610,18 @@ nav#navbar.scrolled .nav-brand-piece--one {
 }
 .mobile-menu-panel {
   position: relative;
+  z-index: 2;
+  width: min(100%, calc(100% - var(--panel-media-width)));
+  height: 100%;
   background: #121014;
   border-right: 1px solid rgba(187, 149, 93, 0.14);
   transform: translateX(-100%);
-  transition: transform 1.35s cubic-bezier(0.76, 0, 0.24, 1) 0.14s;
+  transition: transform var(--panel-reveal-duration) var(--panel-reveal-ease);
   overflow: hidden;
 }
 .mobile-menu.open .mobile-menu-panel {
   transform: translateX(0);
+  transition-delay: var(--panel-reveal-delay);
 }
 .mobile-menu-inner {
   height: 100%;
@@ -713,18 +721,26 @@ nav#navbar.scrolled .nav-brand-piece--one {
   border: 0;
 }
 .mobile-menu-media {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--panel-media-width);
+  z-index: 1;
   overflow: hidden;
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 1.35s cubic-bezier(0.76, 0, 0.24, 1) 0.14s;
+  transition: clip-path var(--panel-reveal-duration) var(--panel-reveal-ease);
 }
 .mobile-menu.open .mobile-menu-media {
   clip-path: inset(0 0 0 0);
+  transition-delay: var(--panel-reveal-delay);
 }
 .mobile-menu-media::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background: linear-gradient(
     to left,
     rgba(8, 8, 8, 0.12),
@@ -736,18 +752,25 @@ nav#navbar.scrolled .nav-brand-piece--one {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.45s ease;
+  transform: scale(1.06);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .mobile-menu-media-layer.is-active {
   opacity: 1;
 }
+.mobile-menu.open .mobile-menu-media-layer.is-active {
+  transform: scale(1);
+  transition-delay: calc(var(--panel-reveal-delay) + 0.1s);
+}
 .mobile-menu-media-img {
   object-fit: cover;
-  object-position: center;
+  object-position: 68% center;
 }
 .mobile-menu-close {
   position: absolute;
-  left: 60%;
+  left: calc(100% - var(--panel-media-width));
   top: 110px;
   transform: translate(-50%, -50%);
   width: 68px;
@@ -790,7 +813,7 @@ nav#navbar.scrolled .nav-brand-piece--one {
 }
 .mobile-menu-book {
   position: absolute;
-  left: 60%;
+  left: calc(100% - var(--panel-media-width));
   top: 50%;
   transform: translate(-50%, -50%);
   width: 280px;
@@ -864,8 +887,8 @@ nav#navbar.scrolled .nav-brand-piece--one {
   position: fixed;
   inset: 0;
   z-index: 245;
-  display: grid;
-  grid-template-columns: minmax(320px, 40vw) minmax(0, 1fr);
+  display: block;
+  overflow: hidden;
   visibility: hidden;
   pointer-events: none;
   transition: visibility 0s linear 1.35s;
@@ -876,18 +899,26 @@ nav#navbar.scrolled .nav-brand-piece--one {
   transition: none;
 }
 .reserva-panel-media {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--panel-media-width);
+  z-index: 1;
   overflow: hidden;
   clip-path: inset(0 0 0 100%);
-  transition: clip-path 1.35s cubic-bezier(0.76, 0, 0.24, 1) 0.14s;
+  transition: clip-path var(--panel-reveal-duration) var(--panel-reveal-ease);
 }
 .reserva-panel.open .reserva-panel-media {
   clip-path: inset(0 0 0 0);
+  transition-delay: var(--panel-reveal-delay);
 }
 .reserva-panel-media::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background: linear-gradient(
     to right,
     rgba(8, 8, 8, 0.16),
@@ -897,24 +928,35 @@ nav#navbar.scrolled .nav-brand-piece--one {
 }
 .reserva-panel-media-img {
   object-fit: cover;
-  object-position: center;
+  object-position: 32% center;
+  transform: scale(1.06);
+  transition: transform 1.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reserva-panel.open .reserva-panel-media-img {
+  transform: scale(1);
+  transition-delay: calc(var(--panel-reveal-delay) + 0.1s);
 }
 .reserva-panel-shell {
   position: relative;
+  z-index: 2;
+  width: min(100%, calc(100% - var(--panel-media-width)));
+  height: 100%;
+  margin-left: auto;
   background: #121014;
   border-left: 1px solid rgba(187, 149, 93, 0.14);
   transform: translateX(100%);
-  transition: transform 1.35s cubic-bezier(0.76, 0, 0.24, 1) 0.14s;
+  transition: transform var(--panel-reveal-duration) var(--panel-reveal-ease);
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 .reserva-panel.open .reserva-panel-shell {
   transform: translateX(0);
+  transition-delay: var(--panel-reveal-delay);
 }
 .reserva-panel-close {
   position: absolute;
-  left: 0;
+  left: var(--panel-media-width);
   top: 110px;
   transform: translate(-50%, -50%);
   width: 68px;
@@ -2828,12 +2870,9 @@ a.contact-line:focus-visible .contact-text {
   .hamburger-icon {
     width: 26px;
   }
-  .mobile-menu {
-    grid-template-columns: 1fr;
-  }
   .mobile-menu-panel {
+    width: 100%;
     border-right: none;
-    z-index: 2;
   }
   .mobile-menu-inner {
     padding: 108px 28px 44px;
@@ -2845,10 +2884,20 @@ a.contact-line:focus-visible .contact-text {
     margin-top: 24px;
   }
   .mobile-menu-media {
-    position: absolute;
     inset: 0;
-    z-index: 1;
-    opacity: 0.34;
+    left: 0;
+    right: 0;
+    width: auto;
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mobile-menu.open .mobile-menu-media {
+    opacity: 0.36;
+    transition-delay: calc(var(--panel-reveal-delay) + 0.12s);
+  }
+  .mobile-menu-media-img {
+    object-position: center center;
   }
   .mobile-menu-close {
     left: auto;
@@ -2877,17 +2926,25 @@ a.contact-line:focus-visible .contact-text {
   .mobile-menu-book:hover {
     transform: translateY(-50%);
   }
-  .reserva-panel {
-    grid-template-columns: 1fr;
+  .reserva-panel-shell {
+    width: 100%;
+    margin-left: 0;
   }
   .reserva-panel-media {
-    position: absolute;
     inset: 0;
-    opacity: 0.28;
-    z-index: 1;
+    left: 0;
+    right: 0;
+    width: auto;
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .reserva-panel-shell {
-    z-index: 2;
+  .reserva-panel.open .reserva-panel-media {
+    opacity: 0.3;
+    transition-delay: calc(var(--panel-reveal-delay) + 0.12s);
+  }
+  .reserva-panel-media-img {
+    object-position: center center;
   }
   .reserva-panel-close {
     left: auto;

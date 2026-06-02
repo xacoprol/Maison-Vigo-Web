@@ -126,6 +126,45 @@ export function SiteShell() {
       </nav>
 
       <div className="mobile-menu" id="mobileMenu" aria-hidden="true">
+        <div className="mobile-menu-media" aria-hidden={true}>
+          <div
+            className="mobile-menu-media-layer is-active"
+            data-menu-image="foto1"
+          >
+            <Image
+              src="/foto1.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={70}
+              priority
+            />
+          </div>
+          <div className="mobile-menu-media-layer" data-menu-image="foto2">
+            <Image
+              src="/foto2.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={70}
+              loading="eager"
+            />
+          </div>
+          <div className="mobile-menu-media-layer" data-menu-image="foto3">
+            <Image
+              src="/foto3.jpg"
+              alt=""
+              fill
+              className="mobile-menu-media-img"
+              sizes="(max-width: 900px) 100vw, 40vw"
+              quality={70}
+              loading="eager"
+            />
+          </div>
+        </div>
+
         <div className="mobile-menu-panel">
           <div className="mobile-menu-inner">
             <div className="mobile-menu-primary">
@@ -214,45 +253,6 @@ export function SiteShell() {
             <ReservaCtaLabel compactOnMobile />
           </span>
         </a>
-
-        <div className="mobile-menu-media" aria-hidden={true}>
-          <div
-            className="mobile-menu-media-layer is-active"
-            data-menu-image="foto1"
-          >
-            <Image
-              src="/foto1.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              loading="lazy"
-            />
-          </div>
-          <div className="mobile-menu-media-layer" data-menu-image="foto2">
-            <Image
-              src="/foto2.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              loading="lazy"
-            />
-          </div>
-          <div className="mobile-menu-media-layer" data-menu-image="foto3">
-            <Image
-              src="/foto3.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              loading="lazy"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="reserva-panel" id="reservaPanel" aria-hidden="true">
@@ -264,7 +264,7 @@ export function SiteShell() {
             className="reserva-panel-media-img"
             sizes="(max-width: 900px) 100vw, 40vw"
             quality={70}
-            loading="lazy"
+            priority
           />
         </div>
         <div className="reserva-panel-shell">
