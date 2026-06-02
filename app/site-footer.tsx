@@ -2,7 +2,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <section id="contacto" className="site-footer__contacto">
-        <div className="contact-block contact-block--brand reveal visible">
+        <div className="contact-block contact-block--brand">
           <img
             src="/logo-anim/anim-1.svg"
             alt="Maison Vigo"
@@ -12,8 +12,7 @@ export function SiteFooter() {
           />
         </div>
         <div
-          className="contact-block contact-block--align-center-r reveal visible"
-          style={{ transitionDelay: "0.05s" }}
+          className="contact-block contact-block--align-center-r"
         >
           <span className="contact-label">Ubicación</span>
           <div className="contact-info">
@@ -40,8 +39,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div
-          className="contact-block contact-block--align-center-l reveal visible"
-          style={{ transitionDelay: "0.15s" }}
+          className="contact-block contact-block--align-center-l"
         >
           <span className="contact-label">Contacto</span>
           <div className="contact-info">
@@ -99,8 +97,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div
-          className="contact-block contact-block--align-end reveal visible"
-          style={{ transitionDelay: "0.25s" }}
+          className="contact-block contact-block--align-end"
         >
           <span className="contact-label">Horario</span>
           <div className="contact-info">

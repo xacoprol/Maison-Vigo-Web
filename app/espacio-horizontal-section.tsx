@@ -101,6 +101,7 @@ type EspacioScrollMeasure = {
 
 export class EspacioHorizontalScroll {
   private espacioRoot: HTMLElement;
+  private espacioSticky: HTMLElement;
   private espacioTrack: HTMLElement;
   private espacioPanels: HTMLElement[];
   private espacioRafId = 0;
@@ -117,16 +118,24 @@ export class EspacioHorizontalScroll {
   private espacioIsDestroyed = false;
   private espacioFirstIntroRevealed = false;
   private espacioSyncedScrollY: number | null = null;
+  /** Scroll Y en el que el sticky encaja arriba (inicio real del recorrido horizontal). */
+  private espacioPinScrollY: number | null = null;
 
   constructor(espacioRoot: HTMLElement) {
+    const espacioSticky = espacioRoot.querySelector<HTMLElement>(
+      ".espacio__sticky",
+    );
     const espacioTrack = espacioRoot.querySelector<HTMLElement>(
       "[data-espacio-track]",
     );
-    if (!espacioTrack) {
-      throw new Error("EspacioHorizontalScroll requires [data-espacio-track].");
+    if (!espacioSticky || !espacioTrack) {
+      throw new Error(
+        "EspacioHorizontalScroll requires .espacio__sticky and [data-espacio-track].",
+      );
     }
 
     this.espacioRoot = espacioRoot;
+    this.espacioSticky = espacioSticky;
     this.espacioTrack = espacioTrack;
     this.espacioPanels = Array.from(
       espacioRoot.querySelectorAll<HTMLElement>("[data-espacio-panel]"),
@@ -146,6 +155,7 @@ export class EspacioHorizontalScroll {
     window.addEventListener("resize", this.onResize);
     window.addEventListener("mv-scroll", this.onMvScroll);
     if (this.espacioReducedMotion) {
+      this.espacioRoot.style.setProperty("--espacio-intro-peek", "1");
       this.espacioPanels.forEach((espacioPanel, espacioIndex) => {
         if (espacioIndex === 0) {
           this.espacioRevealIntro(espacioPanel);
@@ -181,6 +191,7 @@ export class EspacioHorizontalScroll {
   onScroll = () => {
     const espacioRect = this.espacioRoot.getBoundingClientRect();
     const espacioViewportH = window.innerHeight;
+    this.espacioUpdateIntroPeek(espacioRect, espacioViewportH);
     this.espacioMaybeRevealFirstIntro(espacioRect, espacioViewportH);
     const espacioSettled =
       Math.abs(this.espacioTargetProgress - this.espacioCurrentProgress) <
@@ -197,14 +208,28 @@ export class EspacioHorizontalScroll {
     }
 
     const espacioScrollY = this.espacioGetScrollY();
-    const espacioRawProgress =
-      (espacioScrollY - this.espacioMeasure.espacioStart) /
-      this.espacioMeasure.espacioDistance;
+    let espacioRawProgress = 0;
+
+    if (espacioRect.top > 0) {
+      this.espacioPinScrollY = null;
+      espacioRawProgress = 0;
+    } else if (espacioRect.bottom <= espacioViewportH) {
+      this.espacioPinScrollY = null;
+      espacioRawProgress = 1;
+    } else {
+      if (this.espacioPinScrollY === null) {
+        this.espacioPinScrollY = espacioScrollY;
+      }
+      espacioRawProgress =
+        (espacioScrollY - this.espacioPinScrollY) /
+        this.espacioMeasure.espacioDistance;
+    }
 
     this.espacioTargetProgress = this.espacioClamp(espacioRawProgress);
+    const espacioTitleOrigin =
+      this.espacioPinScrollY ?? this.espacioMeasure.espacioStart;
     this.espacioTargetTitleProgress = this.espacioClamp(
-      (espacioScrollY -
-        (this.espacioMeasure.espacioStart - window.innerHeight * 0.85)) /
+      (espacioScrollY - (espacioTitleOrigin - window.innerHeight * 0.85)) /
         (window.innerHeight * 1.15),
     );
     this.espacioRoot.classList.toggle(
@@ -217,7 +242,7 @@ export class EspacioHorizontalScroll {
   onResize = () => {
     const espacioRect = this.espacioRoot.getBoundingClientRect();
     const espacioScrollY = this.espacioGetScrollY();
-    const espacioViewportW = window.innerWidth;
+    const espacioViewportW = this.espacioSticky.clientWidth;
     const espacioViewportH = window.innerHeight;
     const espacioPanelCount = Math.max(this.espacioPanels.length, 1);
 
@@ -226,6 +251,7 @@ export class EspacioHorizontalScroll {
       String(espacioPanelCount),
     );
 
+    this.espacioPinScrollY = null;
     this.espacioMeasure = {
       espacioStart: espacioScrollY + espacioRect.top,
       espacioDistance: Math.max(
@@ -343,6 +369,31 @@ export class EspacioHorizontalScroll {
     return Math.min(Math.max(espacioValue, espacioMin), espacioMax);
   }
 
+  /** Avance de la foto del panel 1 mientras la sección aún no está pinada arriba. */
+  private espacioUpdateIntroPeek(
+    espacioRect: DOMRect,
+    espacioViewportH: number,
+  ) {
+    if (this.espacioReducedMotion || this.espacioFirstIntroRevealed) {
+      this.espacioRoot.style.setProperty("--espacio-intro-peek", "1");
+      return;
+    }
+
+    if (espacioRect.top > espacioViewportH) {
+      this.espacioRoot.style.setProperty("--espacio-intro-peek", "0");
+      return;
+    }
+
+    if (espacioRect.top <= 0) {
+      this.espacioRoot.style.setProperty("--espacio-intro-peek", "1");
+      return;
+    }
+
+    const peekRange = espacioViewportH * 0.92;
+    const peek = 1 - Math.min(Math.max(espacioRect.top / peekRange, 0), 1);
+    this.espacioRoot.style.setProperty("--espacio-intro-peek", peek.toFixed(3));
+  }
+
   /** Cuando el sticky se fija (llegada a la sección), sube la foto del panel 1. */
   private espacioMaybeRevealFirstIntro(
     espacioRect: DOMRect,
@@ -351,7 +402,7 @@ export class EspacioHorizontalScroll {
     if (this.espacioReducedMotion || this.espacioFirstIntroRevealed) return;
 
     const espacioPinned =
-      espacioRect.top <= 4 &&
+      espacioRect.top <= 0 &&
       espacioRect.bottom >= espacioViewportH * 0.72;
     if (!espacioPinned) return;
 

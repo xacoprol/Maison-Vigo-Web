@@ -2,6 +2,8 @@
   --espacio-panel-count: 4;
   --espacio-progress: 0;
   --espacio-title-progress: 0;
+  /** 0 → lejos; 1 → sección llegando / pin (avance de la foto del panel 1). */
+  --espacio-intro-peek: 0;
   --espacio-bg: #050505;
   --espacio-cream: var(--cream, #f4f4f2);
   --espacio-gold: var(--gold-lt, #d4af7a);
@@ -68,7 +70,8 @@
   position: relative;
   z-index: 1;
   display: flex;
-  width: calc(100vw * var(--espacio-panel-count));
+  /** `svw` evita desbordar por la barra de scroll; el recorte lo hace `.espacio__sticky`. */
+  width: calc(100svw * var(--espacio-panel-count));
   height: 100vh;
   height: 100svh;
   will-change: transform;
@@ -77,12 +80,13 @@
 
 .espacio__panel {
   position: relative;
-  flex: 0 0 100vw;
-  width: 100vw;
+  flex: 0 0 100svw;
+  width: 100svw;
   height: 100vh;
   height: 100svh;
   overflow: hidden;
   background: #050505;
+  box-sizing: border-box;
 }
 
 .espacio__panel-grid {
@@ -95,8 +99,8 @@
 
 @keyframes espacioImageRiseIn {
   from {
-    opacity: 0;
-    transform: translate3d(0, clamp(72px, 14vh, 132px), 0);
+    opacity: 0.72;
+    transform: translate3d(0, clamp(28px, 5vh, 56px), 0);
   }
   to {
     opacity: 1;
@@ -126,14 +130,25 @@
   will-change: transform, opacity;
 }
 
-/* Panel 1: el marco sube desde abajo al llegar a la sección */
-.espacio__panel--one .espacio__image-frame {
-  transform: translate3d(0, clamp(72px, 14vh, 132px), 0);
+/**
+ * Panel 1: antes del pin, la foto asoma al acercarse; al pinchar, sube y queda arriba.
+ */
+.espacio__panel--one:not(.espacio__panel--image-in) .espacio__image-frame {
+  opacity: calc(var(--espacio-intro-peek) * 0.92);
+  transform: translate3d(
+    0,
+    calc((1 - var(--espacio-intro-peek)) * clamp(120px, 22vh, 220px)),
+    0
+  );
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .espacio__panel--one.espacio__panel--image-in .espacio__image-frame {
-  animation: espacioImageRiseIn 1.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: 0.12s;
+  opacity: 1;
+  animation: espacioImageRiseIn 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.06s;
 }
 
 /* Paneles 2–4: ya visibles; solo zoom lento al centrarse */
@@ -534,8 +549,8 @@
   }
 
   .espacio__panel {
-    flex: 0 0 100%;
-    width: 100%;
+    flex: 0 0 calc(100% / var(--espacio-panel-count));
+    width: calc(100% / var(--espacio-panel-count));
   }
 
   .espacio__image-frame {
@@ -572,6 +587,14 @@
 
   .espacio__panel--one {
     --espacio-one-copy-left: 24px;
+
+    &:not(.espacio__panel--image-in) .espacio__image-frame {
+      transform: translate3d(
+        0,
+        calc((1 - var(--espacio-intro-peek)) * clamp(72px, 14vh, 128px)),
+        0
+      );
+    }
 
     .espacio__eyebrow {
       margin-left: 0;
