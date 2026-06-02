@@ -4,10 +4,6 @@ import Script from "next/script";
 
 import { rootMetadata } from "@/lib/seo-metadata";
 
-import { SeoJsonLd } from "./seo-json-ld";
-import { SiteEffects } from "./site-effects";
-import { SiteFooter } from "./site-footer";
-import { SiteShell } from "./site-shell";
 import "./espacio-horizontal-section.scss";
 import "./globals.css";
 
@@ -47,11 +43,7 @@ export default function RootLayout({
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
-        <SeoJsonLd />
-        <SiteEffects />
-        <SiteShell />
         {children}
-        <SiteFooter />
       </body>
     </html>
   );

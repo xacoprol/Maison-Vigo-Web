@@ -1,9 +1,9 @@
-import { ConceptoSection } from "./concepto-section";
-import { EspacioHorizontalSection } from "./espacio-horizontal-section";
-import { HomeEffects } from "./home-effects";
-import { RitmoCuidadoAccordion } from "./ritmo-cuidado-accordion";
-import { ServiciosCarousel } from "./servicios-carousel";
-import { WaveText } from "./wave-text";
+import { ConceptoSection } from "../concepto-section";
+import { EspacioHorizontalSection } from "../espacio-horizontal-section";
+import { HomeEffects } from "../home-effects";
+import { RitmoCuidadoAccordion } from "../ritmo-cuidado-accordion";
+import { ServiciosCarousel } from "../servicios-carousel";
+import { WaveText } from "../wave-text";
 
 export default function Home() {
   return (
