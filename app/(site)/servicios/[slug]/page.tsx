@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getServicioSlideshowSlides } from "@/lib/servicio-slideshow-data";
@@ -96,7 +97,7 @@ export default async function ServicioPage({
           <ServicioBodyText key={servicio.slug}>{servicio.body}</ServicioBodyText>
         </div>
 
-        <a
+        <Link
           href="/#contacto"
           className="servicio__scroll-cta"
           aria-label="Bajar a contacto"
@@ -134,7 +135,7 @@ export default async function ServicioPage({
               />
             </span>
           </span>
-        </a>
+        </Link>
       </section>
 
       <ServicioScrollCarousel

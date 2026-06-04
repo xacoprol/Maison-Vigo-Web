@@ -1,9 +1,10 @@
+import Link from "next/link";
+
 import { ConceptoSection } from "../concepto-section";
 import { EspacioHorizontalSection } from "../espacio-horizontal-section";
 import { HomeEffects } from "../home-effects";
 import { RitmoCuidadoAccordion } from "../ritmo-cuidado-accordion";
 import { ServiciosCarousel } from "../servicios-carousel";
-import { WaveText } from "../wave-text";
 
 export default function Home() {
   return (
@@ -62,7 +63,7 @@ export default function Home() {
               en un entorno pensado para su bienestar.
             </span>
           </p>
-          <a
+          <Link
             href="/#concepto"
             className="hero-scroll-cta"
             aria-label="Bajar a la sección Concepto"
@@ -97,7 +98,7 @@ export default function Home() {
                 />
               </span>
             </span>
-          </a>
+          </Link>
         </div>
       </section>
 

@@ -198,7 +198,7 @@ export function ServicioScrollCarousel({
     if (!desktopMq.matches || prefersReducedMotion) {
       wrap.classList.add("servicio-slideshow-wrap--mobile-all");
       applyMobileSlide(0);
-      setActiveStepUi(0);
+      queueMicrotask(() => setActiveStepUi(0));
       return;
     }
 
