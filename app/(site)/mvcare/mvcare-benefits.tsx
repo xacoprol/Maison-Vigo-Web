@@ -148,10 +148,10 @@ export function MvcareBenefits() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   className="mvcare-benefits__bg-img"
-                  src="/assets/images/lo-que-ganas-con-mvcare.webp"
+                  src="/assets/images/galgo.webp"
                   alt=""
-                  width={1327}
-                  height={1733}
+                  width={4055}
+                  height={4216}
                   decoding="async"
                   draggable={false}
                 />

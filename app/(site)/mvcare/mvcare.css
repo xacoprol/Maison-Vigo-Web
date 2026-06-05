@@ -84,7 +84,8 @@
 
 .mvcare-section--close {
   background: #050505;
-  padding-bottom: clamp(96px, 14vw, 160px);
+  padding-top: clamp(120px, 18vw, 200px);
+  padding-bottom: clamp(140px, 20vw, 220px);
   text-align: center;
 }
 
@@ -1197,10 +1198,10 @@
 
 .mvcare-benefits__bg {
   position: absolute;
-  left: 0;
+  left: clamp(-200px, -16vw, -96px);
   bottom: 0;
-  width: clamp(320px, 62vw, 880px);
-  height: 125%;
+  width: clamp(400px, 78vw, 1120px);
+  height: 155%;
   will-change: transform;
 }
 
@@ -1210,7 +1211,7 @@
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
-  opacity: 0.12;
+  opacity: 0.34;
 }
 
 /**
