@@ -2725,7 +2725,7 @@ a.contact-line:focus-visible .contact-text {
   color: var(--cream);
 }
 .site-footer__contacto {
-  padding: clamp(48px, 6vw, 88px) var(--nav-pad-x);
+  padding: clamp(112px, 13vw, 176px) var(--nav-pad-x);
 }
 .footer-bar {
   padding: 32px var(--nav-pad-x) 40px;
@@ -3175,7 +3175,7 @@ a.contact-line:focus-visible .contact-text {
       "ubicacion contacto horario";
     gap: clamp(28px, 4.5vw, 40px) clamp(16px, 3vw, 28px);
     align-items: start;
-    padding: clamp(48px, 10vw, 72px) var(--footer-pad-x) clamp(40px, 8vw, 64px);
+    padding: clamp(96px, 16vw, 132px) var(--footer-pad-x);
   }
   .contact-block {
     min-width: 0;
