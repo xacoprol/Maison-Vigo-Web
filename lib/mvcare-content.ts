@@ -9,7 +9,9 @@ export const mvcareHero = {
   titleLine1Rest: "cuidado continúa",
   titleLine2: "más allá de cada sesión",
   subtitle:
-    "Seguimiento personalizado para el bienestar y cuidado continuo de la mascota",
+    "Tu panel privado: citas, historial y recomendaciones entre visitas",
+  image: "/assets/images/la-bienvenida.webp",
+  imageAlt: "Bienvenida en Maison Vigo — MV Care.",
 } as const;
 
 export type MvcareWhatIsParagraph =
@@ -23,18 +25,21 @@ export type MvcareWhatIsParagraph =
 export const mvcareWhatIs = {
   eyebrow: "Qué es",
   titleLine1: "Tu espacio privado",
-  titleLine2: "con Maison Vigo",
+  titleLine2Before: "con ",
+  titleLine2Highlight: "Maison Vigo",
   paragraphs: [
-    "MV CARE DIGITAL es el espacio de Maison Vigo para quienes confían en nosotros el cuidado de su perro. No sustituye la visita al salón: la prolonga con calma, claridad y continuidad.",
+    "MV Care es el espacio digital de Maison Vigo para quienes confían en nosotros el cuidado de su perro. No sustituye la visita al salón: la prolonga con claridad y continuidad.",
     {
-      before: "Tras cada sesión, el cuidado no se queda en la puerta. ",
+      before: "Tras cada sesión, ",
       highlight:
-        "Historial, observaciones de piel y manto, recomendaciones para casa y próximas citas",
-      after:
-        " viven en un mismo lugar, pensado para leer con tranquilidad.",
+        "historial, observaciones de piel y manto, recomendaciones para casa y próximas citas",
+      after: " viven en un mismo lugar, pensado para consultar con calma.",
     },
-    "Es una forma más serena de acompañar su bienestar: sin prisa, con la misma atención al detalle que en el espacio físico.",
   ] satisfies MvcareWhatIsParagraph[],
+  ritmoLink: {
+    label: "Conocer el ritmo del cuidado en salón",
+    href: "/#ritmo-cuidado",
+  },
 } as const;
 
 export type MvcareFeature = {
@@ -95,16 +100,10 @@ export const mvcareFeatures: MvcareFeature[] = [
   },
 ];
 
-export const mvcareContinuity = {
-  eyebrow: "Continuidad",
-  title: "Una forma más tranquila de acompañar su bienestar",
-  quote:
-    "MV Care reúne historial, recomendaciones y continuidad personalizada para cada perro.",
-  body: "El cuidado continúa más allá de la sesión. Desde el panel puedes retomar lo acordado en salón, sin tener que recordarlo todo: tiempos, productos, próximos pasos.",
-  linkLabel: "Conocer el ritmo del cuidado en salón",
-  linkHref: "/#ritmo-cuidado",
-  image: "/assets/images/continuidad.webp",
-  imageAlt: "Continuidad del cuidado Maison Vigo.",
+export const mvcareStart = {
+  eyebrow: "Cómo empezar",
+  title: "Tres pasos",
+  subtitle: "Y las dudas más habituales",
 } as const;
 
 export type MvcareStep = {
@@ -163,16 +162,16 @@ export const mvcareFaq: MvcareFaqItem[] = [
 ];
 
 export const mvcareBenefitsCol1: string[] = [
-  "Historial de visitas y cuidados",
-  "Plan de cuidado en casa entre sesiones",
-  "Próximas citas y reserva cómoda",
-  "Selección de productos para el cuidado y el vínculo",
+  "Retomas cada visita sin empezar de cero",
+  "Sabes qué hacer en casa entre sesiones",
+  "Reservas sin llamar ni recordar fechas",
+  "Productos elegidos para su rutina, no un catálogo genérico",
 ];
 
 export const mvcareBenefitsCol2: string[] = [
-  "Seguimiento de piel y manto",
-  "Recomendaciones adaptadas a cada perro",
-  "Beneficios vinculados a la continuidad del cuidado",
+  "Ves cómo evoluciona su manto en el tiempo",
+  "Recomendaciones hechas para él, no plantillas",
+  "Más continuidad, más ventajas en el cuidado",
 ];
 
 /** Los 7 ítems en orden (referencia / SEO). */
@@ -183,5 +182,5 @@ export const mvcareBenefits: string[] = [
 
 export const mvcareClose = {
   title: "El cuidado no termina al salir por la puerta",
-  body: "Accede a tu espacio MV Care o reserva la próxima sesión con la misma calma con la que cuidamos en salón.",
+  body: "Entra en tu panel o reserva la próxima sesión.",
 } as const;

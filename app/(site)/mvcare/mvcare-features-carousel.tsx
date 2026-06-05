@@ -269,9 +269,11 @@ export function MvcareFeaturesCarousel() {
         <header className="mvcare-features__masthead">
           <h2
             id="mvcare-features-title"
-            className="servicios-heading__title mvcare-features__masthead-title"
+            className="servicios-heading__title mvcare-features__masthead-title mvcare-title-display"
           >
-            {mvcareFeaturesSection.masthead}
+            <span className="mvcare-title-reveal">
+              {mvcareFeaturesSection.masthead}
+            </span>
           </h2>
           <p className="mvcare-features__masthead-sub">
             <span className="mvcare-features__masthead-sub-line">
@@ -331,15 +333,19 @@ export function MvcareFeaturesCarousel() {
                       key={feature.title}
                       className={`mvcare-features__numeral-clip${
                         isActive ? " is-active" : ""
-                      }${
-                        isNumeralTransitioning && isActive
-                          ? " is-entering"
-                          : ""
-                      }${isPrevious ? " is-exiting" : ""}`}
+                      }`}
                       aria-hidden={!isActive}
                     >
-                      <span className="mvcare-features__numeral">
-                        {slideIndex + 1}
+                      <span
+                        className={`mvcare-features__numeral-reveal${
+                          isNumeralTransitioning && isActive
+                            ? " is-entering"
+                            : ""
+                        }${isPrevious ? " is-exiting" : ""}`}
+                      >
+                        <span className="mvcare-features__numeral">
+                          {slideIndex + 1}
+                        </span>
                       </span>
                     </span>
                   );

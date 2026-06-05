@@ -131,12 +131,31 @@
   );
 }
 
+/** Fundido inferior → sección «Qué es» (#050505). */
+.mvcare-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: clamp(160px, 30vh, 340px);
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 5, 5, 0) 0%,
+    rgba(5, 5, 5, 0.45) 42%,
+    #050505 100%
+  );
+  pointer-events: none;
+}
+
 .mvcare-hero__inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   max-width: min(96vw, 1080px);
   margin-inline: auto;
+  padding-top: clamp(56px, 10vh, 112px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -324,7 +343,7 @@
   right: var(--mvcare-pad-x);
   left: auto;
   bottom: clamp(32px, 6vw, 56px);
-  z-index: 2;
+  z-index: 3;
   display: inline-grid;
   place-items: center;
   width: 40px;
@@ -414,7 +433,7 @@
 /* —— Qué es —— */
 .mvcare-what.mvcare-section {
   background: #050505;
-  padding-top: clamp(136px, 20vw, 220px);
+  padding-top: clamp(48px, 8vw, 88px);
   padding-bottom: clamp(136px, 20vw, 220px);
 }
 
@@ -450,6 +469,27 @@
 
 .mvcare-what__title-line {
   display: block;
+}
+
+.mvcare-what__title-highlight {
+  color: var(--gold);
+}
+
+/** Reveal de títulos de sección (misma curva que servicios / concepto). */
+.mvcare-title-reveal {
+  display: block;
+  clip-path: ellipse(52% 0% at 50% 138%);
+  will-change: clip-path;
+}
+
+.mvcare-what__title .mvcare-title-reveal {
+  display: flex;
+  flex-direction: column;
+}
+
+.mvcare-title-display.is-revealed .mvcare-title-reveal {
+  animation: serviciosTitleEllipseReveal 2.2s cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 
 .mvcare-what__body {
@@ -507,7 +547,8 @@
 /* —— Features (carrusel editorial) —— */
 .mvcare-features.mvcare-section {
   position: relative;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   background: #ebebe8;
   color: var(--black);
   padding-top: clamp(136px, 20vw, 220px);
@@ -601,7 +642,7 @@
 .mvcare-features__copy-panel {
   width: min(100%, 38ch);
   max-width: 38ch;
-  margin: 0 clamp(40px, 10vw, 112px) 0 0;
+  margin: 0 clamp(16px, 3vw, 40px) 0 0;
   box-sizing: border-box;
   text-align: left;
 }
@@ -673,6 +714,7 @@
   color: var(--gold);
   max-width: 16ch;
   text-align: left;
+  text-transform: uppercase;
 }
 
 .mvcare-features__slide-desc.section-body,
@@ -682,6 +724,8 @@
   line-height: 1.55;
   color: var(--muted);
   text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 @keyframes mvcareFeaturesLineRevealUp {
@@ -694,7 +738,7 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: clamp(4px, 0.6vw, 8px);
+  gap: clamp(8px, 1vw, 12px);
 }
 
 /* Flechas: mismas clases que `servicio__scroll-cta` */
@@ -702,8 +746,8 @@
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: clamp(54px, 5.5vw, 64px);
+  height: clamp(54px, 5.5vw, 64px);
   padding: 0;
   border: none;
   background: transparent;
@@ -758,8 +802,8 @@
 
 .mvcare-features__arrow-icon {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: clamp(20px, 2.2vw, 26px);
+  height: clamp(20px, 2.2vw, 26px);
   filter: none;
 }
 
@@ -767,9 +811,13 @@
   --mvcare-features-photo-h: clamp(360px, 54vh, 520px);
   --mvcare-features-photo-w: calc(var(--mvcare-features-photo-h) * 854 / 1183);
   --mvcare-features-numeral-size: calc(var(--mvcare-features-photo-h) * 1.2);
+  --mvcare-features-visual-pad-top: 0px;
+  --mvcare-features-content-h: calc(
+    var(--mvcare-features-visual-pad-top) + var(--mvcare-features-photo-h)
+  );
   position: relative;
   width: 100%;
-  min-height: var(--mvcare-features-photo-h);
+  min-height: var(--mvcare-features-content-h);
   overflow: visible;
 }
 
@@ -778,9 +826,9 @@
   z-index: 1;
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  width: fit-content;
-  max-width: 100%;
+  gap: clamp(48px, 6vw, 88px);
+  width: 100%;
+  max-width: none;
   height: var(--mvcare-features-photo-h);
   overflow: visible;
 }
@@ -788,10 +836,11 @@
 .mvcare-features__numeral-stack {
   position: absolute;
   z-index: 0;
-  right: 0;
-  bottom: calc(
-    (var(--mvcare-features-photo-h) - var(--mvcare-features-numeral-size)) / 2
+  top: calc(
+    var(--mvcare-features-visual-pad-top) +
+      (var(--mvcare-features-photo-h) - var(--mvcare-features-numeral-size)) / 2
   );
+  right: 0;
   left: 0;
   height: var(--mvcare-features-numeral-size);
   display: grid;
@@ -808,30 +857,33 @@
   place-items: center;
   width: var(--mvcare-features-numeral-size);
   height: var(--mvcare-features-numeral-size);
-  font-size: var(--mvcare-features-numeral-size);
-  margin-right: clamp(-120px, -12vw, -56px);
+  margin-right: clamp(-220px, -22vw, -120px);
   overflow: visible;
-  line-height: 1;
-}
-
-.mvcare-features__numeral-clip.is-entering,
-.mvcare-features__numeral-clip.is-exiting {
-  overflow: hidden;
 }
 
 .mvcare-features__numeral-clip.is-active {
   z-index: 2;
 }
 
-.mvcare-features__numeral-clip.is-entering {
-  clip-path: inset(0 0 0 100%);
-  animation: mvcareFeaturesImageRevealLtr var(--panel-reveal-duration)
+.mvcare-features__numeral-reveal {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: var(--mvcare-features-numeral-size);
+  line-height: 1;
+  overflow: visible;
+}
+
+.mvcare-features__numeral-reveal.is-entering {
+  clip-path: inset(-8% 0 -10% 100%);
+  animation: mvcareFeaturesNumeralRevealIn var(--panel-reveal-duration)
     var(--panel-reveal-ease) forwards;
 }
 
-.mvcare-features__numeral-clip.is-exiting {
+.mvcare-features__numeral-reveal.is-exiting {
   z-index: 1;
-  clip-path: inset(0 0 0 0);
+  clip-path: inset(-8% 0 -10% 0);
   animation: mvcareFeaturesNumeralRevealOut var(--panel-reveal-duration)
     var(--panel-reveal-ease) forwards;
 }
@@ -865,7 +917,7 @@
 }
 
 .mvcare-features__image-col--secondary {
-  flex: 0 0 clamp(152px, 32%, 248px);
+  flex: 0 0 clamp(188px, 39%, 304px);
   align-self: flex-start;
   min-height: 0;
 }
@@ -962,9 +1014,21 @@
   }
 }
 
+@keyframes mvcareFeaturesNumeralRevealIn {
+  to {
+    clip-path: inset(-8% 0 -10% 0);
+  }
+}
+
+@keyframes mvcareFeaturesNumeralRevealIn {
+  to {
+    clip-path: inset(-8% 0 -10% 0);
+  }
+}
+
 @keyframes mvcareFeaturesNumeralRevealOut {
   to {
-    clip-path: inset(0 100% 0 0);
+    clip-path: inset(-8% 100% -10% 0);
   }
 }
 
@@ -1004,21 +1068,37 @@
   }
 
   .mvcare-features__body {
+    --mvcare-features-visual-pad-top: calc(clamp(64px, 10vw, 172px) * 0.86 / 2);
+    --mvcare-features-photo-h: 1000px;
+    --mvcare-features-content-h: calc(
+      var(--mvcare-features-visual-pad-top) + var(--mvcare-features-photo-h)
+    );
     grid-template-columns: 45% 55%;
     gap: clamp(24px, 3vw, 40px);
+    align-items: stretch;
   }
 
   .mvcare-features__copy-col {
-    min-height: calc(
-      var(--mvcare-features-photo-h) +
-        calc(clamp(64px, 10vw, 172px) * 0.86 / 2)
-    );
+    min-height: var(--mvcare-features-content-h);
   }
 
   .mvcare-features__visual-col {
+    --mvcare-features-visual-pad-top: calc(clamp(64px, 10vw, 172px) * 0.86 / 2);
     --mvcare-features-photo-h: 1000px;
-    padding-top: calc(clamp(64px, 10vw, 172px) * 0.86 / 2);
+    padding-top: var(--mvcare-features-visual-pad-top);
+    margin-right: calc(-1 * var(--mvcare-pad-x));
+    width: calc(100% + var(--mvcare-pad-x));
     box-sizing: border-box;
+  }
+
+  .mvcare-features.mvcare-section {
+    padding-bottom: calc(clamp(136px, 20vw, 220px) + 100px);
+  }
+
+  .mvcare-features__image-col--main {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: min(var(--mvcare-features-photo-w), 100%);
   }
 }
 
@@ -1037,7 +1117,7 @@
   }
 
   .mvcare-features__image-col--secondary {
-    flex-basis: clamp(132px, 34%, 188px);
+    flex-basis: clamp(162px, 42%, 232px);
   }
 }
 
@@ -1049,10 +1129,10 @@
 
   .mvcare-features__image-layer--main.is-entering,
   .mvcare-features__image-layer--secondary.is-entering,
-  .mvcare-features__numeral-clip.is-entering,
-  .mvcare-features__numeral-clip.is-exiting {
+  .mvcare-features__numeral-reveal.is-entering,
+  .mvcare-features__numeral-reveal.is-exiting {
     animation: none;
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(-8% 0 -10% 0);
   }
 
   .mvcare-features__image-layer--main.is-entering .mvcare-features__image,
@@ -1079,6 +1159,7 @@
 .mvcare-benefits.mvcare-section {
   position: relative;
   overflow: visible;
+  padding: 0;
   background: #050505;
   color: var(--cream);
 }
@@ -1144,6 +1225,10 @@
   grid-template-columns: 1fr;
 }
 
+.mvcare-benefits-wrap--static .mvcare-benefits__sticky {
+  padding: clamp(72px, 12vw, 128px) var(--mvcare-pad-x);
+}
+
 .mvcare-benefits__layer {
   align-self: start;
   grid-area: sticky_content;
@@ -1171,6 +1256,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--mvcare-benefits-gutter);
+  will-change: transform;
 }
 
 .mvcare-benefits__card {
@@ -1183,7 +1269,6 @@
   background: transparent;
   display: flex;
   align-items: flex-start;
-  will-change: transform;
 }
 
 .mvcare-benefits__card-text {
@@ -1201,15 +1286,12 @@
 
 @media (min-width: 1024px) {
   .mvcare-benefits-wrap:not(.mvcare-benefits-wrap--static)
-    .mvcare-benefits.mvcare-section {
+    .mvcare-benefits__sticky {
     padding-top: var(--mvcare-benefits-air);
-    padding-bottom: var(--mvcare-benefits-air);
-    padding-inline: 0;
   }
 
   /**
-   * experience__background-layer: capa sticky 100vh con imagen en parallax.
-   * Permanece fija mientras las tarjetas suben (como la referencia).
+   * experience__background-layer: capa sticky 100lvh con imagen en parallax.
    */
   .mvcare-benefits-wrap:not(.mvcare-benefits-wrap--static)
     .mvcare-benefits__layer--bg {
@@ -1219,6 +1301,7 @@
     align-self: start;
     min-height: 100lvh;
     height: 100lvh;
+    overflow: hidden;
     pointer-events: none;
   }
 
@@ -1268,7 +1351,6 @@
     display: grid;
     grid-template-columns: 50vw minmax(0, 1fr);
     gap: 0;
-    padding-top: var(--mvcare-benefits-air);
     padding-right: var(--mvcare-pad-x);
     padding-bottom: var(--mvcare-benefits-gutter);
   }
@@ -1319,13 +1401,13 @@
   }
 }
 
-.mvcare-benefits-wrap--static .mvcare-benefits__card,
+.mvcare-benefits-wrap--static .mvcare-benefits__col,
 .mvcare-benefits-wrap--static .mvcare-benefits__bg {
   transform: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mvcare-benefits__card,
+  .mvcare-benefits__col,
   .mvcare-benefits__bg {
     transform: none !important;
   }
@@ -1398,9 +1480,52 @@
   outline-offset: 4px;
 }
 
-/* —— Steps —— */
-.mvcare-steps__head {
+/* —— Start (pasos + FAQ) —— */
+.mvcare-start.mvcare-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--cream);
+}
+
+.mvcare-start.mvcare-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("/assets/images/bg-pelos.webp") center / cover no-repeat;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.mvcare-start__inner {
+  position: relative;
+  z-index: 1;
+  max-width: none;
+  width: 100%;
+}
+
+.mvcare-start__head {
   margin-bottom: clamp(40px, 6vw, 56px);
+}
+
+.mvcare-start__subtitle {
+  margin: clamp(12px, 2vw, 18px) 0 0;
+  max-width: 28ch;
+  color: var(--muted);
+}
+
+.mvcare-start__grid {
+  display: grid;
+  gap: clamp(40px, 6vw, 64px);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .mvcare-start__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(48px, 7vw, 88px);
+  }
 }
 
 .mvcare-steps__list {
@@ -1446,6 +1571,24 @@
 /* —— FAQ —— */
 .mvcare-faq-section .section-title {
   margin-bottom: clamp(32px, 5vw, 48px);
+}
+
+/** FAQ dentro de «Cómo empezar» (fondo crema): colores legibles */
+.mvcare-start .mvcare-faq-accordion .servicio-servicios__trigger-title {
+  color: var(--gold);
+}
+
+.mvcare-start .mvcare-faq-accordion .servicio-servicios__trigger-title::after {
+  color: var(--black);
+}
+
+.mvcare-start .mvcare-faq-accordion .servicio-servicios__desc {
+  color: var(--muted);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 /* —— Close —— */
@@ -1510,6 +1653,11 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .mvcare-title-display.is-revealed .mvcare-title-reveal {
+    animation: none;
+    clip-path: none;
   }
 }
 

@@ -4,9 +4,9 @@ import Link from "next/link";
 
 import {
   mvcareClose,
-  mvcareContinuity,
   mvcareFaq,
   mvcareHero,
+  mvcareStart,
   mvcareSteps,
   mvcareWhatIs,
 } from "@/lib/mvcare-content";
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     description:
       "Espacio digital para clientes: historial, plan de cuidado, citas y recomendaciones entre sesiones.",
     url: "/mvcare",
-    images: [{ url: "/assets/images/continuidad.webp" }],
+    images: [{ url: mvcareHero.image }],
   },
 };
 
@@ -41,7 +41,7 @@ export default function MvcarePage() {
         <section className="mvcare-hero" aria-label="MV Care">
           <div className="mvcare-hero__media" aria-hidden={true}>
             <Image
-              src="/assets/images/continuidad.webp"
+              src={mvcareHero.image}
               alt=""
               fill
               priority
@@ -124,23 +124,30 @@ export default function MvcarePage() {
           className="mvcare-section mvcare-section--dark mvcare-what"
           aria-labelledby="mvcare-what-title"
         >
-          <div className="mvcare-section__inner mvcare-reveal">
+          <div className="mvcare-section__inner">
             <div className="mvcare-what__grid">
               <div className="mvcare-what__intro">
-                <p className="section-label">{mvcareWhatIs.eyebrow}</p>
+                <p className="section-label mvcare-reveal">
+                  {mvcareWhatIs.eyebrow}
+                </p>
                 <h2
                   id="mvcare-what-title"
-                  className="section-title mvcare-what__title"
+                  className="section-title mvcare-what__title mvcare-title-display"
                 >
-                  <span className="mvcare-what__title-line">
-                    {mvcareWhatIs.titleLine1}
-                  </span>
-                  <span className="mvcare-what__title-line">
-                    {mvcareWhatIs.titleLine2}
+                  <span className="mvcare-title-reveal">
+                    <span className="mvcare-what__title-line">
+                      {mvcareWhatIs.titleLine1}
+                    </span>
+                    <span className="mvcare-what__title-line">
+                      {mvcareWhatIs.titleLine2Before}
+                      <span className="mvcare-what__title-highlight">
+                        {mvcareWhatIs.titleLine2Highlight}
+                      </span>
+                    </span>
                   </span>
                 </h2>
               </div>
-              <div className="mvcare-what__body">
+              <div className="mvcare-what__body mvcare-reveal">
                 {mvcareWhatIs.paragraphs.map((paragraph) =>
                   typeof paragraph === "string" ? (
                     <p key={paragraph} className="section-body">
@@ -156,6 +163,15 @@ export default function MvcarePage() {
                     </p>
                   ),
                 )}
+                <Link
+                  href={mvcareWhatIs.ritmoLink.href}
+                  className="mvcare-link"
+                >
+                  {mvcareWhatIs.ritmoLink.label}
+                  <span className="mvcare-link__arrow" aria-hidden={true}>
+                    →
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -166,79 +182,40 @@ export default function MvcarePage() {
         <MvcareBenefits />
 
         <section
-          className="mvcare-section mvcare-section--dark mvcare-continuity"
-          aria-labelledby="mvcare-continuity-title"
+          id="mvcare-empezar"
+          className="mvcare-section mvcare-section--light mvcare-start"
+          aria-labelledby="mvcare-start-title"
         >
-          <div className="mvcare-continuity__grid mvcare-section__inner">
-            <div className="mvcare-continuity__media mvcare-reveal">
-              <Image
-                src={mvcareContinuity.image}
-                alt={mvcareContinuity.imageAlt}
-                width={900}
-                height={1100}
-                className="mvcare-continuity__img"
-                sizes="(max-width: 900px) 92vw, 44vw"
-              />
-            </div>
-            <div className="mvcare-continuity__copy mvcare-reveal">
-              <p className="section-label">{mvcareContinuity.eyebrow}</p>
-              <h2
-                id="mvcare-continuity-title"
-                className="section-title mvcare-continuity__title"
-              >
-                {mvcareContinuity.title}
+          <div className="mvcare-section__inner mvcare-start__inner">
+            <header className="mvcare-start__head mvcare-reveal">
+              <p className="section-label">{mvcareStart.eyebrow}</p>
+              <h2 id="mvcare-start-title" className="section-title">
+                {mvcareStart.title}
               </h2>
-              <blockquote className="mvcare-continuity__quote">
-                {mvcareContinuity.quote}
-              </blockquote>
-              <p className="section-body">{mvcareContinuity.body}</p>
-              <Link href={mvcareContinuity.linkHref} className="mvcare-link">
-                {mvcareContinuity.linkLabel}
-                <span className="mvcare-link__arrow" aria-hidden={true}>
-                  →
-                </span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className="mvcare-section mvcare-section--light mvcare-steps"
-          aria-labelledby="mvcare-steps-title"
-        >
-          <div className="mvcare-section__inner">
-            <header className="mvcare-steps__head mvcare-reveal">
-              <p className="section-label">Cómo empezar</p>
-              <h2 id="mvcare-steps-title" className="section-title">
-                Tres pasos, sin prisa
-              </h2>
+              <p className="section-body mvcare-start__subtitle">
+                {mvcareStart.subtitle}
+              </p>
             </header>
-            <ol className="mvcare-steps__list">
-              {mvcareSteps.map((step) => (
-                <li key={step.number} className="mvcare-steps__item mvcare-reveal">
-                  <span className="mvcare-steps__num" aria-hidden={true}>
-                    {step.number}
-                  </span>
-                  <div className="mvcare-steps__copy">
-                    <h3 className="mvcare-steps__title">{step.title}</h3>
-                    <p className="section-body">{step.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
 
-        <section
-          className="mvcare-section mvcare-section--dark mvcare-faq-section"
-          aria-labelledby="mvcare-faq-title"
-        >
-          <div className="mvcare-section__inner mvcare-reveal">
-            <p className="section-label">Preguntas frecuentes</p>
-            <h2 id="mvcare-faq-title" className="section-title">
-              Resolvemos tus dudas
-            </h2>
-            <MvcareFaq items={mvcareFaq} />
+            <div className="mvcare-start__grid mvcare-reveal">
+              <ol className="mvcare-steps__list">
+                {mvcareSteps.map((step) => (
+                  <li key={step.number} className="mvcare-steps__item">
+                    <span className="mvcare-steps__num" aria-hidden={true}>
+                      {step.number}
+                    </span>
+                    <div className="mvcare-steps__copy">
+                      <h3 className="mvcare-steps__title">{step.title}</h3>
+                      <p className="section-body">{step.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mvcare-start__faq">
+                <MvcareFaq items={mvcareFaq} />
+              </div>
+            </div>
           </div>
         </section>
 

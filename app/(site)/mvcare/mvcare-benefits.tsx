@@ -5,12 +5,14 @@ import { useEffect, useRef } from "react";
 import { mvcareBenefitsCol1, mvcareBenefitsCol2 } from "@/lib/mvcare-content";
 
 const DESKTOP_MIN = 1024;
-/** Ref. `experienceCard`: ±vh según progreso de `.section` (no solo sticky). */
-const CARD_PARALLAX_VH = 12;
-const COL2_CARD_FACTOR = 0.55;
+/**
+ * Ref. Grigoriak `experienceCard`: col.1 = 25vh, col.2 = 35vh (`data-parallax-size`).
+ * Misma curva: +(size)vh al entrar la sección → −(size)vh al salir.
+ */
+const COL1_PARALLAX_VH = 25;
+const COL2_PARALLAX_VH = 35;
 /** Ref. `imageScaleInSmall` + `imageMove`. */
 const BG_SCALE_END = 1.08;
-const BG_MOVE_VH = 10;
 
 function sectionProgress(section: HTMLElement, vh: number) {
   const range = section.offsetHeight + vh;
@@ -45,15 +47,17 @@ export function MvcareBenefits() {
       return;
     }
 
-    const cards = () =>
-      cardsGrid.querySelectorAll<HTMLLIElement>(".mvcare-benefits__card");
+    const cols = () => ({
+      col1: cardsGrid.querySelector<HTMLUListElement>(".mvcare-benefits__col--1"),
+      col2: cardsGrid.querySelector<HTMLUListElement>(".mvcare-benefits__col--2"),
+    });
 
     const clearTransforms = () => {
       bg.style.transform = "";
       bg.style.transformOrigin = "";
-      cards().forEach((card) => {
-        card.style.transform = "";
-      });
+      const { col1, col2 } = cols();
+      if (col1) col1.style.transform = "";
+      if (col2) col2.style.transform = "";
       cardsGrid.style.removeProperty("padding-bottom");
       wrap.classList.remove("mvcare-benefits-wrap--complete");
     };
@@ -69,24 +73,25 @@ export function MvcareBenefits() {
     const update = () => {
       const vh = window.innerHeight;
       const progress = sectionProgress(section, vh);
-      const cardOffsetVh = (0.5 - progress) * 2 * CARD_PARALLAX_VH;
+      const parallaxY = (sizeVh: number) =>
+        ((0.5 - progress) * 2 * sizeVh * vh) / 100;
 
       const bgStage = bg.parentElement;
       const stageH = bgStage?.clientHeight ?? vh;
       const bgH = bg.offsetHeight || stageH;
-      const moveRatio = stageH > 0 ? (stageH - bgH) / stageH : 0;
+      const moveRatio = stageH > 0 ? Math.max(0, (stageH - bgH) / stageH) : 0;
       const bgMoveY = -progress * moveRatio * stageH;
 
       bg.style.transformOrigin = "left bottom";
       bg.style.transform = `translate3d(0, ${bgMoveY}px, 0) scale(${1 + progress * (BG_SCALE_END - 1)})`;
 
-      cards().forEach((card) => {
-        const factor = card.closest(".mvcare-benefits__col--2")
-          ? COL2_CARD_FACTOR
-          : 1;
-        const y = (cardOffsetVh * factor * vh) / 100;
-        card.style.transform = `translate3d(0, ${y}px, 0)`;
-      });
+      const { col1, col2 } = cols();
+      if (col1) {
+        col1.style.transform = `translate3d(0, ${parallaxY(COL1_PARALLAX_VH)}px, 0)`;
+      }
+      if (col2) {
+        col2.style.transform = `translate3d(0, ${parallaxY(COL2_PARALLAX_VH)}px, 0)`;
+      }
 
       const stickyRect = sticky.getBoundingClientRect();
       const travel = Math.max(sticky.offsetHeight - vh, 0);

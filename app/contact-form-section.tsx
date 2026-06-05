@@ -129,7 +129,7 @@ export function ContactFormSection() {
     <section
       id="formulario-contacto"
       className="contact-form-section"
-      aria-labelledby="contact-form-heading"
+      aria-label="Formulario de contacto"
     >
       <div className="contact-form-section__media" aria-hidden={true}>
         <Image
@@ -144,13 +144,6 @@ export function ContactFormSection() {
       </div>
 
       <div className="contact-form-section__main">
-        <header className="contact-form-section__header">
-          <span className="section-label">Contacto</span>
-          <h2 className="contact-form-section__title" id="contact-form-heading">
-            {isSubmitted ? "Gracias" : "Escríbenos"}
-          </h2>
-        </header>
-
         {isSubmitted ? (
           <div
             className="contact-form-section__success"
@@ -204,14 +197,12 @@ export function ContactFormSection() {
                   : "")
               }
             >
-              <label className="contact-form-section__label" htmlFor={nameId}>
-                Nombre
-              </label>
               <input
                 id={nameId}
                 className="contact-form-section__input"
                 type="text"
                 name="name"
+                placeholder=" "
                 autoComplete="name"
                 aria-invalid={showErrors && errors.name ? true : undefined}
                 aria-describedby={
@@ -222,6 +213,9 @@ export function ContactFormSection() {
                   setSubmitError(null);
                 }}
               />
+              <label className="contact-form-section__label" htmlFor={nameId}>
+                Nombre
+              </label>
               <p
                 id={nameErrorId}
                 className={
@@ -244,14 +238,12 @@ export function ContactFormSection() {
                   : "")
               }
             >
-              <label className="contact-form-section__label" htmlFor={emailId}>
-                Email
-              </label>
               <input
                 id={emailId}
                 className="contact-form-section__input"
                 type="email"
                 name="email"
+                placeholder=" "
                 autoComplete="email"
                 aria-invalid={showErrors && errors.email ? true : undefined}
                 aria-describedby={
@@ -262,6 +254,9 @@ export function ContactFormSection() {
                   setSubmitError(null);
                 }}
               />
+              <label className="contact-form-section__label" htmlFor={emailId}>
+                Email
+              </label>
               <p
                 id={emailErrorId}
                 className={
@@ -284,17 +279,12 @@ export function ContactFormSection() {
                   : "")
               }
             >
-              <label
-                className="contact-form-section__label"
-                htmlFor={subjectId}
-              >
-                Asunto
-              </label>
               <input
                 id={subjectId}
                 className="contact-form-section__input"
                 type="text"
                 name="subject"
+                placeholder=" "
                 aria-invalid={showErrors && errors.subject ? true : undefined}
                 aria-describedby={
                   showErrors && errors.subject ? subjectErrorId : undefined
@@ -304,6 +294,9 @@ export function ContactFormSection() {
                   setSubmitError(null);
                 }}
               />
+              <label className="contact-form-section__label" htmlFor={subjectId}>
+                Asunto
+              </label>
               <p
                 id={subjectErrorId}
                 className={
