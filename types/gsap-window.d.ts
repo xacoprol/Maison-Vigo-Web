@@ -22,6 +22,11 @@ declare global {
         ) => unknown;
       };
       set: (target: unknown, vars: Record<string, unknown>) => void;
+      quickSetter: (
+        target: unknown,
+        property: string,
+        unit?: string,
+      ) => (value: number) => void;
       to: (
         target: unknown,
         vars: Record<string, unknown>,
@@ -36,14 +41,21 @@ declare global {
       getAll: () => Array<{ kill: () => void; vars: { trigger?: Element } }>;
       getById: (id: string) =>
         | {
-            kill: () => void;
+            kill: (reset?: boolean) => void;
             start: number;
             end: number;
+            progress: number;
             scroll: (position: number) => void;
+            disable: (reset?: boolean, suppressCallbacks?: boolean) => void;
+            enable: (reset?: boolean, suppressCallbacks?: boolean) => void;
           }
         | undefined;
-      update: () => void;
-      refresh: () => void;
+      create: (vars: Record<string, unknown>) => {
+        kill: (reset?: boolean) => void;
+        start: number;
+        end: number;
+        progress: number;
+      };
       scrollerProxy: (
         element: Element,
         vars: Record<string, unknown>,

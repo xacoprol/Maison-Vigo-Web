@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   mvcareFeatures,
@@ -9,6 +15,154 @@ import {
 } from "@/lib/mvcare-content";
 
 const SLIDE_COUNT = mvcareFeatures.length;
+
+function splitTextIntoLines(container: HTMLElement, text: string): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+
+  container.replaceChildren();
+  const spans = words.map((word) => {
+    const span = document.createElement("span");
+    span.textContent = word;
+    container.appendChild(span);
+    container.appendChild(document.createTextNode(" "));
+    return span;
+  });
+
+  const lines: string[] = [];
+  let lineWords: string[] = [];
+  let lastTop: number | null = null;
+
+  spans.forEach((span, wordIndex) => {
+    const top = span.offsetTop;
+    if (lastTop !== null && top > lastTop + 1) {
+      lines.push(lineWords.join(" "));
+      lineWords = [words[wordIndex]];
+    } else {
+      lineWords.push(words[wordIndex]);
+    }
+    lastTop = top;
+  });
+
+  if (lineWords.length > 0) {
+    lines.push(lineWords.join(" "));
+  }
+
+  container.replaceChildren();
+  return lines;
+}
+
+type MvcareFeaturesSlideCopyProps = {
+  title: string;
+  description: string;
+  animate: boolean;
+};
+
+function MvcareFeaturesSlideCopy({
+  title,
+  description,
+  animate,
+}: MvcareFeaturesSlideCopyProps) {
+  const titleMeasureRef = useRef<HTMLHeadingElement>(null);
+  const descMeasureRef = useRef<HTMLParagraphElement>(null);
+  const [titleLines, setTitleLines] = useState<string[]>([title]);
+  const [descLines, setDescLines] = useState<string[]>([description]);
+
+  const measureLines = useCallback(() => {
+    const titleEl = titleMeasureRef.current;
+    const descEl = descMeasureRef.current;
+    if (!titleEl || !descEl) return;
+
+    setTitleLines(splitTextIntoLines(titleEl, title));
+    setDescLines(splitTextIntoLines(descEl, description));
+  }, [title, description]);
+
+  useLayoutEffect(() => {
+    measureLines();
+  }, [measureLines]);
+
+  useEffect(() => {
+    const onResize = () => measureLines();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [measureLines]);
+
+  let lineIndex = 0;
+
+  return (
+    <article className="mvcare-features__copy-panel" aria-live="polite">
+      <div
+        className="mvcare-features__line-measure"
+        aria-hidden={true}
+      >
+        <h3
+          ref={titleMeasureRef}
+          className="mvcare-features__slide-title"
+        >
+          {title}
+        </h3>
+        <p
+          ref={descMeasureRef}
+          className="section-body mvcare-features__slide-desc"
+        >
+          {description}
+        </p>
+      </div>
+
+      <div className="mvcare-features__slide-title-block">
+        {titleLines.map((line, lineOffset) => {
+          const delayIndex = lineIndex;
+          lineIndex += 1;
+          return (
+            <div
+              key={`title-${lineOffset}`}
+              className="mvcare-features__line-wrap"
+            >
+              <span
+                className={`mvcare-features__line mvcare-features__line--title${
+                  animate ? " is-entering" : ""
+                }`}
+                style={
+                  {
+                    "--line-i": delayIndex,
+                  } as React.CSSProperties
+                }
+              >
+                {line}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mvcare-features__slide-desc-block">
+        {descLines.map((line, lineOffset) => {
+          const delayIndex = lineIndex;
+          lineIndex += 1;
+          return (
+            <div
+              key={`desc-${lineOffset}`}
+              className="mvcare-features__line-wrap"
+            >
+              <span
+                className={`mvcare-features__line mvcare-features__line--desc section-body${
+                  animate ? " is-entering" : ""
+                }`}
+                style={
+                  {
+                    "--line-i": delayIndex,
+                  } as React.CSSProperties
+                }
+              >
+                {line}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
 
 type CarouselArrowProps = {
   direction: "prev" | "next";
@@ -61,10 +215,28 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps) {
 export function MvcareFeaturesCarousel() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const [prevIndex, setPrevIndex] = useState(0);
+  const [slideEpoch, setSlideEpoch] = useState(0);
+  const [isNumeralTransitioning, setIsNumeralTransitioning] = useState(false);
 
   const go = useCallback((delta: number) => {
-    setIndex((prev) => (prev + delta + SLIDE_COUNT) % SLIDE_COUNT);
+    setIndex((current) => {
+      setPrevIndex(current);
+      return (current + delta + SLIDE_COUNT) % SLIDE_COUNT;
+    });
+    setSlideEpoch((epoch) => epoch + 1);
+    setIsNumeralTransitioning(true);
   }, []);
+
+  useEffect(() => {
+    if (!isNumeralTransitioning) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setIsNumeralTransitioning(false);
+    }, 1400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isNumeralTransitioning, index]);
 
   useEffect(() => {
     const root = carouselRef.current;
@@ -83,25 +255,31 @@ export function MvcareFeaturesCarousel() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
-  const active = mvcareFeatures[index];
-  const secondary = mvcareFeatures[(index + 1) % SLIDE_COUNT];
+  const secondaryIndex = (index + 1) % SLIDE_COUNT;
+  const prevSecondaryIndex = (prevIndex + 1) % SLIDE_COUNT;
+  const isSlideAnimating = slideEpoch > 0;
 
   return (
     <section
-      className="mvcare-section mvcare-section--dark mvcare-features"
+      className="mvcare-section mvcare-section--light mvcare-features"
       aria-labelledby="mvcare-features-title"
       aria-roledescription="carrusel"
     >
       <div className="mvcare-section__inner mvcare-features__inner">
-        <header className="mvcare-features__masthead mvcare-reveal">
+        <header className="mvcare-features__masthead">
           <h2
             id="mvcare-features-title"
             className="servicios-heading__title mvcare-features__masthead-title"
           >
             {mvcareFeaturesSection.masthead}
           </h2>
-          <p className="section-label mvcare-features__masthead-sub">
-            {mvcareFeaturesSection.subtitle}
+          <p className="mvcare-features__masthead-sub">
+            <span className="mvcare-features__masthead-sub-line">
+              {mvcareFeaturesSection.subtitleLine1}
+            </span>
+            <span className="mvcare-features__masthead-sub-line">
+              {mvcareFeaturesSection.subtitleLine2}
+            </span>
           </p>
         </header>
 
@@ -114,78 +292,132 @@ export function MvcareFeaturesCarousel() {
         >
           <div className="mvcare-features__body">
             <div className="mvcare-features__copy-col">
-              <div className="mvcare-features__copy-viewport">
-                <div
-                  className="mvcare-features__copy-track"
-                  style={{
-                    transform: `translate3d(-${index * 100}%, 0, 0)`,
-                  }}
-                >
-                  {mvcareFeatures.map((feature, slideIndex) => (
-                    <article
-                      key={feature.title}
-                      className="mvcare-features__copy-panel"
-                      aria-hidden={slideIndex !== index}
-                    >
-                      <p className="section-label mvcare-features__slide-label">
-                        {mvcareFeaturesSection.slideLabel}
-                      </p>
-                      <h3 className="mvcare-features__slide-title">
-                        {feature.title}
-                      </h3>
-                      <p className="section-body mvcare-features__slide-desc">
-                        {feature.description}
-                      </p>
-                    </article>
-                  ))}
+              <div className="mvcare-features__copy-foot">
+                <div className="mvcare-features__nav">
+                  <CarouselArrow direction="prev" onClick={() => go(-1)} />
+                  <CarouselArrow direction="next" onClick={() => go(1)} />
                 </div>
-              </div>
 
-              <div className="mvcare-features__nav">
-                <CarouselArrow direction="prev" onClick={() => go(-1)} />
-                <p className="mvcare-features__counter" aria-live="polite">
-                  <span className="mvcare-features__counter-current">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="mvcare-features__counter-sep" aria-hidden={true}>
-                    {" "}
-                    /{" "}
-                  </span>
-                  <span className="mvcare-features__counter-total">
-                    {String(SLIDE_COUNT).padStart(2, "0")}
-                  </span>
-                </p>
-                <CarouselArrow direction="next" onClick={() => go(1)} />
+                <div className="mvcare-features__copy-viewport">
+                  <MvcareFeaturesSlideCopy
+                    key={index}
+                    title={mvcareFeatures[index].title}
+                    description={mvcareFeatures[index].description}
+                    animate={isSlideAnimating}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="mvcare-features__visual-col">
-              <span className="mvcare-features__numeral" aria-hidden={true}>
-                {index + 1}
-              </span>
+              <div
+                className="mvcare-features__numeral-stack"
+                aria-live="polite"
+                aria-atomic={true}
+              >
+                {mvcareFeatures.map((feature, slideIndex) => {
+                  const isActive = slideIndex === index;
+                  const isPrevious =
+                    isNumeralTransitioning &&
+                    slideIndex === prevIndex &&
+                    !isActive;
+
+                  if (!isActive && !isPrevious) {
+                    return null;
+                  }
+
+                  return (
+                    <span
+                      key={feature.title}
+                      className={`mvcare-features__numeral-clip${
+                        isActive ? " is-active" : ""
+                      }${
+                        isNumeralTransitioning && isActive
+                          ? " is-entering"
+                          : ""
+                      }${isPrevious ? " is-exiting" : ""}`}
+                      aria-hidden={!isActive}
+                    >
+                      <span className="mvcare-features__numeral">
+                        {slideIndex + 1}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
 
               <div className="mvcare-features__images">
-                <div className="mvcare-features__image-layer mvcare-features__image-layer--main">
-                  <Image
-                    key={active.image}
-                    src={active.image}
-                    alt={active.imageAlt}
-                    fill
-                    className="mvcare-features__image"
-                    sizes="(max-width: 900px) 92vw, 55vw"
-                    priority={index === 0}
-                  />
+                <div className="mvcare-features__image-col mvcare-features__image-col--main">
+                  <div className="mvcare-features__image-stack mvcare-features__image-stack--main">
+                    {mvcareFeatures.map((feature, slideIndex) => {
+                      const isActive = slideIndex === index;
+                      const isPrevious =
+                        isSlideAnimating &&
+                        slideIndex === prevIndex &&
+                        !isActive;
+
+                      if (!isActive && !isPrevious) {
+                        return null;
+                      }
+
+                      return (
+                        <div
+                          key={feature.image}
+                          className={`mvcare-features__image-layer mvcare-features__image-layer--main${
+                            isActive ? " is-active" : ""
+                          }${
+                            isSlideAnimating && isActive ? " is-entering" : ""
+                          }${isPrevious ? " is-exiting" : ""}`}
+                          aria-hidden={!isActive}
+                        >
+                          <Image
+                            src={feature.image}
+                            alt={isActive ? feature.imageAlt : ""}
+                            fill
+                            className="mvcare-features__image"
+                            sizes="(min-width: 900px) 722px, 52vw"
+                            priority={slideIndex === 0}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="mvcare-features__image-layer mvcare-features__image-layer--secondary">
-                  <Image
-                    key={secondary.image}
-                    src={secondary.image}
-                    alt=""
-                    fill
-                    className="mvcare-features__image"
-                    sizes="(max-width: 900px) 40vw, 22vw"
-                    aria-hidden={true}
-                  />
+                <div className="mvcare-features__image-col mvcare-features__image-col--secondary">
+                  <div className="mvcare-features__image-stack mvcare-features__image-stack--secondary">
+                    {mvcareFeatures.map((feature, slideIndex) => {
+                      const isActive = slideIndex === secondaryIndex;
+                      const isPrevious =
+                        isSlideAnimating &&
+                        slideIndex === prevSecondaryIndex &&
+                        !isActive;
+
+                      if (!isActive && !isPrevious) {
+                        return null;
+                      }
+
+                      return (
+                        <div
+                          key={feature.image}
+                          className={`mvcare-features__image-layer mvcare-features__image-layer--secondary${
+                            isActive ? " is-active" : ""
+                          }${
+                            isSlideAnimating && isActive ? " is-entering" : ""
+                          }${isPrevious ? " is-exiting" : ""}`}
+                          aria-hidden={!isActive}
+                        >
+                          <Image
+                            src={feature.image}
+                            alt=""
+                            fill
+                            className="mvcare-features__image"
+                            sizes="(max-width: 899px) 92vw, 28vw"
+                            aria-hidden={true}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

@@ -121,20 +121,42 @@ export default function MvcarePage() {
 
         <section
           id="mvcare-que-es"
-          className="mvcare-section mvcare-section--light mvcare-what"
+          className="mvcare-section mvcare-section--dark mvcare-what"
           aria-labelledby="mvcare-what-title"
         >
           <div className="mvcare-section__inner mvcare-reveal">
-            <p className="section-label">{mvcareWhatIs.eyebrow}</p>
-            <h2 id="mvcare-what-title" className="section-title mvcare-what__title">
-              {mvcareWhatIs.title}
-            </h2>
-            <div className="mvcare-what__body">
-              {mvcareWhatIs.paragraphs.map((paragraph) => (
-                <p key={paragraph} className="section-body">
-                  {paragraph}
-                </p>
-              ))}
+            <div className="mvcare-what__grid">
+              <div className="mvcare-what__intro">
+                <p className="section-label">{mvcareWhatIs.eyebrow}</p>
+                <h2
+                  id="mvcare-what-title"
+                  className="section-title mvcare-what__title"
+                >
+                  <span className="mvcare-what__title-line">
+                    {mvcareWhatIs.titleLine1}
+                  </span>
+                  <span className="mvcare-what__title-line">
+                    {mvcareWhatIs.titleLine2}
+                  </span>
+                </h2>
+              </div>
+              <div className="mvcare-what__body">
+                {mvcareWhatIs.paragraphs.map((paragraph) =>
+                  typeof paragraph === "string" ? (
+                    <p key={paragraph} className="section-body">
+                      {paragraph}
+                    </p>
+                  ) : (
+                    <p key={paragraph.highlight} className="section-body">
+                      {paragraph.before}
+                      <span className="mvcare-what__highlight">
+                        {paragraph.highlight}
+                      </span>
+                      {paragraph.after}
+                    </p>
+                  ),
+                )}
+              </div>
             </div>
           </div>
         </section>
