@@ -415,6 +415,23 @@
   pointer-events: auto;
 }
 
+/** Portátil (901px–1600px). */
+@media (min-width: 901px) and (max-width: 1600px) {
+  .servicio__body-copy {
+    font-size: clamp(15px, 1.22vw, 19px);
+  }
+
+  .servicio__body-text {
+    font-size: clamp(15px, 1.22vw, 19px);
+    line-height: 1.52;
+    letter-spacing: 0.038em;
+  }
+
+  .servicio-text-offset {
+    --servicio-text-offset-unit: clamp(14px, 1.5vw, 30px);
+  }
+}
+
 /**
  * Fade y parallax del bloque editorial completo.
  * `--servicio-body-p`: 0 % al aterrizar → 100 % al bajar (JS).

@@ -37,10 +37,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     imageAlt: "Sesión de grooming en Maison Vigo.",
     subtitle: "Dermocosmética y cuidado\nadaptado a cada perro.",
     body:
-      "Cada sesión de grooming está diseñada para cuidar la piel, el manto y " +
-      "el bienestar de cada perro desde un enfoque respetuoso y personalizado. " +
-      "Combinamos conocimiento técnico, dermocosmética y observación para " +
-      "ofrecer un cuidado adaptado a sus necesidades reales.",
+      "Cada sesión de grooming cuida la piel, el manto y el bienestar con un " +
+      "enfoque respetuoso y sereno. Combinamos técnica, dermocosmética y " +
+      "observación para adaptar el trabajo a lo que cada perro necesita en " +
+      "ese momento.",
   },
   bienestar: {
     slug: "bienestar",
@@ -51,12 +51,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     subtitle:
       "Diagnóstico, cosmética y cuidados adaptados a las necesidades de cada perro.",
     body:
-      "El bienestar va mucho más allá de una sesión puntual. En Maison Vigo " +
-      "cuidamos el entorno, los tiempos, los estímulos y cada detalle para " +
-      "crear experiencias más calmadas, equilibradas y agradables. La luz, " +
-      "el aroma, los materiales y la forma de acompañar forman parte de un " +
-      "espacio pensado para favorecer la tranquilidad, el confort y la " +
-      "confianza de cada compañero.",
+      "El bienestar va más allá de una sesión puntual. Aquí acompañamos la " +
+      "piel y el manto con diagnóstico, cosmética y seguimiento, en un espacio " +
+      "donde el tiempo, los estímulos y la forma de trabajar importan tanto " +
+      "como el resultado.",
   },
   "guarderia-familiar": {
     slug: "guarderia-familiar",
@@ -67,11 +65,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     subtitle:
       "Un entorno reducido, tranquilo y supervisado donde sentirse seguro y acompañado.",
     body:
-      "MV Home nace como un espacio de estancias de día pensado para que " +
-      "puedan sentirse seguros, tranquilos y acompañados en un entorno " +
-      "familiar. Rutinas calmadas, descanso, tiempo al aire libre y " +
-      "atención personalizada forman parte de una experiencia creada desde " +
-      "el cuidado diario y el bienestar emocional de cada perro.",
+      "MV Home es un espacio de estancias de día pensado para que se sientan " +
+      "seguros y acompañados. Rutinas calmadas, descanso, tiempo al aire " +
+      "libre y una supervisión cercana forman parte de una experiencia cuidada " +
+      "desde el bienestar emocional de cada perro.",
     bodyLogo: {
       src: "/assets/images/mvhome.svg",
       alt: "MV Home",
@@ -86,10 +83,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     subtitle:
       "Presencia y cuidado en momentos donde no puedes estar con ellos.",
     body:
-      "Hay momentos que necesitan algo más que un servicio. Acompañamientos " +
-      "personalizados para seguir cuidando desde la cercanía, la confianza " +
-      "y la continuidad. Una forma de estar presentes también fuera de la " +
-      "rutina habitual.",
+      "Hay momentos que piden algo más que un servicio. Acompañamos con la " +
+      "misma calma y atención de siempre — en bodas, celebraciones o días " +
+      "especiales — para que tu perro esté bien cuidado cuando tú no puedes " +
+      "estar.",
   },
   educacion: {
     slug: "educacion",
@@ -100,11 +97,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     subtitle:
       "Trabajo enfocado en convivencia, equilibrio y bienestar emocional.",
     body:
-      "Acompañamos a cada familia desde la comprensión y el vínculo, " +
-      "ayudando a mejorar rutinas, convivencia y comunicación. Trabajamos " +
-      "desde un enfoque respetuoso y adaptado a las necesidades reales de " +
-      "cada perro y su entorno, buscando construir relaciones más " +
-      "tranquilas, equilibradas y conscientes en el día a día.",
+      "Acompañamos a cada familia desde la comprensión y el vínculo, con un " +
+      "trabajo respetuoso y adaptado a cada perro y a su entorno. Buscamos " +
+      "rutinas y una convivencia más tranquilas, con herramientas claras para " +
+      "el día a día.",
   },
 };
 

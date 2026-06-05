@@ -60,7 +60,7 @@ export default function Home() {
           <p className="hero-sub">
             <span className="hero-sub-line">Cuidado, calma y estética</span>
             <span className="hero-sub-line">
-              en un entorno pensado para su bienestar.
+              en un espacio pensado para su bienestar.
             </span>
           </p>
           <Link

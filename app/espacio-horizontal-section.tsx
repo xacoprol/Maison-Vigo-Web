@@ -118,8 +118,6 @@ export class EspacioHorizontalScroll {
   private espacioIsDestroyed = false;
   private espacioFirstIntroRevealed = false;
   private espacioSyncedScrollY: number | null = null;
-  /** Scroll Y en el que el sticky encaja arriba (inicio real del recorrido horizontal). */
-  private espacioPinScrollY: number | null = null;
 
   constructor(espacioRoot: HTMLElement) {
     const espacioSticky = espacioRoot.querySelector<HTMLElement>(
@@ -208,28 +206,18 @@ export class EspacioHorizontalScroll {
     }
 
     const espacioScrollY = this.espacioGetScrollY();
-    let espacioRawProgress = 0;
-
-    if (espacioRect.top > 0) {
-      this.espacioPinScrollY = null;
-      espacioRawProgress = 0;
-    } else if (espacioRect.bottom <= espacioViewportH) {
-      this.espacioPinScrollY = null;
-      espacioRawProgress = 1;
-    } else {
-      if (this.espacioPinScrollY === null) {
-        this.espacioPinScrollY = espacioScrollY;
-      }
-      espacioRawProgress =
-        (espacioScrollY - this.espacioPinScrollY) /
-        this.espacioMeasure.espacioDistance;
-    }
+    const espacioDistance = this.espacioMeasure.espacioDistance;
+    /**
+     * Progreso ligado a la posición del bloque en el documento (no a un pin
+     * capturado al entrar). Así el retroceso no salta a la 1.ª diapositiva.
+     */
+    const espacioRawProgress =
+      espacioDistance > 0 ? -espacioRect.top / espacioDistance : 0;
 
     this.espacioTargetProgress = this.espacioClamp(espacioRawProgress);
-    const espacioTitleOrigin =
-      this.espacioPinScrollY ?? this.espacioMeasure.espacioStart;
     this.espacioTargetTitleProgress = this.espacioClamp(
-      (espacioScrollY - (espacioTitleOrigin - window.innerHeight * 0.85)) /
+      (espacioScrollY -
+        (this.espacioMeasure.espacioStart - window.innerHeight * 0.85)) /
         (window.innerHeight * 1.15),
     );
     this.espacioRoot.classList.toggle(
@@ -251,7 +239,6 @@ export class EspacioHorizontalScroll {
       String(espacioPanelCount),
     );
 
-    this.espacioPinScrollY = null;
     this.espacioMeasure = {
       espacioStart: espacioScrollY + espacioRect.top,
       espacioDistance: Math.max(
@@ -369,6 +356,9 @@ export class EspacioHorizontalScroll {
     return Math.min(Math.max(espacioValue, espacioMin), espacioMax);
   }
 
+  /** Máximo peek por scroll: la foto asoma pero no llega arriba hasta el snap al pin. */
+  private static readonly ESPACIO_INTRO_PEEK_CAP = 0.82;
+
   /** Avance de la foto del panel 1 mientras la sección aún no está pinada arriba. */
   private espacioUpdateIntroPeek(
     espacioRect: DOMRect,
@@ -385,12 +375,17 @@ export class EspacioHorizontalScroll {
     }
 
     if (espacioRect.top <= 0) {
-      this.espacioRoot.style.setProperty("--espacio-intro-peek", "1");
+      this.espacioRoot.style.setProperty(
+        "--espacio-intro-peek",
+        String(EspacioHorizontalScroll.ESPACIO_INTRO_PEEK_CAP),
+      );
       return;
     }
 
-    const peekRange = espacioViewportH * 0.92;
-    const peek = 1 - Math.min(Math.max(espacioRect.top / peekRange, 0), 1);
+    const peekRange = espacioViewportH * 0.88;
+    const peek =
+      (1 - Math.min(Math.max(espacioRect.top / peekRange, 0), 1)) *
+      EspacioHorizontalScroll.ESPACIO_INTRO_PEEK_CAP;
     this.espacioRoot.style.setProperty("--espacio-intro-peek", peek.toFixed(3));
   }
 
@@ -413,7 +408,42 @@ export class EspacioHorizontalScroll {
     this.espacioFirstIntroRevealed = true;
   }
 
+  private espacioReadFrameTranslateY(espacioFrame: HTMLElement) {
+    const espacioTransform = getComputedStyle(espacioFrame).transform;
+    if (!espacioTransform || espacioTransform === "none") return 0;
+
+    if (espacioTransform.startsWith("matrix3d")) {
+      const espacioValues = espacioTransform
+        .slice(9, -1)
+        .split(",")
+        .map(Number.parseFloat);
+      return espacioValues[13] ?? 0;
+    }
+
+    if (espacioTransform.startsWith("matrix")) {
+      const espacioValues = espacioTransform
+        .slice(7, -1)
+        .split(",")
+        .map(Number.parseFloat);
+      return espacioValues[5] ?? 0;
+    }
+
+    return 0;
+  }
+
   private espacioRevealIntro(espacioPanel: HTMLElement) {
+    const espacioFrame = espacioPanel.querySelector<HTMLElement>(
+      ".espacio__image-frame",
+    );
+    if (espacioFrame) {
+      const espacioRiseFrom = this.espacioReadFrameTranslateY(espacioFrame);
+      espacioPanel.style.setProperty(
+        "--espacio-one-rise-from",
+        `${Math.max(espacioRiseFrom, 1).toFixed(2)}px`,
+      );
+      void espacioFrame.offsetWidth;
+    }
+
     this.espacioRevealTitle(espacioPanel);
     this.espacioRevealImage(espacioPanel);
   }

@@ -50,15 +50,15 @@ const SERVICE_IMAGES: Record<ServiceId, string> = {
 
 const SERVICE_SUBTITLES: Record<ServiceId, string> = {
   Grooming:
-    "Cuidado estético realizado de forma tranquila, precisa y personalizada.",
+    "Grooming con dermocosmética, observación y un ritmo de trabajo sereno.",
   Bienestar:
-    "Diagnóstico, cosmética y cuidados adaptados a las necesidades de cada perro.",
+    "Diagnóstico, cosmética y cuidado de piel y manto con continuidad.",
   "Guardería Familiar":
-    "Un entorno reducido, tranquilo y supervisado donde sentirse seguro y acompañado.",
+    "Estancias de día en MV Home: entorno familiar, reducido y supervisado.",
   Acompañamiento:
-    "Presencia y cuidado personalizado en momentos donde no puedes estar con ellos.",
+    "Presencia y cuidado en los momentos en los que no puedes estar con ellos.",
   Educación:
-    "Trabajo enfocado en convivencia, equilibrio y bienestar emocional.",
+    "Acompañamiento en convivencia, equilibrio y bienestar emocional.",
 };
 
 const N = ORDER_MOBILE.length;

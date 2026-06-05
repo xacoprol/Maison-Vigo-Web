@@ -99,11 +99,9 @@
 
 @keyframes espacioImageRiseIn {
   from {
-    opacity: 0.72;
-    transform: translate3d(0, clamp(28px, 5vh, 56px), 0);
+    transform: translate3d(0, var(--espacio-one-rise-from, 72px), 0);
   }
   to {
-    opacity: 1;
     transform: translate3d(0, 0, 0);
   }
 }
@@ -131,24 +129,20 @@
 }
 
 /**
- * Panel 1: antes del pin, la foto asoma al acercarse; al pinchar, sube y queda arriba.
+ * Panel 1: asoma un poco al acercarse (scroll); al pinchar, encaja arriba de un tirón.
  */
 .espacio__panel--one:not(.espacio__panel--image-in) .espacio__image-frame {
-  opacity: calc(var(--espacio-intro-peek) * 0.92);
+  opacity: calc(0.5 + var(--espacio-intro-peek) * 0.5);
   transform: translate3d(
     0,
-    calc((1 - var(--espacio-intro-peek)) * clamp(120px, 22vh, 220px)),
+    calc((1 - var(--espacio-intro-peek)) * var(--espacio-one-peek-max)),
     0
   );
-  transition:
-    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .espacio__panel--one.espacio__panel--image-in .espacio__image-frame {
   opacity: 1;
-  animation: espacioImageRiseIn 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: 0.06s;
+  animation: espacioImageRiseIn 0.52s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 /* Paneles 2–4: ya visibles; solo zoom lento al centrarse */
@@ -264,6 +258,7 @@
 
 .espacio__panel--one {
   --espacio-one-copy-left: clamp(24vw, 36vw, 43vw);
+  --espacio-one-peek-max: clamp(72px, 13vh, 128px);
 
   .espacio__image-frame {
     left: 0;
@@ -362,16 +357,16 @@
   .espacio__body {
     position: absolute;
     top: clamp(108px, 14.5vh, 176px);
-    right: clamp(200px, 34vw, 450px);
+    right: clamp(352px, 50vw, 620px);
     left: auto;
     bottom: auto;
     width: min(42vw, 540px);
     max-width: min(42vw, 540px);
     margin: 0;
     text-align: left;
-    text-indent: clamp(180px, 30vw, 360px);
+    text-indent: clamp(104px, 18vw, 248px);
     font-size: clamp(11px, 1.08vw, 16px);
-    transform: translate3d(clamp(152px, 22vw, 300px), 0, 0);
+    transform: translate3d(clamp(36px, 8vw, 148px), 0, 0);
   }
 }
 
@@ -454,15 +449,22 @@
 
   .espacio__copy {
     height: 100%;
-    display: grid;
-    align-content: end;
-    padding-bottom: clamp(54px, 7vw, 112px);
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: clamp(22px, 3.2vh, 44px);
+    padding-bottom: 0;
     padding-left: clamp(20vw, 28vw, 34vw);
   }
 
   .espacio__title {
+    position: relative;
+    z-index: 1;
     max-width: 12ch;
+    margin: 0;
     color: var(--espacio-gold);
+    transform: translate3d(0, clamp(208px, 32vh, 380px), 0);
   }
 
   .espacio__title-word--cream {
@@ -481,8 +483,15 @@
   }
 
   .espacio__body {
-    margin-left: auto;
-    margin-right: auto;
+    position: relative;
+    z-index: 2;
+    align-self: flex-end;
+    margin: clamp(80px, 14vh, 168px) clamp(72px, 12vw, 160px) 0 0;
+    max-width: min(32vw, 460px);
+    font-size: clamp(11px, 1.08vw, 16px);
+    text-indent: clamp(56px, 9vw, 128px);
+    text-align: left;
+    transform: translate3d(clamp(20px, 3.5vw, 48px), clamp(16px, 3vh, 36px), 0);
   }
 }
 
@@ -512,6 +521,48 @@
     animation: none;
     clip-path: ellipse(84% 128% at 50% 100%);
     transform: none;
+  }
+}
+
+/** Portátil (901px–1600px). */
+@media (min-width: 901px) and (max-width: 1600px) {
+  .espacio__title {
+    font-size: clamp(62px, 9.2vw, 164px);
+  }
+
+  .espacio__panel--two .espacio__body {
+    top: clamp(148px, 18.5vh, 228px);
+    right: clamp(168px, 28vw, 360px);
+    text-indent: clamp(80px, 13vw, 196px);
+    transform: translate3d(clamp(104px, 16.5vw, 272px), 0, 0);
+  }
+
+  .espacio__panel--three .espacio__body {
+    top: calc(
+      100% - var(--espacio-three-img-size) / 2 + clamp(64px, 8.5vh, 112px)
+    );
+    left: calc(
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) +
+        clamp(84px, 9.5vw, 188px)
+    );
+    right: clamp(96px, 12vw, 156px);
+    width: min(36vw, 460px);
+    max-width: min(36vw, 460px);
+    transform: translate3d(clamp(-48px, -5.5vw, -16px), -50%, 0);
+  }
+
+  /**
+   * Grooming Room: el título usa translateY hacia abajo; padding en .espacio__copy
+   * no deja aire bajo «Room» porque el transform lo saca del flujo. Subimos el
+   * bloque (menos translateY) y reservamos franja en el grid.
+   */
+  .espacio__panel--four .espacio__panel-grid {
+    padding-bottom: clamp(88px, 11vh, 136px);
+  }
+
+  .espacio__panel--four .espacio__title {
+    margin-bottom: 0;
+    transform: translate3d(0, clamp(148px, 21vh, 256px), 0);
   }
 }
 
@@ -587,14 +638,7 @@
 
   .espacio__panel--one {
     --espacio-one-copy-left: 24px;
-
-    &:not(.espacio__panel--image-in) .espacio__image-frame {
-      transform: translate3d(
-        0,
-        calc((1 - var(--espacio-intro-peek)) * clamp(72px, 14vh, 128px)),
-        0
-      );
-    }
+    --espacio-one-peek-max: clamp(48px, 11vh, 88px);
 
     .espacio__eyebrow {
       margin-left: 0;
@@ -649,16 +693,30 @@
 
     .espacio__body {
       top: 76px;
-      right: clamp(118px, 30vw, 235px);
+      right: clamp(212px, 42vw, 340px);
       width: min(calc(100vw - 40px), 36ch);
       max-width: min(calc(100vw - 40px), 36ch);
       font-size: clamp(10px, 2.85vw, 14px);
-      text-indent: clamp(40px, 12vw, 80px);
-      transform: translate3d(clamp(76px, 18vw, 132px), 0, 0);
+      text-indent: clamp(16px, 5vw, 44px);
+      transform: translate3d(clamp(8px, 6vw, 40px), 0, 0);
     }
   }
 
   .espacio__panel--four {
+    .espacio__copy {
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: flex-end;
+      gap: clamp(16px, 2.8vh, 32px);
+      padding-bottom: 0;
+    }
+
+    .espacio__title {
+      position: relative;
+      z-index: 1;
+      transform: translate3d(0, clamp(144px, 26vh, 280px), 0);
+    }
+
     .espacio__title-word--gold {
       margin-left: clamp(32px, 9vw, 72px);
       transform: translate3d(
@@ -666,6 +724,21 @@
         0,
         0
       );
+    }
+
+    .espacio__body {
+      position: relative;
+      z-index: 2;
+      align-self: flex-end;
+      top: auto;
+      right: auto;
+      left: auto;
+      bottom: auto;
+      margin: clamp(52px, 11vh, 112px) 36px 0 0;
+      max-width: min(68vw, 34ch);
+      text-indent: clamp(54px, 16vw, 96px);
+      text-align: left;
+      transform: translate3d(clamp(12px, 4vw, 28px), clamp(8px, 2vh, 24px), 0);
     }
   }
 

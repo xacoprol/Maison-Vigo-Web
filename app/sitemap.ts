@@ -34,5 +34,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    {
+      url: `${siteUrl}/aviso-legal`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.25,
+    },
+    {
+      url: `${siteUrl}/privacidad`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.25,
+    },
+    {
+      url: `${siteUrl}/condiciones-generales`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.25,
+    },
+    {
+      url: `${siteUrl}/politica-reservas`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.25,
+    },
   ];
 }

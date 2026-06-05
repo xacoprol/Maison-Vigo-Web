@@ -217,6 +217,13 @@
   pointer-events: none;
 }
 
+/** Portátil (901px–1600px). */
+@media (min-width: 901px) and (max-width: 1600px) {
+  .servicio-slideshow__headline {
+    bottom: clamp(124px, 17vh, 232px);
+  }
+}
+
 .servicio-slideshow__headline-rows {
   display: flex;
   flex-direction: column;

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { layoutServicioHeroOnce } from "@/lib/servicio-hero-layout";
+import { scrollToServicioHeroBody } from "@/lib/servicio-scroll-cta";
 
 /**
  * Parallax del hero y ocultación del nav al entrar en el carrusel
@@ -120,6 +121,15 @@ export function ServicioEffects() {
       schedule(0);
     };
 
+    const scrollCta = hero.querySelector<HTMLAnchorElement>(
+      ".servicio__scroll-cta[href*='servicio-body']",
+    );
+    const onScrollCtaClick = (event: Event) => {
+      event.preventDefault();
+      layoutServicioHeroOnce();
+      scrollToServicioHeroBody();
+    };
+
     schedule(0);
 
     const unsubLenis = window.__mvLenis?.on("scroll", () =>
@@ -131,6 +141,7 @@ export function ServicioEffects() {
     window.addEventListener("resize", onResize, { passive: true });
     document.body.addEventListener("servicio-route-enter", onRouteEnter);
     document.body.addEventListener("servicio-hero-media-ready", onResize);
+    scrollCta?.addEventListener("click", onScrollCtaClick);
 
     return () => {
       unsubLenis?.();
@@ -139,6 +150,7 @@ export function ServicioEffects() {
       window.removeEventListener("resize", onResize);
       document.body.removeEventListener("servicio-route-enter", onRouteEnter);
       document.body.removeEventListener("servicio-hero-media-ready", onResize);
+      scrollCta?.removeEventListener("click", onScrollCtaClick);
       if (rafId) window.cancelAnimationFrame(rafId);
       hero.style.removeProperty("--servicio-parallax");
       navbar?.classList.remove("nav-hidden");

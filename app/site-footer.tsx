@@ -203,12 +203,22 @@ export function SiteFooter() {
           </li>
           <li>
             <a className="footer-legal-link" href="/privacidad">
-              Política de privacidad
+              Privacidad
             </a>
           </li>
           <li>
             <a className="footer-legal-link" href="/cookies">
               Cookies
+            </a>
+          </li>
+          <li>
+            <a className="footer-legal-link" href="/condiciones-generales">
+              Compras
+            </a>
+          </li>
+          <li>
+            <a className="footer-legal-link" href="/politica-reservas">
+              Reservas
             </a>
           </li>
         </ul>

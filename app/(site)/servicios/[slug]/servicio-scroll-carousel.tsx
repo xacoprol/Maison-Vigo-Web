@@ -461,6 +461,7 @@ export function ServicioScrollCarousel({
   return (
     <div
       ref={wrapRef}
+      id="servicio-slideshow"
       className="servicio-slideshow-wrap"
       aria-label="Galería del servicio"
     >

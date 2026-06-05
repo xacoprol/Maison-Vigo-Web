@@ -19,14 +19,14 @@ export const allowIndexing =
 
 /** Portal de reservas (metadata + JSON-LD + llms.txt). Override con NEXT_PUBLIC_BOOKING_URL si cambia. */
 export const bookingUrl =
-  process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://portal.maisonvigo.es/reserva";
+  process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://care.maisonvigo.es/reserva";
 
 export const siteConfig = {
   shortName: "Maison Vigo",
-  defaultTitle: "Maison Vigo — Peluquería canina premium en Vigo",
+  defaultTitle: "Maison Vigo — Cuidado canino en Vigo",
   titleTemplate: "%s — Maison Vigo",
   defaultDescription:
-    "Peluquería canina premium en Vigo. Cuidado individual, espacio diseñado y cosmética de alta gama.",
+    "Grooming, bienestar, guardería familiar, educación y acompañamiento en un espacio pensado para el cuidado con calma, técnica y continuidad.",
   locale: "es_ES",
   regionLabel: "Vigo, España",
 } as const;

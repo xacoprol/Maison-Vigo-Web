@@ -12,7 +12,8 @@ type LockState = {
   prevBodyRight: string;
   prevBodyWidth: string;
   prevBodyOverflow: string;
-  prevBodyPaddingRight: string;
+  prevHtmlPaddingRight: string;
+  prevNavbarPaddingRight: string;
 };
 
 const state: LockState = {
@@ -24,15 +25,19 @@ const state: LockState = {
   prevBodyRight: "",
   prevBodyWidth: "",
   prevBodyOverflow: "",
-  prevBodyPaddingRight: "",
+  prevHtmlPaddingRight: "",
+  prevNavbarPaddingRight: "",
 };
 
 function applyLockStyles() {
+  const html = document.documentElement;
   const body = document.body;
+  const navbar = document.getElementById("navbar");
   const scrollbarWidth = Math.max(
-    window.innerWidth - document.documentElement.clientWidth,
+    window.innerWidth - html.clientWidth,
     0,
   );
+
   state.scrollY = window.scrollY;
   state.prevBodyPosition = body.style.position;
   state.prevBodyTop = body.style.top;
@@ -40,27 +45,38 @@ function applyLockStyles() {
   state.prevBodyRight = body.style.right;
   state.prevBodyWidth = body.style.width;
   state.prevBodyOverflow = body.style.overflow;
-  state.prevBodyPaddingRight = body.style.paddingRight;
+  state.prevHtmlPaddingRight = html.style.paddingRight;
+  state.prevNavbarPaddingRight = navbar?.style.paddingRight ?? "";
+
+  html.classList.add("mv-scroll-locked");
   body.style.position = "fixed";
   body.style.top = `-${state.scrollY}px`;
   body.style.left = "0";
   body.style.right = "0";
   body.style.width = "100%";
   body.style.overflow = "hidden";
+
   if (scrollbarWidth > 0) {
-    body.style.paddingRight = `${scrollbarWidth}px`;
+    html.style.paddingRight = `${scrollbarWidth}px`;
+    if (navbar) navbar.style.paddingRight = `${scrollbarWidth}px`;
   }
 }
 
 function releaseLockStyles() {
+  const html = document.documentElement;
   const body = document.body;
+  const navbar = document.getElementById("navbar");
+
+  html.classList.remove("mv-scroll-locked");
+  html.style.paddingRight = state.prevHtmlPaddingRight;
+  if (navbar) navbar.style.paddingRight = state.prevNavbarPaddingRight;
+
   body.style.position = state.prevBodyPosition;
   body.style.top = state.prevBodyTop;
   body.style.left = state.prevBodyLeft;
   body.style.right = state.prevBodyRight;
   body.style.width = state.prevBodyWidth;
   body.style.overflow = state.prevBodyOverflow;
-  body.style.paddingRight = state.prevBodyPaddingRight;
   window.scrollTo(0, state.scrollY);
 }
 

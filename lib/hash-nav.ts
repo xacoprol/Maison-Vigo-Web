@@ -1,3 +1,29 @@
+/** sessionStorage: scroll pendiente tras router.push desde otra ruta */
+export const HOME_PENDING_SECTION_KEY = "mv_home_section";
+
+export function setPendingHomeSection(sectionId: string) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(HOME_PENDING_SECTION_KEY, sectionId);
+}
+
+export function consumePendingHomeSection(): string | null {
+  if (typeof window === "undefined") return null;
+  const sectionId = sessionStorage.getItem(HOME_PENDING_SECTION_KEY);
+  if (sectionId) sessionStorage.removeItem(HOME_PENDING_SECTION_KEY);
+  return sectionId;
+}
+
+/** Id de sección en la home desde href (`/#foo`, `/foo#bar` o `#foo` en menú). */
+export function resolveHomeSectionId(href: string): string | null {
+  const trimmed = href.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("/#")) return sectionIdFromHash(trimmed);
+  const parsed = parseHomeSectionLink(trimmed);
+  if (parsed && isHomePathname(parsed.pathname)) return parsed.sectionId;
+  if (trimmed.startsWith("#")) return sectionIdFromHash(trimmed);
+  return null;
+}
+
 /** Extrae un único id de sección desde href o location.hash (evita #a#b). */
 export function sectionIdFromHash(hrefOrHash: string): string | null {
   const raw = hrefOrHash.trim();

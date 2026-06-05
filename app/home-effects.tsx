@@ -19,6 +19,9 @@ export function HomeEffects() {
     const heroSection = document.getElementById("hero");
     const conceptoSection = document.getElementById("concepto");
     const serviciosSection = document.getElementById("servicios");
+    const serviciosCarouselEl = serviciosSection?.querySelector<HTMLElement>(
+      ".servicios-carousel",
+    );
     const conceptoTitle = document.querySelector<HTMLElement>(
       ".concepto-title-display",
     );
@@ -199,20 +202,28 @@ export function HomeEffects() {
       body.classList.add("intro-complete");
     }
 
-    const updateServiciosParallaxTarget = (serviciosRect?: DOMRect) => {
+    /** Progreso 0→1 mientras el carrusel cruza el viewport (scroll ↓ sube, ↑ baja). */
+    const updateServiciosParallaxTarget = () => {
       if (!serviciosSection || prefersReducedMotion) {
         serviciosParallaxTarget = 0;
         return;
       }
-      const sr = serviciosRect ?? serviciosSection.getBoundingClientRect();
       const ih = window.innerHeight;
+      const anchor = serviciosCarouselEl ?? serviciosSection;
+      const sr = anchor.getBoundingClientRect();
       if (sr.bottom <= 0) {
         serviciosParallaxTarget = sr.top < 0 ? 1 : 0;
         return;
       }
-      const sectionH = serviciosSection.offsetHeight;
-      const travel = ih * 0.88 + Math.min(sectionH * 0.52, ih * 0.82);
-      serviciosParallaxTarget = (ih * 0.86 - sr.top) / Math.max(travel, 1);
+      if (sr.top >= ih) {
+        serviciosParallaxTarget = 0;
+        return;
+      }
+      const focusY = sr.top + sr.height * 0.38;
+      const rangeStart = ih * 0.96;
+      const rangeEnd = ih * 0.28;
+      serviciosParallaxTarget =
+        (rangeStart - focusY) / Math.max(rangeStart - rangeEnd, 1);
       serviciosParallaxTarget = Math.min(
         Math.max(serviciosParallaxTarget, 0),
         1,
@@ -236,7 +247,7 @@ export function HomeEffects() {
       if (Math.abs(diff) < 0.0006) {
         serviciosParallaxCurrent = serviciosParallaxTarget;
       } else {
-        serviciosParallaxCurrent += diff * 0.11;
+        serviciosParallaxCurrent += diff * 0.13;
       }
       serviciosSection.style.setProperty(
         "--servicios-parallax",
@@ -313,7 +324,7 @@ export function HomeEffects() {
           conceptoSection.style.setProperty("--concepto-exit-darken", "0");
         }
       }
-      updateServiciosParallaxTarget(serviciosRect);
+      updateServiciosParallaxTarget();
       ensureServiciosRaf();
       if (!serviciosTitleRevealed && serviciosHeadingDisplay) {
         const hr = serviciosHeadingDisplay.getBoundingClientRect();

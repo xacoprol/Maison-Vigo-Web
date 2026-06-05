@@ -2,22 +2,74 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { usePathname, useRouter } from "next/navigation";
 
 import {
   buildSectionUrl,
+  consumePendingHomeSection,
   isHomePathname,
-  parseHomeSectionLink,
+  resolveHomeSectionId,
   sanitizeUrlHash,
   sectionIdFromHash,
+  setPendingHomeSection,
 } from "@/lib/hash-nav";
 import { lockScroll, resetScrollLock, unlockScroll } from "@/lib/scroll-lock";
+import { bookingUrl } from "@/lib/site-config";
 
 /**
  * Maneja UI global que existe en todas las páginas (nav, menú móvil,
  * panel de reserva, banner de cookies, smooth scroll). Las animaciones
  * específicas de la home se quedan en `<HomeEffects />`.
  */
+const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
+
 export function SiteEffects() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isHomePathname(pathname)) return;
+
+    sanitizeUrlHash();
+
+    const pending = consumePendingHomeSection();
+    const sectionId =
+      pending ?? sectionIdFromHash(window.location.hash);
+    if (!sectionId) return;
+
+    if (pending) {
+      history.replaceState(history.state, "", buildSectionUrl(sectionId));
+    }
+
+    const scrollToSection = (attempt = 0) => {
+      const target = document.getElementById(sectionId);
+      if (!target) {
+        if (attempt < 24) {
+          requestAnimationFrame(() => scrollToSection(attempt + 1));
+        }
+        return;
+      }
+
+      const lenis = window.__mvLenis;
+      if (lenis) {
+        lenis.resize();
+        lenis.scrollTo(target, {
+          duration: 1.55,
+          easing: lenisEase,
+          force: true,
+          programmatic: true,
+        });
+        return;
+      }
+
+      target.scrollIntoView({ behavior: "auto" });
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollToSection());
+    });
+  }, [pathname]);
+
   useEffect(() => {
     const navbar = document.getElementById("navbar");
     if (!navbar) return;
@@ -33,7 +85,6 @@ export function SiteEffects() {
     ).matches;
     let lenis: Lenis | null = null;
     let lenisRafId: number | undefined;
-    const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
 
     if (!prefersReducedMotion) {
       lenis = new Lenis({
@@ -114,6 +165,9 @@ export function SiteEffects() {
       "openReservaPanelFromMenu",
     );
     const closeReservaPanel = document.getElementById("closeReservaPanel");
+    const reservaIframe = reservaPanel?.querySelector<HTMLIFrameElement>(
+      ".reserva-panel-iframe",
+    );
     const mobLinks = document.querySelectorAll<HTMLElement>(".mob-link");
     const menuPrimaryLinks = document.querySelectorAll<HTMLElement>(
       ".mobile-menu-primary .mob-link--primary",
@@ -125,12 +179,13 @@ export function SiteEffects() {
     const openMenu = () => {
       if (!mobileMenu) return;
       if (mobileMenu.classList.contains("open")) return;
+      lockScroll();
+      lenis?.stop();
       mobileMenu.classList.add("open");
       mobileMenu.setAttribute("aria-hidden", "false");
       hamburger?.setAttribute("aria-expanded", "true");
       body.classList.add("menu-open");
       document.documentElement.classList.add("menu-open");
-      lockScroll();
     };
     const closeMenuFn = (preserveLock = false) => {
       if (!mobileMenu) return;
@@ -142,6 +197,7 @@ export function SiteEffects() {
       document.documentElement.classList.remove("menu-open");
       if (!preserveLock) {
         unlockScroll();
+        lenis?.start();
       }
     };
     const toggleMenu = () => {
@@ -155,6 +211,14 @@ export function SiteEffects() {
     const onMenuOverlayClick = (event: MouseEvent) => {
       if (event.target === mobileMenu) closeMenuFn();
     };
+    const ensureReservaIframeLoaded = () => {
+      if (!reservaIframe) return;
+      const bookingSrc = reservaIframe.dataset.bookingSrc ?? bookingUrl;
+      const currentSrc = reservaIframe.getAttribute("src") ?? "";
+      if (currentSrc === bookingSrc) return;
+      if (currentSrc && currentSrc !== "about:blank") return;
+      reservaIframe.src = bookingSrc;
+    };
     const openReservaPanelFn = () => {
       if (!reservaPanel) return;
       if (reservaPanel.classList.contains("open")) return;
@@ -163,6 +227,8 @@ export function SiteEffects() {
       } else {
         lockScroll();
       }
+      lenis?.stop();
+      ensureReservaIframeLoaded();
       reservaPanel.classList.add("open");
       reservaPanel.setAttribute("aria-hidden", "false");
       body.classList.add("reserva-open");
@@ -176,6 +242,7 @@ export function SiteEffects() {
       body.classList.remove("reserva-open");
       document.documentElement.classList.remove("reserva-open");
       unlockScroll();
+      lenis?.start();
     };
     const onReservaOverlayClick = (event: MouseEvent) => {
       if (event.target === reservaPanel) closeReservaPanelFn();
@@ -212,36 +279,83 @@ export function SiteEffects() {
     const scrollToHomeSection = (sectionId: string) => {
       const target = document.getElementById(sectionId);
       if (!target) return;
-      if (lenis) {
-        lenis.scrollTo(target, {
+
+      const lenisInstance = window.__mvLenis ?? lenis;
+      if (lenisInstance) {
+        lenisInstance.resize();
+        lenisInstance.scrollTo(target, {
           duration: 1.55,
           easing: lenisEase,
+          force: true,
+          programmatic: true,
         });
+        return;
+      }
+
+      target.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    };
+
+    const isHomeSectionAnchor = (anchor: HTMLAnchorElement) =>
+      !!resolveHomeSectionId(anchor.getAttribute("href") ?? "");
+
+    const scheduleScrollToHomeSection = (sectionId: string) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToHomeSection(sectionId);
+        });
+      });
+    };
+
+    const navigateToHomeSection = (sectionId: string, event?: MouseEvent) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+
+      const wasMenuOpen = mobileMenu?.classList.contains("open") ?? false;
+      if (wasMenuOpen) closeMenuFn();
+
+      const targetUrl = buildSectionUrl(sectionId);
+
+      if (!isHomePathname(window.location.pathname)) {
+        setPendingHomeSection(sectionId);
+        router.push(targetUrl);
+        return;
+      }
+
+      history.replaceState(history.state, "", targetUrl);
+      if (wasMenuOpen) {
+        window.setTimeout(() => scheduleScrollToHomeSection(sectionId), 0);
       } else {
-        target.scrollIntoView({
-          behavior: prefersReducedMotion ? "auto" : "smooth",
-        });
+        scheduleScrollToHomeSection(sectionId);
       }
     };
 
     /**
-     * En la home, un href relativo (#servicios) sobre /#concepto genera
-     * #concepto#servicios. Forzamos un único hash y scroll con Lenis.
+     * Enlaces /#seccion: un solo hash y scroll (evita #concepto#servicios en la home).
      */
     const onHashLinkClick = (event: MouseEvent) => {
       const anchor = (event.target as Element).closest("a");
-      if (!anchor) return;
-      const href = anchor.getAttribute("href");
-      if (!href?.includes("#")) return;
+      if (!(anchor instanceof HTMLAnchorElement)) return;
 
-      const parsed = parseHomeSectionLink(href);
-      if (!parsed || !isHomePathname(parsed.pathname)) return;
-      if (!isHomePathname(window.location.pathname)) return;
+      const sectionId = resolveHomeSectionId(anchor.getAttribute("href") ?? "");
+      if (!sectionId) return;
 
-      event.preventDefault();
-      history.replaceState(history.state, "", buildSectionUrl(parsed.sectionId));
-      scrollToHomeSection(parsed.sectionId);
-      if (mobileMenu?.classList.contains("open")) closeMenuFn();
+      navigateToHomeSection(sectionId, event);
+    };
+
+    const menuSectionLinks = document.querySelectorAll<HTMLAnchorElement>(
+      ".mobile-menu-primary a[href*='#'], .mobile-menu-secondary a[href*='#']",
+    );
+
+    const onMenuSectionClick = (event: MouseEvent) => {
+      const anchor = event.currentTarget;
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+
+      const sectionId = resolveHomeSectionId(anchor.getAttribute("href") ?? "");
+      if (!sectionId) return;
+
+      navigateToHomeSection(sectionId, event);
     };
 
     const onHashChange = () => {
@@ -266,7 +380,16 @@ export function SiteEffects() {
 
     hamburger?.addEventListener("click", toggleMenu);
     closeMenuEl?.addEventListener("click", onCloseMenuClick);
-    mobLinks.forEach((l) => l.addEventListener("click", onCloseMenuClick));
+    menuSectionLinks.forEach((link) => {
+      link.addEventListener("click", onMenuSectionClick);
+    });
+    mobLinks.forEach((l) => {
+      const anchor = l.closest("a");
+      if (anchor instanceof HTMLAnchorElement && isHomeSectionAnchor(anchor)) {
+        return;
+      }
+      l.addEventListener("click", onCloseMenuClick);
+    });
     menuPrimaryLinks.forEach((link) => {
       link.addEventListener("mouseenter", onPrimaryHover);
       link.addEventListener("focus", onPrimaryHover);
@@ -314,7 +437,16 @@ export function SiteEffects() {
       cookieReject?.removeEventListener("click", onCookieReject);
       hamburger?.removeEventListener("click", toggleMenu);
       closeMenuEl?.removeEventListener("click", onCloseMenuClick);
-      mobLinks.forEach((l) => l.removeEventListener("click", onCloseMenuClick));
+      menuSectionLinks.forEach((link) => {
+        link.removeEventListener("click", onMenuSectionClick);
+      });
+      mobLinks.forEach((l) => {
+        const anchor = l.closest("a");
+        if (anchor instanceof HTMLAnchorElement && isHomeSectionAnchor(anchor)) {
+          return;
+        }
+        l.removeEventListener("click", onCloseMenuClick);
+      });
       menuPrimaryLinks.forEach((link) => {
         link.removeEventListener("mouseenter", onPrimaryHover);
         link.removeEventListener("focus", onPrimaryHover);
@@ -338,7 +470,7 @@ export function SiteEffects() {
       document.documentElement.classList.remove("reserva-open");
       resetScrollLock();
     };
-  }, []);
+  }, [router]);
 
   return null;
 }

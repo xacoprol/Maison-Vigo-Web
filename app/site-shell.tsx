@@ -126,69 +126,30 @@ export function SiteShell() {
       </nav>
 
       <div className="mobile-menu" id="mobileMenu" aria-hidden="true">
-        <div className="mobile-menu-media" aria-hidden={true}>
-          <div
-            className="mobile-menu-media-layer is-active"
-            data-menu-image="foto1"
-          >
-            <Image
-              src="/foto1.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              priority
-            />
-          </div>
-          <div className="mobile-menu-media-layer" data-menu-image="foto2">
-            <Image
-              src="/foto2.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              loading="eager"
-            />
-          </div>
-          <div className="mobile-menu-media-layer" data-menu-image="foto3">
-            <Image
-              src="/foto3.jpg"
-              alt=""
-              fill
-              className="mobile-menu-media-img"
-              sizes="(max-width: 900px) 100vw, 40vw"
-              quality={70}
-              loading="eager"
-            />
-          </div>
-        </div>
-
         <div className="mobile-menu-panel">
           <div className="mobile-menu-inner">
             <div className="mobile-menu-primary">
-              <Link
+              <a
                 href="/#concepto"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto1"
               >
                 Concepto
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/#espacio"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto3"
               >
                 El espacio
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/#servicios"
                 className="mob-link mob-link--primary"
                 data-menu-image="foto2"
               >
                 Cuidado integral
-              </Link>
+              </a>
               <Link
                 href="/mvcare"
                 className="mob-link mob-link--primary"
@@ -198,14 +159,55 @@ export function SiteShell() {
               </Link>
             </div>
             <div className="mobile-menu-secondary">
-              <Link
+              <a
                 href="/#contacto"
                 className="mob-link mob-link--secondary mob-link--wave"
               >
-                <WaveText text="Contactos" />
-              </Link>
+                <WaveText text="Contacto" />
+              </a>
             </div>
           </div>
+        </div>
+
+        <div className="mobile-menu-media" aria-hidden={true}>
+            <div className="mobile-menu-media-frame">
+              <div
+                className="mobile-menu-media-layer is-active"
+                data-menu-image="foto1"
+              >
+                <Image
+                  src="/foto1.jpg"
+                  alt=""
+                  fill
+                  className="mobile-menu-media-img"
+                  sizes="(max-width: 900px) 100vw, 40vw"
+                  quality={70}
+                  priority
+                />
+              </div>
+              <div className="mobile-menu-media-layer" data-menu-image="foto2">
+                <Image
+                  src="/foto2.jpg"
+                  alt=""
+                  fill
+                  className="mobile-menu-media-img"
+                  sizes="(max-width: 900px) 100vw, 40vw"
+                  quality={70}
+                  loading="eager"
+                />
+              </div>
+              <div className="mobile-menu-media-layer" data-menu-image="foto3">
+                <Image
+                  src="/foto3.jpg"
+                  alt=""
+                  fill
+                  className="mobile-menu-media-img"
+                  sizes="(max-width: 900px) 100vw, 40vw"
+                  quality={70}
+                  loading="eager"
+                />
+              </div>
+            </div>
         </div>
 
         <button
@@ -256,57 +258,55 @@ export function SiteShell() {
       </div>
 
       <div className="reserva-panel" id="reservaPanel" aria-hidden="true">
-        <div className="reserva-panel-media" aria-hidden={true}>
-          <Image
-            src="/foto2.jpg"
-            alt=""
-            fill
-            className="reserva-panel-media-img"
-            sizes="(max-width: 900px) 100vw, 40vw"
-            quality={70}
-            priority
-          />
-        </div>
         <div className="reserva-panel-shell">
-          <button
-            type="button"
-            className="reserva-panel-close"
-            id="closeReservaPanel"
-            aria-label="Cerrar reserva"
-          >
-            <svg
-              className="icon icon-cross"
-              width="30"
-              height="30"
-              aria-hidden={true}
-              viewBox="0 0 30 30"
-            >
-              <path
-                d="M9 9L21 21M21 9L9 21"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
           <div className="reserva-panel-body">
             <iframe
               title="Reservar cita Maison Vigo"
-              src={bookingUrl}
+              src="about:blank"
+              data-booking-src={bookingUrl}
               className="reserva-panel-iframe"
-              loading="lazy"
               referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
-          <a
-            href={bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="reserva-panel-fallback mob-link--wave"
-          >
-            <WaveText text="Abrir en nueva pestaña" />
-          </a>
         </div>
+
+        <div className="reserva-panel-media" aria-hidden={true}>
+          <div className="reserva-panel-media-frame">
+            <div className="reserva-panel-media-layer is-active">
+              <Image
+                src="/foto2.jpg"
+                alt=""
+                fill
+                className="reserva-panel-media-img"
+                sizes="(max-width: 900px) 100vw, 40vw"
+                quality={70}
+                priority
+              />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="reserva-panel-close"
+          id="closeReservaPanel"
+          aria-label="Cerrar reserva"
+        >
+          <svg
+            className="icon icon-cross"
+            width="30"
+            height="30"
+            aria-hidden={true}
+            viewBox="0 0 30 30"
+          >
+            <path
+              d="M9 9L21 21M21 9L9 21"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       </div>
     </>
   );
