@@ -13,6 +13,292 @@ const GSAP_URL =
 const SCROLL_TRIGGER_URL =
   "https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js";
 const DESKTOP_MQ = "(min-width: 1024px)";
+const SWIPE_THRESHOLD_PX = 48;
+const SWIPE_MAX_VERTICAL_PX = 72;
+
+function killSlideshowScrollTrigger(revert = true) {
+  window.ScrollTrigger?.getById("servicio-slideshow")?.kill(revert);
+}
+
+function clearSlideshowGsapStyles(root: HTMLElement) {
+  const gsap = window.gsap;
+  if (!gsap) return;
+
+  gsap.set(
+    root.querySelectorAll(
+      ".servicio-slideshow__caption, .servicio-slideshow__media-clip, .servicio-slideshow__media-slide, .servicio-slideshow__media-slide img, .servicio-slideshow__headline-line-item",
+    ),
+    { clearProps: "all" },
+  );
+}
+
+function clearSlideshowInlineStyles(root: HTMLElement) {
+  root
+    .querySelectorAll<HTMLElement>(".servicio-slideshow__headline-line-item")
+    .forEach((el) => {
+      el.style.display = "";
+    });
+  root
+    .querySelectorAll<HTMLElement>(".servicio-slideshow__headline-row")
+    .forEach((el) => {
+      el.style.minHeight = "";
+    });
+}
+
+const MOBILE_TRANS = 0.55;
+const MOBILE_HEADLINE_TRANS = 0.48;
+const MOBILE_HEADLINE_EASE = "power1.inOut";
+const MOBILE_HEADLINE_OFF = 138;
+
+type SlideshowElements = {
+  captions: HTMLElement[];
+  headlineLine1: HTMLElement[];
+  headlineLine2: HTMLElement[];
+  clips: HTMLElement[];
+  images: HTMLElement[];
+  slideEls: HTMLElement[];
+};
+
+function getSlideshowElements(root: HTMLElement): SlideshowElements {
+  const gsap = window.gsap;
+  const toArray = gsap?.utils.toArray ?? Array.from;
+  return {
+    captions: toArray<HTMLElement>(
+      root.querySelectorAll(".servicio-slideshow__caption"),
+    ),
+    headlineLine1: toArray<HTMLElement>(
+      root.querySelectorAll(
+        ".servicio-slideshow__headline-row--1 .servicio-slideshow__headline-line-item",
+      ),
+    ),
+    headlineLine2: toArray<HTMLElement>(
+      root.querySelectorAll(
+        ".servicio-slideshow__headline-row--2 .servicio-slideshow__headline-line-item",
+      ),
+    ),
+    clips: toArray<HTMLElement>(
+      root.querySelectorAll(".servicio-slideshow__media-clip"),
+    ),
+    images: toArray<HTMLElement>(
+      root.querySelectorAll(".servicio-slideshow__media-slide img"),
+    ),
+    slideEls: toArray<HTMLElement>(
+      root.querySelectorAll(".servicio-slideshow__media-slide"),
+    ),
+  };
+}
+
+function syncHeadlineRowHeights(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".servicio-slideshow__headline-row").forEach(
+    (row) => {
+      const items = row.querySelectorAll<HTMLElement>(
+        ".servicio-slideshow__headline-line-item",
+      );
+      let maxH = 0;
+      items.forEach((item) => {
+        maxH = Math.max(maxH, item.getBoundingClientRect().height);
+      });
+      if (maxH > 0) row.style.minHeight = `${Math.ceil(maxH) + 10}px`;
+    },
+  );
+}
+
+function syncCaptionStackHeight(root: HTMLElement) {
+  const stack = root.querySelector<HTMLElement>(
+    ".servicio-slideshow__caption-stack",
+  );
+  if (!stack) return;
+
+  let maxH = 0;
+  stack.querySelectorAll<HTMLElement>(".servicio-slideshow__caption").forEach(
+    (caption) => {
+      const prev = {
+        position: caption.style.position,
+        visibility: caption.style.visibility,
+        opacity: caption.style.opacity,
+        display: caption.style.display,
+      };
+      caption.style.position = "static";
+      caption.style.visibility = "hidden";
+      caption.style.opacity = "1";
+      caption.style.display = "block";
+      maxH = Math.max(maxH, caption.offsetHeight);
+      caption.style.position = prev.position;
+      caption.style.visibility = prev.visibility;
+      caption.style.opacity = prev.opacity;
+      caption.style.display = prev.display;
+    },
+  );
+
+  if (maxH > 0) stack.style.minHeight = `${maxH}px`;
+}
+
+function headlineLinesBySlide(
+  slideIndex: number,
+  headlineLine1: HTMLElement[],
+  headlineLine2: HTMLElement[],
+) {
+  return [headlineLine1[slideIndex], headlineLine2[slideIndex]];
+}
+
+function headlineYForSlide(
+  lineIndex: number,
+  activeSlide: number,
+  headlineOff = MOBILE_HEADLINE_OFF,
+) {
+  if (lineIndex === activeSlide) return 0;
+  if (lineIndex < activeSlide) return -headlineOff;
+  return headlineOff;
+}
+
+function lockHeadlineSlide(
+  gsap: NonNullable<typeof window.gsap>,
+  headlineLine1: HTMLElement[],
+  headlineLine2: HTMLElement[],
+  activeSlide: number,
+  headlineOff = MOBILE_HEADLINE_OFF,
+) {
+  for (let i = 0; i < headlineLine1.length; i += 1) {
+    const y = headlineYForSlide(i, activeSlide, headlineOff);
+    const z = i === activeSlide ? 2 : 1;
+    gsap.set([headlineLine1[i], headlineLine2[i]], {
+      yPercent: y,
+      zIndex: z,
+      opacity: 1,
+    });
+  }
+}
+
+type SlideshowTimeline = {
+  to: (...args: any[]) => any;
+  set: (...args: any[]) => any;
+  fromTo: (...args: any[]) => any;
+};
+
+function pushHeadlineSlide(
+  tl: SlideshowTimeline,
+  from: number,
+  to: number,
+  headlineLine1: HTMLElement[],
+  headlineLine2: HTMLElement[],
+  at: number,
+  headlineTrans = MOBILE_HEADLINE_TRANS,
+  headlineEase = MOBILE_HEADLINE_EASE,
+  headlineOff = MOBILE_HEADLINE_OFF,
+) {
+  const pushAt = at - headlineTrans;
+  const fromLines = headlineLinesBySlide(from, headlineLine1, headlineLine2);
+  const toLines = headlineLinesBySlide(to, headlineLine1, headlineLine2);
+
+  fromLines.forEach((el) => {
+    tl.fromTo(
+      el,
+      { yPercent: 0 },
+      {
+        yPercent: -headlineOff,
+        duration: headlineTrans,
+        ease: headlineEase,
+      },
+      pushAt,
+    );
+  });
+  toLines.forEach((el) => {
+    tl.fromTo(
+      el,
+      { yPercent: headlineOff },
+      { yPercent: 0, duration: headlineTrans, ease: headlineEase },
+      pushAt,
+    );
+  });
+  tl.set(toLines, { zIndex: 3 }, pushAt);
+  tl.set(fromLines, { zIndex: 1 }, at);
+}
+
+function lockHeadlineSlideOnTimeline(
+  tl: SlideshowTimeline,
+  headlineLine1: HTMLElement[],
+  headlineLine2: HTMLElement[],
+  activeSlide: number,
+  at: number,
+  headlineOff = MOBILE_HEADLINE_OFF,
+) {
+  for (let i = 0; i < headlineLine1.length; i += 1) {
+    const y = headlineYForSlide(i, activeSlide, headlineOff);
+    const z = i === activeSlide ? 2 : 1;
+    tl.set([headlineLine1[i], headlineLine2[i]], { yPercent: y, zIndex: z, opacity: 1 }, at);
+  }
+}
+
+function transitionSlideshowSlides(
+  tl: SlideshowTimeline,
+  from: number,
+  to: number,
+  elements: SlideshowElements,
+  at: number,
+  trans = MOBILE_TRANS,
+) {
+  const { captions, headlineLine1, headlineLine2, clips, images, slideEls } =
+    elements;
+
+  tl.to(
+    captions[from],
+    { opacity: 0, duration: trans * 0.5, ease: "power1.inOut" },
+    at - trans,
+  );
+  pushHeadlineSlide(tl, from, to, headlineLine1, headlineLine2, at);
+  lockHeadlineSlideOnTimeline(
+    tl,
+    headlineLine1,
+    headlineLine2,
+    to,
+    at,
+  );
+  tl.set(slideEls[to], { zIndex: 4 }, at - trans * 0.15);
+  tl.fromTo(
+    clips[to],
+    { clipPath: "inset(100% 0% 0% 0%)" },
+    {
+      clipPath: "inset(0% 0% 0% 0%)",
+      duration: trans * 1.4,
+      ease: "power2.inOut",
+    },
+    at - trans * 0.1,
+  );
+  tl.fromTo(
+    images[to],
+    { scale: 1.15 },
+    { scale: 1, duration: trans * 0.95, ease: "power1.out" },
+    at,
+  );
+  tl.fromTo(
+    captions[to],
+    { opacity: 0 },
+    { opacity: 1, duration: trans * 0.65, ease: "power1.out" },
+    at + trans * 0.08,
+  );
+}
+
+function setInitialSlideshowState(
+  gsap: NonNullable<typeof window.gsap>,
+  elements: SlideshowElements,
+) {
+  const { captions, clips, images, slideEls } = elements;
+
+  gsap.set(captions, { opacity: 0 });
+  gsap.set(captions[0], { opacity: 1 });
+  gsap.set(clips, { clipPath: "inset(100% 0% 0% 0%)" });
+  gsap.set(clips[0], { clipPath: "inset(0% 0% 0% 0%)" });
+  gsap.set(images, { scale: 1.15, transformOrigin: "center center" });
+  gsap.set(images[0], { scale: 1 });
+  gsap.set(slideEls, { zIndex: 1 });
+  gsap.set(slideEls[0], { zIndex: 3 });
+  lockHeadlineSlide(
+    gsap,
+    elements.headlineLine1,
+    elements.headlineLine2,
+    0,
+  );
+}
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -71,9 +357,12 @@ export function ServicioScrollCarousel({
   const slideshowReadyRef = useRef(false);
   const pendingSlideRef = useRef<number | null>(null);
   const activeStepRef = useRef(0);
+  const mobileTimelineRef = useRef<{ kill: () => void } | null>(null);
+  const mobileAnimatingRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [activeStep, setActiveStep] = useState(0);
 
-  const applyMobileSlide = useCallback((index: number) => {
+  const syncMobileSlideClasses = useCallback((index: number) => {
     const root = wrapRef.current;
     if (!root) return;
 
@@ -92,12 +381,117 @@ export function ServicioScrollCarousel({
     root
       .querySelectorAll<HTMLElement>(".servicio-slideshow__headline-line-item")
       .forEach((el) => {
-        const isMatch = el.classList.contains(
-          `servicio-slideshow__headline-line-item--${index}`,
+        el.classList.toggle(
+          "is-active",
+          el.classList.contains(
+            `servicio-slideshow__headline-line-item--${index}`,
+          ),
         );
-        el.style.display = isMatch ? "" : "none";
       });
   }, []);
+
+  const setupMobileSlideshow = useCallback(
+    async (initialIndex: number) => {
+      const root = wrapRef.current;
+      if (!root) return;
+
+      try {
+        const { gsap } = await loadGsap();
+        if (!wrapRef.current) return;
+
+        const elements = getSlideshowElements(root);
+        setInitialSlideshowState(gsap, elements);
+        syncCaptionStackHeight(root);
+        syncHeadlineRowHeights(root);
+        syncMobileSlideClasses(initialIndex);
+        lockHeadlineSlide(
+          gsap,
+          elements.headlineLine1,
+          elements.headlineLine2,
+          initialIndex,
+        );
+        root
+          .querySelector(".servicio-slideshow__headline")
+          ?.classList.add("servicio-slideshow__headline--ready");
+      } catch {
+        syncMobileSlideClasses(initialIndex);
+      }
+    },
+    [syncMobileSlideClasses],
+  );
+
+  const runMobileTransition = useCallback(
+    async (from: number, to: number) => {
+      const root = wrapRef.current;
+      if (!root || from === to) return;
+
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      if (prefersReducedMotion) {
+        syncMobileSlideClasses(to);
+        try {
+          const { gsap } = await loadGsap();
+          const elements = getSlideshowElements(root);
+          setInitialSlideshowState(gsap, elements);
+          lockHeadlineSlide(
+            gsap,
+            elements.headlineLine1,
+            elements.headlineLine2,
+            to,
+          );
+          gsap.set(elements.captions[to], { opacity: 1 });
+          gsap.set(elements.clips[to], { clipPath: "inset(0% 0% 0% 0%)" });
+          gsap.set(elements.images[to], { scale: 1 });
+          gsap.set(elements.slideEls[to], { zIndex: 3 });
+        } catch {
+          /* estado visual ya sincronizado con clases */
+        }
+        return;
+      }
+
+      mobileTimelineRef.current?.kill();
+
+      try {
+        const { gsap } = await loadGsap();
+        if (!wrapRef.current) return;
+
+        mobileAnimatingRef.current = true;
+        const elements = getSlideshowElements(root);
+
+        const tl = gsap.timeline({
+          defaults: { ease: "power1.inOut" },
+          onComplete: () => {
+            mobileAnimatingRef.current = false;
+            mobileTimelineRef.current = null;
+            syncMobileSlideClasses(to);
+            lockHeadlineSlide(
+              gsap,
+              elements.headlineLine1,
+              elements.headlineLine2,
+              to,
+            );
+
+            const pendingIndex = pendingSlideRef.current;
+            if (pendingIndex !== null && pendingIndex !== to) {
+              pendingSlideRef.current = null;
+              const nextFrom = to;
+              setActiveStepUi(pendingIndex);
+              void runMobileTransition(nextFrom, pendingIndex);
+            }
+          },
+        });
+
+        mobileTimelineRef.current = tl;
+        transitionSlideshowSlides(tl, from, to, elements, MOBILE_TRANS);
+      } catch {
+        mobileAnimatingRef.current = false;
+        syncMobileSlideClasses(to);
+      }
+    },
+    [syncMobileSlideClasses],
+  );
 
   const scrollToSlideshowProgress = useCallback(
     (index: number, options?: { immediate?: boolean }) => {
@@ -160,11 +554,17 @@ export function ServicioScrollCarousel({
       if (!wrap || index < 0 || index >= slides.length) return;
 
       if (wrap.classList.contains("servicio-slideshow-wrap--mobile-all")) {
+        if (index === activeStepRef.current) return;
+
+        if (mobileAnimatingRef.current) {
+          pendingSlideRef.current = index;
+          setActiveStepUi(index);
+          return;
+        }
+
+        const from = activeStepRef.current;
         setActiveStepUi(index);
-        applyMobileSlide(index);
-        wrap
-          .querySelector<HTMLElement>(`[data-servicio-slide="${index}"]`)
-          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        void runMobileTransition(from, index);
         return;
       }
 
@@ -182,8 +582,55 @@ export function ServicioScrollCarousel({
         pendingSlideRef.current = index;
       }
     },
-    [applyMobileSlide, scrollToSlideshowProgress, setActiveStepUi, slides.length],
+    [runMobileTransition, scrollToSlideshowProgress, setActiveStepUi, slides.length],
   );
+
+  useEffect(() => {
+    const root = pinRef.current;
+    if (!root) return;
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      touchStartRef.current = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+      };
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      if (!start || event.changedTouches.length !== 1) return;
+
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      if (absX < SWIPE_THRESHOLD_PX) return;
+      if (absY > absX) return;
+      if (absY > SWIPE_MAX_VERTICAL_PX && absY > absX * 0.85) return;
+
+      const current = activeStepRef.current;
+      if (deltaX < 0 && current < slides.length - 1) {
+        goToSlide(current + 1);
+        return;
+      }
+      if (deltaX > 0 && current > 0) {
+        goToSlide(current - 1);
+      }
+    };
+
+    root.addEventListener("touchstart", onTouchStart, { passive: true });
+    root.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      root.removeEventListener("touchstart", onTouchStart);
+      root.removeEventListener("touchend", onTouchEnd);
+      touchStartRef.current = null;
+    };
+  }, [goToSlide, slides.length]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -197,8 +644,10 @@ export function ServicioScrollCarousel({
 
     if (!desktopMq.matches || prefersReducedMotion) {
       wrap.classList.add("servicio-slideshow-wrap--mobile-all");
-      applyMobileSlide(0);
-      queueMicrotask(() => setActiveStepUi(0));
+      queueMicrotask(() => {
+        setActiveStepUi(0);
+        void setupMobileSlideshow(0);
+      });
       return;
     }
 
@@ -206,56 +655,58 @@ export function ServicioScrollCarousel({
     let timeline: { kill: () => void } | null = null;
     let didInit = false;
 
+    const teardownDesktop = () => {
+      killSlideshowScrollTrigger(true);
+      timeline?.kill();
+      timeline = null;
+      scrollTriggerRef.current = null;
+      slideshowReadyRef.current = false;
+      didInit = false;
+
+      const root = wrapRef.current;
+      if (root) {
+        clearSlideshowGsapStyles(root);
+        clearSlideshowInlineStyles(root);
+        root
+          .querySelector(".servicio-slideshow__headline")
+          ?.classList.remove("servicio-slideshow__headline--ready");
+      }
+    };
+
+    const enableMobile = () => {
+      teardownDesktop();
+      wrap.classList.add("servicio-slideshow-wrap--mobile-all");
+      setActiveStepUi(activeStepRef.current);
+      void setupMobileSlideshow(activeStepRef.current);
+    };
+
     const init = async () => {
       if (didInit) return;
       try {
         const { gsap, ScrollTrigger } = await loadGsap();
         if (killed || !wrapRef.current || !pinRef.current) return;
 
-        window.ScrollTrigger?.getById("servicio-slideshow")?.kill();
+        killSlideshowScrollTrigger(true);
         timeline?.kill();
 
         bindLenisScrollTrigger(ScrollTrigger);
 
         const root = wrapRef.current;
         const pinEl = pinRef.current;
-
-        const captions = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(".servicio-slideshow__caption"),
-        );
-        const headlineLine1 = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(
-            ".servicio-slideshow__headline-row--1 .servicio-slideshow__headline-line-item",
-          ),
-        );
-        const headlineLine2 = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(
-            ".servicio-slideshow__headline-row--2 .servicio-slideshow__headline-line-item",
-          ),
-        );
-        const headlineLinesBySlide = (slideIndex: number) => [
-          headlineLine1[slideIndex],
-          headlineLine2[slideIndex],
-        ];
-        const clips = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(".servicio-slideshow__media-clip"),
-        );
-        const images = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(".servicio-slideshow__media-slide img"),
-        );
-        const slideEls = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(".servicio-slideshow__media-slide"),
-        );
+        const elements = getSlideshowElements(root);
+        const {
+          captions,
+          headlineLine1,
+          headlineLine2,
+          clips,
+          images,
+          slideEls,
+        } = elements;
 
         const slideCount = slides.length;
 
-        gsap.set(captions, { opacity: 0 });
-        gsap.set(captions[0], { opacity: 1 });
-        gsap.set(clips, { clipPath: "inset(100% 0% 0% 0%)" });
-        gsap.set(clips[0], { clipPath: "inset(0% 0% 0% 0%)" });
-        gsap.set(images, { scale: 1.15, transformOrigin: "center center" });
-        gsap.set(slideEls, { zIndex: 1 });
-        gsap.set(slideEls[0], { zIndex: 3 });
+        setInitialSlideshowState(gsap, elements);
+        syncCaptionStackHeight(root);
 
         const SEG = 1;
         /** Duración del cruce entre diapos (scrub): más alto = cambio más lento. */
@@ -307,36 +758,19 @@ export function ServicioScrollCarousel({
         const headlineEl = root.querySelector<HTMLElement>(
           ".servicio-slideshow__headline",
         );
-        const headlineRows = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(".servicio-slideshow__headline-row"),
-        );
 
-        const syncHeadlineRowHeights = () => {
-          headlineRows.forEach((row) => {
-            const items = row.querySelectorAll<HTMLElement>(
-              ".servicio-slideshow__headline-line-item",
-            );
-            let maxH = 0;
-            items.forEach((item) => {
-              maxH = Math.max(maxH, item.getBoundingClientRect().height);
-            });
-            if (maxH > 0) row.style.minHeight = `${Math.ceil(maxH) + 10}px`;
-          });
-        };
-
-        syncHeadlineRowHeights();
+        syncHeadlineRowHeights(root);
 
         const headlineSlideCount = headlineLine1.length;
-        const headlineYForSlide = (lineIndex: number, activeSlide: number) => {
-          if (lineIndex === activeSlide) return 0;
-          if (lineIndex < activeSlide) return -HEADLINE_OFF;
-          return HEADLINE_OFF;
-        };
+        const desktopHeadlineYForSlide = (
+          lineIndex: number,
+          activeSlide: number,
+        ) => headlineYForSlide(lineIndex, activeSlide, HEADLINE_OFF);
 
         /** Estados fijos en la timeline (scrub no usa gsap.set fuera del tl). */
-        const lockHeadlineSlide = (activeSlide: number, at: number) => {
+        const lockDesktopHeadlineSlide = (activeSlide: number, at: number) => {
           for (let i = 0; i < headlineSlideCount; i += 1) {
-            const y = headlineYForSlide(i, activeSlide);
+            const y = desktopHeadlineYForSlide(i, activeSlide);
             const z = i === activeSlide ? 2 : 1;
             tl.set(
               [headlineLine1[i], headlineLine2[i]],
@@ -346,36 +780,21 @@ export function ServicioScrollCarousel({
           }
         };
 
-        const pushHeadlineSlide = (from: number, to: number, at: number) => {
-          const pushAt = at - HEADLINE_TRANS;
-          const fromLines = headlineLinesBySlide(from);
-          const toLines = headlineLinesBySlide(to);
-
-          fromLines.forEach((el) => {
-            tl.fromTo(
-              el,
-              { yPercent: 0 },
-              {
-                yPercent: -HEADLINE_OFF,
-                duration: HEADLINE_TRANS,
-                ease: HEADLINE_EASE,
-              },
-              pushAt,
-            );
-          });
-          toLines.forEach((el) => {
-            tl.fromTo(
-              el,
-              { yPercent: HEADLINE_OFF },
-              { yPercent: 0, duration: HEADLINE_TRANS, ease: HEADLINE_EASE },
-              pushAt,
-            );
-          });
-          tl.set(toLines, { zIndex: 3 }, pushAt);
-          tl.set(fromLines, { zIndex: 1 }, at);
+        const pushDesktopHeadlineSlide = (from: number, to: number, at: number) => {
+          pushHeadlineSlide(
+            tl,
+            from,
+            to,
+            headlineLine1,
+            headlineLine2,
+            at,
+            HEADLINE_TRANS,
+            HEADLINE_EASE,
+            HEADLINE_OFF,
+          );
         };
 
-        lockHeadlineSlide(0, 0);
+        lockDesktopHeadlineSlide(0, 0);
 
         const transitionTo = (from: number, to: number, at: number) => {
           tl.to(
@@ -383,8 +802,8 @@ export function ServicioScrollCarousel({
             { opacity: 0, duration: TRANS * 0.5, ease: "power1.inOut" },
             at - TRANS,
           );
-          pushHeadlineSlide(from, to, at);
-          lockHeadlineSlide(to, at);
+          pushDesktopHeadlineSlide(from, to, at);
+          lockDesktopHeadlineSlide(to, at);
           tl.set(slideEls[to], { zIndex: 4 }, at - TRANS * 0.15);
           tl.fromTo(
             clips[to],
@@ -436,10 +855,13 @@ export function ServicioScrollCarousel({
 
     const onResize = () => {
       if (!desktopMq.matches) {
-        window.ScrollTrigger?.getById("servicio-slideshow")?.kill();
-        timeline?.kill();
-        wrap.classList.add("servicio-slideshow-wrap--mobile-all");
+        enableMobile();
+        return;
       }
+
+      wrap.classList.remove("servicio-slideshow-wrap--mobile-all");
+      clearSlideshowInlineStyles(wrap);
+      void init();
     };
     desktopMq.addEventListener("change", onResize);
 
@@ -447,16 +869,20 @@ export function ServicioScrollCarousel({
       killed = true;
       slideshowReadyRef.current = false;
       pendingSlideRef.current = null;
+      mobileAnimatingRef.current = false;
+      mobileTimelineRef.current?.kill();
+      mobileTimelineRef.current = null;
       window.clearTimeout(startTimer);
       desktopMq.removeEventListener("change", onResize);
-      timeline?.kill();
-      scrollTriggerRef.current = null;
-      window.ScrollTrigger?.getById("servicio-slideshow")?.kill();
-      wrapRef.current
-        ?.querySelector(".servicio-slideshow__headline")
-        ?.classList.remove("servicio-slideshow__headline--ready");
+      teardownDesktop();
     };
-  }, [applyMobileSlide, scrollToSlideshowProgress, setActiveStepUi, slides.length]);
+  }, [
+    runMobileTransition,
+    scrollToSlideshowProgress,
+    setActiveStepUi,
+    setupMobileSlideshow,
+    slides.length,
+  ]);
 
   return (
     <div
@@ -468,14 +894,16 @@ export function ServicioScrollCarousel({
       <section ref={pinRef} className="servicio-slideshow">
         <div className="servicio-slideshow__layout">
           <div className="servicio-slideshow__dark">
-            {slides.map((slide, index) => (
-              <p
-                key={`caption-${index}`}
-                className={`servicio-slideshow__caption servicio-slideshow__caption--${index}`}
-              >
-                {slide.caption}
-              </p>
-            ))}
+            <div className="servicio-slideshow__caption-stack">
+              {slides.map((slide, index) => (
+                <p
+                  key={`caption-${index}`}
+                  className={`servicio-slideshow__caption servicio-slideshow__caption--${index}`}
+                >
+                  {slide.caption}
+                </p>
+              ))}
+            </div>
             <nav
               ref={stepsRef}
               className="servicio-slideshow__steps"

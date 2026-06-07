@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { layoutServicioHeroOnce } from "@/lib/servicio-hero-layout";
+import { isMobileSiteNav } from "@/lib/nav-mobile";
 import { scrollToServicioHeroBody } from "@/lib/servicio-scroll-cta";
 
 /**
@@ -43,6 +44,12 @@ export function ServicioEffects() {
 
     const updateNavVisibility = (scrollY: number) => {
       if (!navbar) return;
+
+      if (isMobileSiteNav()) {
+        navbar.classList.remove("nav-hidden");
+        lastScrollY = scrollY;
+        return;
+      }
 
       const scrollDelta = scrollY - lastScrollY;
       const isScrollingDown = scrollDelta > 2;

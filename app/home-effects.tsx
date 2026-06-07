@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { isMobileSiteNav } from "@/lib/nav-mobile";
 
 /**
  * Efectos exclusivos de la home: animación de intro (logoIntro → wordmark nav)
@@ -280,7 +281,9 @@ export function HomeEffects() {
           progress.toFixed(3),
         );
         const heroPassed = currentScrollY > heroSection.offsetHeight - 20;
-        if (heroPassed && isScrollingDown) {
+        if (isMobileSiteNav()) {
+          navbar.classList.remove("nav-hidden");
+        } else if (heroPassed && isScrollingDown) {
           navbar.classList.add("nav-hidden");
         } else if (!heroPassed || isScrollingUp || currentScrollY < 10) {
           navbar.classList.remove("nav-hidden");

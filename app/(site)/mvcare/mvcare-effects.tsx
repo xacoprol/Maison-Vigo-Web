@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { isMobileSiteNav } from "@/lib/nav-mobile";
+
 /** Reveal suave de bloques, títulos y nav al salir del hero (como home). */
 export function MvcareEffects() {
   useEffect(() => {
@@ -19,6 +21,12 @@ export function MvcareEffects() {
 
     const updateNavVisibility = (scrollY: number) => {
       if (!navbar || !hero) return;
+
+      if (isMobileSiteNav()) {
+        navbar.classList.remove("nav-hidden");
+        lastScrollY = scrollY;
+        return;
+      }
 
       const scrollDelta = scrollY - lastScrollY;
       const isScrollingDown = scrollDelta > 2;

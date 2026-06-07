@@ -39,6 +39,7 @@ const ORDER_DESKTOP = [
 type ServiceId = (typeof ORDER_MOBILE)[number];
 
 const MOBILE_MQ = "(max-width: 900px)";
+const NARROW_MQ = "(max-width: 680px)";
 
 const SERVICE_IMAGES: Record<ServiceId, string> = {
   Grooming: "/grooming.webp",
@@ -88,8 +89,53 @@ function clampTranslate(x: number, maxT: number): number {
   return Math.max(maxT, Math.min(0, x));
 }
 
-function trackLabelsFor(mobile: boolean): readonly string[] {
+function trackLabelsFor(mobile: boolean): readonly ServiceId[] {
   return mobile ? ORDER_MOBILE : ORDER_DESKTOP;
+}
+
+/** En móvil estrecho, títulos de dos palabras en dos líneas dentro del orbe. */
+const LABEL_LINES: Partial<Record<ServiceId, readonly string[]>> = {
+  "Guardería Familiar": ["Guardería", "Familiar"],
+};
+
+function ServiceOrbLabel({ label }: { label: ServiceId }) {
+  const narrow = useSyncExternalStore(
+    (cb) => subscribeMediaQuery(NARROW_MQ, cb),
+    () => window.matchMedia(NARROW_MQ).matches,
+    () => false,
+  );
+
+  const lines =
+    narrow && LABEL_LINES[label] ? LABEL_LINES[label]! : [label];
+
+  if (lines.length === 1) {
+    return (
+      <span className="servicios-carousel__label mob-link--wave">
+        <WaveText
+          text={lines[0]}
+          screenReaderDuplicate={false}
+          charStaggerMs={14}
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="servicios-carousel__label servicios-carousel__label--stacked mob-link--wave"
+      aria-label={label}
+    >
+      {lines.map((line) => (
+        <span key={line} className="servicios-carousel__label-line">
+          <WaveText
+            text={line}
+            screenReaderDuplicate={false}
+            charStaggerMs={14}
+          />
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export function ServiciosCarousel() {
@@ -173,7 +219,11 @@ export function ServiciosCarousel() {
     if (cells.length === 0) return false;
 
     /** Ancho explícito: el track es `max-content` y el % no resuelve bien en flex. */
-    const cellW = mobile ? vw / 2.5 : vw / 4;
+    const narrowMobile =
+      mobile && window.matchMedia(NARROW_MQ).matches;
+    const cellW = mobile
+      ? vw / (narrowMobile ? 2.15 : 2.5)
+      : vw / 4;
     cells.forEach((cell) => {
       cell.style.flex = `0 0 ${cellW}px`;
       cell.style.width = `${cellW}px`;
@@ -550,13 +600,7 @@ export function ServiciosCarousel() {
                   </svg>
                 </span>
                 <span className="servicios-carousel__orb-text">
-                  <span className="servicios-carousel__label mob-link--wave">
-                    <WaveText
-                      text={label}
-                      screenReaderDuplicate={false}
-                      charStaggerMs={14}
-                    />
-                  </span>
+                  <ServiceOrbLabel label={label} />
                   <span className="servicios-carousel__subtitle">
                     {SERVICE_SUBTITLES[label]}
                   </span>

@@ -352,7 +352,7 @@
   left: 50%;
   width: 50%;
   box-sizing: border-box;
-  padding: 0 var(--nav-pad-x) 0;
+  padding: 0 var(--nav-pad-x) 0 clamp(16px, 3vw, 32px);
   margin: 0;
   pointer-events: none;
   display: flex;
@@ -508,9 +508,31 @@
 
 @media (max-width: 900px) {
   .servicio__hero-body {
-    left: 0;
-    width: 100%;
-    padding: 0 var(--nav-pad-x) 0;
+    left: 50%;
+    width: 50%;
+    padding: 0 var(--nav-pad-x) 0 clamp(8px, 2vw, 14px);
+  }
+
+  .servicio__body-copy {
+    font-size: clamp(11px, 3.05vw, 14px);
+  }
+
+  .servicio__body-text {
+    font-size: clamp(11px, 3.05vw, 14px);
+    line-height: 1.48;
+    letter-spacing: 0.034em;
+  }
+
+  .servicio-text-offset {
+    --servicio-text-offset-unit: clamp(8px, 2.35vw, 14px);
+  }
+
+  .servicio-text-offset--4 {
+    text-indent: calc(4 * var(--servicio-text-offset-unit));
+  }
+
+  .servicio-text-offset--2-md {
+    text-indent: calc(3 * var(--servicio-text-offset-unit));
   }
 }
 

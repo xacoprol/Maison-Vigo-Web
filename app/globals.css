@@ -599,6 +599,7 @@ nav#navbar.scrolled .nav-brand-piece--one {
   pointer-events: auto;
   visibility: visible;
   transition: none;
+  z-index: 260;
 }
 .mobile-menu-panel {
   position: absolute;
@@ -943,6 +944,7 @@ nav#navbar.scrolled .nav-brand-piece--one {
   visibility: visible;
   pointer-events: auto;
   transition: none;
+  z-index: 265;
 }
 .reserva-panel-shell {
   position: absolute;
@@ -3045,36 +3047,79 @@ a.contact-line:focus-visible .contact-text {
     line-height: 0.86;
   }
   nav#navbar {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    display: flex;
+    align-items: center;
+    justify-content: stretch;
     column-gap: clamp(10px, 3vw, 16px);
     padding: 32px var(--nav-pad-x) 24px;
-    overflow-x: clip;
-    overflow-y: visible;
+    overflow: visible;
   }
   nav#navbar.scrolled {
-    padding: 10px var(--nav-pad-x);
+    padding: 18px var(--nav-pad-x);
+  }
+  /** En móvil el nav permanece accesible (menú + reserva) en todas las páginas. */
+  nav#navbar.nav-hidden {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  body.menu-open nav#navbar,
+  body.reserva-open nav#navbar {
+    z-index: 270;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
   .nav-start {
-    grid-column: 1;
-    justify-self: start;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
   }
   .nav-brand {
-    grid-column: 2;
-    justify-self: center;
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: 0 0 auto;
+    align-self: center;
+    transform: none;
     max-width: min(200px, 52vw);
     min-width: 0;
     margin-top: 0;
+    z-index: 1;
+    pointer-events: auto;
   }
   .nav-brand-anim {
     --w2: min(128px, 48vw);
-    height: calc(208px * var(--w2) / 520px);
+    /* Mismo bloque compacto que escritorio: sin reservar hueco para la 3.ª línea. */
+    height: calc(76px * var(--w2) / 200px);
     overflow: visible;
   }
+  .nav-brand-piece--three {
+    display: none !important;
+  }
+  /**
+   * Sticky: igual que escritorio — la M se centra con transición y el wordmark
+   * se desvanece (sin display:none ni overflow:hidden, que cortaban la animación).
+   */
+  nav#navbar.scrolled .nav-brand-piece--one {
+    transform: translate(-50%, -50%);
+    transition-delay: 0.12s;
+  }
+  nav#navbar.scrolled .nav-brand-piece--two {
+    opacity: 0;
+    pointer-events: none;
+  }
   .nav-end {
+    position: relative;
+    z-index: 2;
     display: flex;
-    grid-column: 3;
-    justify-self: end;
-    align-self: center;
+    flex: 1 1 0;
+    justify-content: flex-end;
+    align-items: center;
     gap: 0;
     min-width: 0;
   }
@@ -3085,16 +3130,23 @@ a.contact-line:focus-visible .contact-text {
     display: none;
   }
   .nav-cta {
-    display: inline-flex;
+    display: inline-flex !important;
+    flex-shrink: 0;
+    visibility: visible;
+    opacity: 1;
     font-size: clamp(7px, 1.95vw, 9px);
     letter-spacing: 0.1em;
     white-space: nowrap;
+    max-width: none;
+  }
+  .nav-cta .cta-reserva-label {
+    display: inline-flex;
   }
   .nav-cta .cta-reserva-label__full {
-    display: none;
+    display: none !important;
   }
   .nav-cta .cta-reserva-label__short {
-    display: inline;
+    display: inline !important;
   }
   .hamburger {
     gap: 0;
@@ -3475,6 +3527,35 @@ a.contact-line:focus-visible .contact-text {
     font-size: 13px;
     transform: translateX(-50%)
       translateY(calc(var(--concepto-parallax-progress) * -4.5vh));
+  }
+}
+
+/** Cuidado integral — carrusel en móvil estrecho (≤680px). */
+@media (max-width: 680px) {
+  .servicios-carousel__label {
+    font-size: clamp(8px, 2.35vw, 11px);
+    letter-spacing: 0.055em;
+    line-height: 1.32;
+    max-width: 94%;
+  }
+
+  .servicios-carousel__label--stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2em;
+  }
+
+  .servicios-carousel__label-line {
+    display: block;
+  }
+
+  .servicios-carousel__label-line .mob-wave-text {
+    justify-content: center;
+  }
+
+  .servicios-carousel__orb-text {
+    padding: clamp(11px, 2.9vw, 18px);
   }
 }
 

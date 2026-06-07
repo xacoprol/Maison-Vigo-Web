@@ -15,6 +15,7 @@ import {
 } from "@/lib/hash-nav";
 import { lockScroll, resetScrollLock, unlockScroll } from "@/lib/scroll-lock";
 import { bookingUrl } from "@/lib/site-config";
+import { isMobileSiteNav } from "@/lib/nav-mobile";
 
 /**
  * Maneja UI global que existe en todas las páginas (nav, menú móvil,
@@ -179,6 +180,7 @@ export function SiteEffects() {
     const openMenu = () => {
       if (!mobileMenu) return;
       if (mobileMenu.classList.contains("open")) return;
+      navbar?.classList.remove("nav-hidden");
       lockScroll();
       lenis?.stop();
       mobileMenu.classList.add("open");
@@ -222,6 +224,7 @@ export function SiteEffects() {
     const openReservaPanelFn = () => {
       if (!reservaPanel) return;
       if (reservaPanel.classList.contains("open")) return;
+      navbar?.classList.remove("nav-hidden");
       if (mobileMenu?.classList.contains("open")) {
         closeMenuFn(true);
       } else {
@@ -414,6 +417,13 @@ export function SiteEffects() {
       onOpenReservaClick(event);
     };
 
+    const onMobileNavRestore = () => {
+      if (isMobileSiteNav()) navbar?.classList.remove("nav-hidden");
+    };
+
+    onMobileNavRestore();
+    window.addEventListener("resize", onMobileNavRestore);
+
     openReservaPanel?.addEventListener("click", onOpenReservaClick);
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
     document.addEventListener("click", onOpenReservaDelegated);
@@ -470,6 +480,7 @@ export function SiteEffects() {
       document.removeEventListener("click", onOpenReservaDelegated);
       closeReservaPanel?.removeEventListener("click", onCloseReservaClick);
       window.removeEventListener("keydown", onEsc);
+      window.removeEventListener("resize", onMobileNavRestore);
       window.removeEventListener("hashchange", onHashChange);
       document.removeEventListener("click", onHashLinkClick, true);
       revealObserver.disconnect();
