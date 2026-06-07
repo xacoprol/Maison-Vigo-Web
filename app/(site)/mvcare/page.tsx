@@ -78,46 +78,6 @@ export default function MvcarePage() {
             <p className="mvcare-hero__lead">{mvcareHero.subtitle}</p>
             <MvcareCta variant="hero" />
           </div>
-
-          <a
-            href="#mvcare-que-es"
-            className="mvcare-hero__scroll servicio__scroll-cta"
-            aria-label="Descubrir MV Care"
-          >
-            <span className="servicio__scroll-cta-inner">
-              <svg
-                className="servicio__scroll-cta-ring"
-                viewBox="0 0 100 100"
-                aria-hidden={true}
-              >
-                <circle
-                  className="servicio__scroll-cta-ring-path"
-                  cx="50"
-                  cy="50"
-                  r="49.5"
-                />
-              </svg>
-              <span
-                className="servicio__scroll-cta-arrow-wrap"
-                aria-hidden={true}
-              >
-                <img
-                  src="/assets/images/iconos/arrow-down.svg"
-                  alt=""
-                  className="servicio__scroll-cta-arrow servicio__scroll-cta-arrow--top"
-                  width={14}
-                  height={14}
-                />
-                <img
-                  src="/assets/images/iconos/arrow-down.svg"
-                  alt=""
-                  className="servicio__scroll-cta-arrow servicio__scroll-cta-arrow--bottom"
-                  width={14}
-                  height={14}
-                />
-              </span>
-            </span>
-          </a>
         </section>
 
         <section
@@ -185,32 +145,45 @@ export default function MvcarePage() {
           aria-labelledby="mvcare-start-title"
         >
           <div className="mvcare-section__inner mvcare-start__inner">
-            <header className="mvcare-start__head mvcare-reveal">
+            <header className="mvcare-start__masthead mvcare-reveal">
               <p className="section-label">{mvcareStart.eyebrow}</p>
-              <h2 id="mvcare-start-title" className="section-title">
-                {mvcareStart.title}
+              <h2
+                id="mvcare-start-title"
+                className="section-title mvcare-start__title mvcare-title-display"
+              >
+                <span className="mvcare-title-reveal">
+                  <span className="mvcare-start__title-line">{mvcareStart.titleLine1}</span>
+                  <span className="mvcare-start__title-line mvcare-start__title-line--accent">
+                    {mvcareStart.titleLine2}
+                  </span>
+                </span>
               </h2>
-              <p className="section-body mvcare-start__subtitle">
-                {mvcareStart.subtitle}
-              </p>
             </header>
 
-            <div className="mvcare-start__grid mvcare-reveal">
-              <ol className="mvcare-steps__list">
-                {mvcareSteps.map((step) => (
-                  <li key={step.number} className="mvcare-steps__item">
-                    <span className="mvcare-steps__num" aria-hidden={true}>
-                      {step.number}
-                    </span>
-                    <div className="mvcare-steps__copy">
-                      <h3 className="mvcare-steps__title">{step.title}</h3>
-                      <p className="section-body">{step.description}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+            <ol className="mvcare-start__steps" role="list">
+              {mvcareSteps.map((step, i) => (
+                <li
+                  key={step.number}
+                  className="mvcare-start__step mvcare-reveal"
+                  style={{ transitionDelay: `${0.08 + i * 0.1}s` }}
+                >
+                  <span className="mvcare-start__step-num" aria-hidden={true}>
+                    {step.number}
+                  </span>
+                  <div className="mvcare-start__step-body">
+                    <h3 className="mvcare-start__step-title">{step.title}</h3>
+                    <p className="mvcare-start__step-desc">{step.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-              <div className="mvcare-start__faq">
+            <div className="mvcare-start__faq-block">
+              <div className="mvcare-start__faq-intro mvcare-reveal">
+                <p className="section-label">{mvcareStart.faqLabel}</p>
+                <h3 className="mvcare-start__faq-title">{mvcareStart.faqLead}</h3>
+              </div>
+              <div className="mvcare-start__faq mvcare-reveal">
                 <MvcareFaq items={mvcareFaq} />
               </div>
             </div>
@@ -221,6 +194,19 @@ export default function MvcarePage() {
           className="mvcare-section mvcare-section--close"
           aria-labelledby="mvcare-close-title"
         >
+          <div className="mvcare-close__media" aria-hidden={true}>
+            <video
+              className="mvcare-close__video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            >
+              <source src={mvcareClose.video} type="video/webm" />
+            </video>
+            <span className="mvcare-close__overlay" />
+          </div>
           <div className="mvcare-section__inner mvcare-close mvcare-reveal">
             <h2 id="mvcare-close-title" className="section-title mvcare-close__title">
               {mvcareClose.title}

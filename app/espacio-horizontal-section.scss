@@ -566,6 +566,29 @@
   }
 }
 
+/** Portátil estrecho (901px–1200px). */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .espacio__panel--two .espacio__image-frame {
+    left: clamp(148px, 22vw, 300px);
+  }
+
+  .espacio__panel--two .espacio__body {
+    right: clamp(40px, 6vw, 120px);
+    transform: translate3d(clamp(196px, 24vw, 420px), 0, 0);
+  }
+
+  .espacio__panel--three .espacio__body {
+    z-index: 6;
+    left: calc(
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) -
+        clamp(72px, 8vw, 148px)
+    );
+    right: auto;
+    max-width: min(40vw, 500px);
+    transform: translate3d(clamp(-128px, -13vw, -64px), -50%, 0);
+  }
+}
+
 @media (max-width: 900px) {
   .espacio {
     height: calc(100svh * var(--espacio-panel-count));

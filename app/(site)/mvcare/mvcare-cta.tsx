@@ -38,17 +38,24 @@ export function MvcareCta({ variant = "hero" }: MvcareCtaProps) {
   }
 
   return (
-    <div className="mvcare-cta">
+    <div className="mvcare-cta mvcare-cta--close">
       <a
         href={bookingUrl}
-        className="btn-primary mvcare-btn"
+        className="mvcare-close-btn mvcare-close-btn--primary mob-link--wave"
         target="_blank"
         rel="noopener noreferrer"
       >
-        Acceder a MV Care
+        <span className="mvcare-close-btn__label">
+          <WaveText text="Acceder a MV Care" />
+        </span>
       </a>
-      <button type="button" className="btn-primary mvcare-btn js-open-reserva-panel">
-        Reservar cita
+      <button
+        type="button"
+        className="mvcare-close-btn mvcare-close-btn--secondary mob-link--wave js-open-reserva-panel"
+      >
+        <span className="mvcare-close-btn__label">
+          <WaveText text="Reservar cita" />
+        </span>
       </button>
     </div>
   );

@@ -308,34 +308,18 @@ function CarouselArrow({ direction, onClick }: CarouselArrowProps) {
   return (
     <button
       type="button"
-      className="mvcare-features__arrow servicio__scroll-cta"
+      className="mvcare-features__arrow"
       aria-label={label}
       onClick={onClick}
     >
-      <span className="servicio__scroll-cta-inner">
-        <svg
-          className="servicio__scroll-cta-ring"
-          viewBox="0 0 100 100"
-          aria-hidden={true}
-        >
-          <circle
-            className="servicio__scroll-cta-ring-path"
-            cx="50"
-            cy="50"
-            r="49.5"
-          />
-        </svg>
-        <span className="servicio__scroll-cta-arrow-wrap" aria-hidden={true}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt=""
-            width={14}
-            height={14}
-            className="servicio__scroll-cta-arrow mvcare-features__arrow-icon"
-          />
-        </span>
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        width={14}
+        height={14}
+        className="mvcare-features__arrow-icon"
+      />
     </button>
   );
 }

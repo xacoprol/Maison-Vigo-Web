@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-import { mvcareBenefitsCol1, mvcareBenefitsCol2, mvcareBenefitsSection } from "@/lib/mvcare-content";
+import { mvcareBenefits, mvcareBenefitsCol1, mvcareBenefitsCol2, mvcareBenefitsSection } from "@/lib/mvcare-content";
 
-const DESKTOP_MIN = 1024;
+const DESKTOP_MIN = 900;
 /**
  * Ref. Grigoriak `experienceCard`: col.1 = 25vh, col.2 = 35vh (`data-parallax-size`).
  * Misma curva: +(size)vh al entrar la sección → −(size)vh al salir.
@@ -200,6 +200,18 @@ export function MvcareBenefits() {
                   ))}
                 </ul>
               </div>
+
+              <ul
+                className="mvcare-benefits__carousel"
+                role="list"
+                aria-label="Beneficios de MV Care"
+              >
+                {mvcareBenefits.map((benefit) => (
+                  <li key={benefit} className="mvcare-benefits__carousel-card">
+                    <p className="mvcare-benefits__card-text">{benefit}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

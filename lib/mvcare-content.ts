@@ -102,8 +102,10 @@ export const mvcareFeatures: MvcareFeature[] = [
 
 export const mvcareStart = {
   eyebrow: "Cómo empezar",
-  title: "Tres pasos",
-  subtitle: "Y las dudas más habituales",
+  titleLine1: "Tres",
+  titleLine2: "pasos",
+  faqLabel: "Preguntas",
+  faqLead: "Las dudas más habituales",
 } as const;
 
 export type MvcareStep = {
@@ -187,5 +189,6 @@ export const mvcareBenefitsSection = {
 
 export const mvcareClose = {
   title: "El cuidado no termina al salir por la puerta",
-  body: "Entra en tu panel o reserva la próxima sesión.",
+  body: "Entra en tu panel para ver tu plan de cuidado, o reserva la próxima sesión cuando lo necesites.",
+  video: "/assets/videos/mvcare-cuidado-casa.webm",
 } as const;

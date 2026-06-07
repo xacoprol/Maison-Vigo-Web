@@ -1,4 +1,4 @@
-import { ContactFormSection } from "../contact-form-section";
+import { ContactFormSectionGate } from "../contact-form-section-gate";
 import { SeoJsonLd } from "../seo-json-ld";
 import { SiteEffects } from "../site-effects";
 import { SiteFooter } from "../site-footer";
@@ -15,7 +15,7 @@ export default function SiteLayout({
       <SiteEffects />
       <SiteShell />
       {children}
-      <ContactFormSection />
+      <ContactFormSectionGate />
       <SiteFooter />
     </>
   );
