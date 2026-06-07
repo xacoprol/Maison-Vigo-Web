@@ -264,6 +264,16 @@ export function SiteEffects() {
       event.stopPropagation();
       closeMenuFn();
     };
+    const onMobLinkClick = (event: Event) => {
+      const el = event.currentTarget as HTMLElement;
+      const anchor =
+        el instanceof HTMLAnchorElement ? el : el.closest("a");
+      if (anchor instanceof HTMLAnchorElement && isInternalPageLink(anchor)) {
+        closeMenuFn();
+        return;
+      }
+      onCloseMenuClick(event);
+    };
     const onEsc = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (reservaPanel?.classList.contains("open")) {
@@ -311,6 +321,14 @@ export function SiteEffects() {
 
     const isHomeSectionAnchor = (anchor: HTMLAnchorElement) =>
       !!resolveHomeSectionId(anchor.getAttribute("href") ?? "");
+
+    /** Rutas internas (/mvcare, /privacidad…) — no bloquear navegación al cerrar menú. */
+    const isInternalPageLink = (anchor: HTMLAnchorElement) => {
+      if (anchor.classList.contains("js-open-reserva-panel")) return false;
+      const href = anchor.getAttribute("href") ?? "";
+      if (!href.startsWith("/") || href.startsWith("//")) return false;
+      return !resolveHomeSectionId(href);
+    };
 
     const scheduleScrollToHomeSection = (sectionId: string) => {
       requestAnimationFrame(() => {
@@ -401,7 +419,7 @@ export function SiteEffects() {
       if (anchor instanceof HTMLAnchorElement && isHomeSectionAnchor(anchor)) {
         return;
       }
-      l.addEventListener("click", onCloseMenuClick);
+      l.addEventListener("click", onMobLinkClick);
     });
     menuPrimaryLinks.forEach((link) => {
       link.addEventListener("mouseenter", onPrimaryHover);
@@ -465,7 +483,7 @@ export function SiteEffects() {
         if (anchor instanceof HTMLAnchorElement && isHomeSectionAnchor(anchor)) {
           return;
         }
-        l.removeEventListener("click", onCloseMenuClick);
+        l.removeEventListener("click", onMobLinkClick);
       });
       menuPrimaryLinks.forEach((link) => {
         link.removeEventListener("mouseenter", onPrimaryHover);
