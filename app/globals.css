@@ -792,7 +792,7 @@ nav#navbar.scrolled .nav-brand-piece--one {
 .mobile-menu-close {
   position: absolute;
   left: var(--menu-panel-width);
-  top: 110px;
+  top: 88px;
   transform: translate(-50%, -50%);
   width: 68px;
   height: 68px;
@@ -806,9 +806,10 @@ nav#navbar.scrolled .nav-brand-piece--one {
   display: grid;
   place-items: center;
   cursor: pointer;
-  z-index: 50;
+  z-index: 60;
   opacity: 0;
   pointer-events: none;
+  touch-action: manipulation;
   transition:
     opacity 0.38s ease,
     background 0.35s ease,
@@ -829,7 +830,9 @@ nav#navbar.scrolled .nav-brand-piece--one {
   fill: currentColor;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.mobile-menu-close:hover {
+.mobile-menu-close:hover,
+.mobile-menu-close:focus-visible,
+.mobile-menu-close:active {
   background: rgba(187, 149, 93, 0.18);
   color: var(--cream);
   transform: translate(-50%, -50%);
@@ -1022,7 +1025,7 @@ nav#navbar.scrolled .nav-brand-piece--one {
   position: absolute;
   right: var(--reserva-panel-width);
   left: auto;
-  top: 110px;
+  top: 88px;
   transform: translate(50%, -50%);
   width: 68px;
   height: 68px;
@@ -1036,9 +1039,10 @@ nav#navbar.scrolled .nav-brand-piece--one {
   display: grid;
   place-items: center;
   cursor: pointer;
-  z-index: 50;
+  z-index: 60;
   opacity: 0;
   pointer-events: none;
+  touch-action: manipulation;
   transition:
     opacity 0.38s ease,
     background 0.35s ease,
@@ -1055,7 +1059,9 @@ nav#navbar.scrolled .nav-brand-piece--one {
   fill: currentColor;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.reserva-panel-close:hover {
+.reserva-panel-close:hover,
+.reserva-panel-close:focus-visible,
+.reserva-panel-close:active {
   background: rgba(187, 149, 93, 0.18);
   color: var(--cream);
   transform: translate(50%, -50%);
@@ -3102,6 +3108,7 @@ a.contact-line:focus-visible .contact-text {
   }
   .mobile-menu {
     --menu-panel-width: 100%;
+    overflow: visible;
   }
   .mobile-menu-panel {
     width: 100%;
@@ -3115,13 +3122,17 @@ a.contact-line:focus-visible .contact-text {
   .mobile-menu-primary .mob-link--primary {
     text-wrap: balance;
     white-space: normal;
-    font-size: clamp(36px, 12vw, 62px);
+    font-size: clamp(28px, 9.5vw, 52px);
   }
   .mobile-menu-inner {
     padding: 108px 28px 44px;
   }
   .mob-link--primary {
-    font-size: clamp(36px, 12vw, 62px);
+    font-size: clamp(28px, 9.5vw, 52px);
+  }
+  .mob-link--secondary {
+    font-size: 17px;
+    letter-spacing: 0.16em;
   }
   .mobile-menu-secondary {
     margin-top: 24px;
@@ -3147,17 +3158,23 @@ a.contact-line:focus-visible .contact-text {
   .mobile-menu-close {
     left: auto;
     right: 22px;
-    top: 108px;
+    top: 72px;
+    transform: translateY(-50%);
+  }
+  .mobile-menu-close:hover,
+  .mobile-menu-close:focus-visible,
+  .mobile-menu-close:active {
     transform: translateY(-50%);
   }
   .mobile-menu-book {
-    --mobile-menu-book-size: 176px;
+    --mobile-menu-book-size: min(300px, 78vw);
     --mobile-menu-book-scale: 1;
     left: auto;
-    right: 18px;
-    top: 50%;
+    right: calc(var(--mobile-menu-book-size) * -0.2);
+    top: 62%;
     transform: translateY(-50%) scale(var(--mobile-menu-book-scale));
-    font-size: 12px;
+    font-size: clamp(11px, 3.2vw, 14px);
+    letter-spacing: 0.18em;
   }
   .mobile-menu-book .cta-reserva-label__full {
     display: none;
@@ -3203,11 +3220,16 @@ a.contact-line:focus-visible .contact-text {
   .reserva-panel-close {
     right: 22px;
     left: auto;
-    top: 108px;
+    top: 72px;
     transform: translateY(-50%);
     width: 56px;
     height: 56px;
     font-size: 26px;
+  }
+  .reserva-panel-close:hover,
+  .reserva-panel-close:focus-visible,
+  .reserva-panel-close:active {
+    transform: translateY(-50%);
   }
   .site-footer {
     --footer-pad-x: clamp(36px, 8vw, 52px);

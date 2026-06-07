@@ -244,6 +244,11 @@ export function SiteEffects() {
       unlockScroll();
       lenis?.start();
     };
+    const onCloseReservaClick = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeReservaPanelFn();
+    };
     const onReservaOverlayClick = (event: MouseEvent) => {
       if (event.target === reservaPanel) closeReservaPanelFn();
     };
@@ -251,7 +256,11 @@ export function SiteEffects() {
       event.preventDefault();
       openReservaPanelFn();
     };
-    const onCloseMenuClick = () => closeMenuFn();
+    const onCloseMenuClick = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenuFn();
+    };
     const onEsc = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (reservaPanel?.classList.contains("open")) {
@@ -337,6 +346,7 @@ export function SiteEffects() {
     const onHashLinkClick = (event: MouseEvent) => {
       const anchor = (event.target as Element).closest("a");
       if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.classList.contains("js-open-reserva-panel")) return;
 
       const sectionId = resolveHomeSectionId(anchor.getAttribute("href") ?? "");
       if (!sectionId) return;
@@ -407,7 +417,7 @@ export function SiteEffects() {
     openReservaPanel?.addEventListener("click", onOpenReservaClick);
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
     document.addEventListener("click", onOpenReservaDelegated);
-    closeReservaPanel?.addEventListener("click", closeReservaPanelFn);
+    closeReservaPanel?.addEventListener("click", onCloseReservaClick);
     window.addEventListener("keydown", onEsc);
 
     const reveals = document.querySelectorAll(".reveal");
@@ -458,7 +468,7 @@ export function SiteEffects() {
       openReservaPanel?.removeEventListener("click", onOpenReservaClick);
       openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
       document.removeEventListener("click", onOpenReservaDelegated);
-      closeReservaPanel?.removeEventListener("click", closeReservaPanelFn);
+      closeReservaPanel?.removeEventListener("click", onCloseReservaClick);
       window.removeEventListener("keydown", onEsc);
       window.removeEventListener("hashchange", onHashChange);
       document.removeEventListener("click", onHashLinkClick, true);

@@ -114,11 +114,10 @@ export function SiteShell() {
         </Link>
         <div className="nav-end">
           <a
-            href={bookingUrl}
-            className="nav-cta mob-link--wave"
+            href="#"
+            className="nav-cta mob-link--wave js-open-reserva-panel"
             id="openReservaPanel"
-            target="_blank"
-            rel="noopener noreferrer"
+            aria-label="Reserva una cita"
           >
             <ReservaCtaLabel compactOnMobile />
           </a>
@@ -232,11 +231,9 @@ export function SiteShell() {
           </svg>
         </button>
         <a
-          href={bookingUrl}
-          className="mobile-menu-book mob-link--wave"
+          href="#"
+          className="mobile-menu-book mob-link--wave js-open-reserva-panel"
           id="openReservaPanelFromMenu"
-          target="_blank"
-          rel="noopener noreferrer"
           aria-label="Reserva una cita"
         >
           <svg
