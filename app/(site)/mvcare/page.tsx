@@ -12,6 +12,8 @@ import {
 } from "@/lib/mvcare-content";
 import { siteConfig } from "@/lib/site-config";
 
+import { WaveText } from "@/app/wave-text";
+
 import { MvcareBenefits } from "./mvcare-benefits";
 import { MvcareFeaturesCarousel } from "./mvcare-features-carousel";
 import { MvcareCta } from "./mvcare-cta";
@@ -52,28 +54,27 @@ export default function MvcarePage() {
           </div>
 
           <div className="mvcare-hero__inner">
-            <h1 className="hero-title mvcare-hero__title">
-              <span className="mvcare-hero__title-reveal">
-                <span className="mvcare-hero__title-line">
-                  <span className="mvcare-hero__title-el">{mvcareHero.titleEl}</span>{" "}
-                  <span className="mvcare-hero__title-rest">
-                    {mvcareHero.titleLine1Rest}
+            <div className="mvcare-hero__title-block">
+              <h1 className="mvcare-hero__title">
+                <span className="mvcare-hero__title-reveal">
+                  <span className="mvcare-hero__title-line">
+                    {mvcareHero.titleEl} {mvcareHero.titleLine1Rest}
+                  </span>
+                  <span className="mvcare-hero__title-line">
+                    {mvcareHero.titleLine2}
                   </span>
                 </span>
-                <span className="mvcare-hero__title-line mvcare-hero__title-rest">
-                  {mvcareHero.titleLine2}
-                </span>
-              </span>
-            </h1>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={mvcareHero.logoSrc}
-              alt={mvcareHero.logoAlt}
-              width={248}
-              height={74}
-              className="mvcare-hero__logo"
-              decoding="async"
-            />
+              </h1>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={mvcareHero.logoSrc}
+                alt={mvcareHero.logoAlt}
+                width={248}
+                height={74}
+                className="mvcare-hero__logo"
+                decoding="async"
+              />
+            </div>
             <p className="mvcare-hero__lead">{mvcareHero.subtitle}</p>
             <MvcareCta variant="hero" />
           </div>
@@ -165,12 +166,9 @@ export default function MvcarePage() {
                 )}
                 <Link
                   href={mvcareWhatIs.ritmoLink.href}
-                  className="mvcare-link"
+                  className="mvcare-link mob-link--wave"
                 >
-                  {mvcareWhatIs.ritmoLink.label}
-                  <span className="mvcare-link__arrow" aria-hidden={true}>
-                    →
-                  </span>
+                  <WaveText text={mvcareWhatIs.ritmoLink.label} />
                 </Link>
               </div>
             </div>

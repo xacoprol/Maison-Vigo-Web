@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { mvcareBenefitsCol1, mvcareBenefitsCol2 } from "@/lib/mvcare-content";
+import { mvcareBenefitsCol1, mvcareBenefitsCol2, mvcareBenefitsSection } from "@/lib/mvcare-content";
 
 const DESKTOP_MIN = 1024;
 /**
@@ -12,7 +12,8 @@ const DESKTOP_MIN = 1024;
 const COL1_PARALLAX_VH = 25;
 const COL2_PARALLAX_VH = 35;
 /** Ref. `imageScaleInSmall` + `imageMove`. */
-const BG_SCALE_END = 1.08;
+const BG_SCALE_END = 1.12;
+const BG_MOVE_MULTIPLIER = 1.32;
 
 function sectionProgress(section: HTMLElement, vh: number) {
   const range = section.offsetHeight + vh;
@@ -80,7 +81,7 @@ export function MvcareBenefits() {
       const stageH = bgStage?.clientHeight ?? vh;
       const bgH = bg.offsetHeight || stageH;
       const moveRatio = stageH > 0 ? Math.max(0, (stageH - bgH) / stageH) : 0;
-      const bgMoveY = -progress * moveRatio * stageH;
+      const bgMoveY = -progress * moveRatio * stageH * BG_MOVE_MULTIPLIER;
 
       bg.style.transformOrigin = "left bottom";
       bg.style.transform = `translate3d(0, ${bgMoveY}px, 0) scale(${1 + progress * (BG_SCALE_END - 1)})`;
@@ -161,12 +162,16 @@ export function MvcareBenefits() {
 
           <div className="mvcare-benefits__layer mvcare-benefits__layer--title">
             <div className="mvcare-benefits__title-wrap">
-              <p className="section-label mvcare-reveal">Beneficios</p>
               <h2
                 id="mvcare-benefits-title"
                 className="section-title mvcare-benefits__title mvcare-reveal"
               >
-                Lo que ganas con MV Care
+                <span className="mvcare-benefits__title-lead">
+                  {mvcareBenefitsSection.titleBefore}
+                </span>{" "}
+                <span className="mvcare-benefits__title-brand">
+                  {mvcareBenefitsSection.titleBrand}
+                </span>
               </h2>
             </div>
           </div>

@@ -73,7 +73,7 @@ export const mvcareFeatures: MvcareFeature[] = [
   {
     title: "Piel y manto",
     description:
-      "Observaciones de la última visita y fotos de referencia para entender la evolución del manto entre sesiones.",
+      "Observaciones de la última visita y fotos de referencia para entender la evolución del manto\u00A0entre sesiones.",
     image: "/assets/images/mvcare-3.webp",
     imageAlt: "Seguimiento de piel y manto en MV Care — Maison Vigo.",
   },
@@ -179,6 +179,11 @@ export const mvcareBenefits: string[] = [
   ...mvcareBenefitsCol1,
   ...mvcareBenefitsCol2,
 ];
+
+export const mvcareBenefitsSection = {
+  titleBefore: "Lo\u00A0que\u00A0ganas",
+  titleBrand: "con\u00A0MV\u00A0Care",
+} as const;
 
 export const mvcareClose = {
   title: "El cuidado no termina al salir por la puerta",

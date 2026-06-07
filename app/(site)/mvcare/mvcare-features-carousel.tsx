@@ -16,40 +16,157 @@ import {
 
 const SLIDE_COUNT = mvcareFeatures.length;
 
-function splitTextIntoLines(container: HTMLElement, text: string): string[] {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return [];
-
+function lineFitsInContainer(container: HTMLElement, text: string): boolean {
   container.replaceChildren();
-  const spans = words.map((word) => {
-    const span = document.createElement("span");
-    span.textContent = word;
-    container.appendChild(span);
-    container.appendChild(document.createTextNode(" "));
-    return span;
-  });
+  container.append(document.createTextNode(text));
+  return container.scrollWidth <= container.clientWidth + 2;
+}
+
+function countWords(line: string): number {
+  return line.trim().split(/ +/).filter(Boolean).length;
+}
+
+function joinWords(words: string[], start: number, end: number): string {
+  return words.slice(start, end).join(" ");
+}
+
+function splitWordsIntoLines(
+  container: HTMLElement,
+  words: string[],
+): string[] {
+  const total = words.length;
+  if (total === 0) return [];
+  if (total === 1) return [words[0]];
 
   const lines: string[] = [];
-  let lineWords: string[] = [];
-  let lastTop: number | null = null;
+  let start = 0;
 
-  spans.forEach((span, wordIndex) => {
-    const top = span.offsetTop;
-    if (lastTop !== null && top > lastTop + 1) {
-      lines.push(lineWords.join(" "));
-      lineWords = [words[wordIndex]];
-    } else {
-      lineWords.push(words[wordIndex]);
+  while (start < total) {
+    let end = start + 1;
+    let lastFit = start + 1;
+
+    while (end <= total) {
+      if (lineFitsInContainer(container, joinWords(words, start, end))) {
+        lastFit = end;
+        end += 1;
+      } else {
+        break;
+      }
     }
-    lastTop = top;
-  });
 
-  if (lineWords.length > 0) {
-    lines.push(lineWords.join(" "));
+    let breakAt = lastFit;
+
+    while (breakAt < total && total - breakAt === 1 && breakAt > start + 1) {
+      breakAt -= 1;
+    }
+
+    if (breakAt - start === 1 && breakAt < total) {
+      const extended = Math.min(start + 2, lastFit);
+      if (
+        extended > breakAt &&
+        lineFitsInContainer(container, joinWords(words, start, extended))
+      ) {
+        breakAt = extended;
+        while (
+          breakAt < total &&
+          total - breakAt === 1 &&
+          breakAt > start + 1
+        ) {
+          breakAt -= 1;
+        }
+      }
+    }
+
+    lines.push(joinWords(words, start, breakAt));
+    start = breakAt;
   }
 
-  container.replaceChildren();
-  return lines;
+  return optimizeLineBreaks(lines, container);
+}
+
+function optimizeLineBreaks(
+  lines: string[],
+  container: HTMLElement,
+): string[] {
+  let result = [...lines];
+  let changed = true;
+  let passes = 0;
+
+  while (changed && passes < 24) {
+    changed = false;
+    passes += 1;
+
+    for (let i = 0; i < result.length; i += 1) {
+      if (countWords(result[i]) !== 1) continue;
+
+      if (i > 0) {
+        const mergedWithPrevious = `${result[i - 1]} ${result[i]}`.trim();
+        if (lineFitsInContainer(container, mergedWithPrevious)) {
+          result.splice(i - 1, 2, mergedWithPrevious);
+          changed = true;
+          break;
+        }
+
+        const previousWords = result[i - 1].trim().split(/ +/).filter(Boolean);
+        if (previousWords.length >= 2) {
+          const moved = previousWords.pop()!;
+          const nextPrevious = previousWords.join(" ");
+          const nextCurrent = `${moved} ${result[i]}`.trim();
+
+          if (
+            lineFitsInContainer(container, nextPrevious) &&
+            lineFitsInContainer(container, nextCurrent) &&
+            countWords(nextPrevious) >= 2
+          ) {
+            result[i - 1] = nextPrevious;
+            result[i] = nextCurrent;
+            changed = true;
+            break;
+          }
+        }
+      }
+
+      if (i < result.length - 1) {
+        const mergedWithNext = `${result[i]} ${result[i + 1]}`.trim();
+        if (lineFitsInContainer(container, mergedWithNext)) {
+          result.splice(i, 2, mergedWithNext);
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    if (changed) continue;
+
+    for (let i = 0; i < result.length - 1; i += 1) {
+      if (countWords(result[i + 1]) > 3) continue;
+
+      const previousWords = result[i].trim().split(/ +/).filter(Boolean);
+      if (previousWords.length <= 2) continue;
+
+      const moved = previousWords.pop()!;
+      const nextPrevious = previousWords.join(" ");
+      const nextCurrent = `${moved} ${result[i + 1]}`.trim();
+
+      if (
+        lineFitsInContainer(container, nextPrevious) &&
+        lineFitsInContainer(container, nextCurrent) &&
+        countWords(nextPrevious) >= 2
+      ) {
+        result[i] = nextPrevious;
+        result[i + 1] = nextCurrent;
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
+function splitTextIntoLines(container: HTMLElement, text: string): string[] {
+  const words = text.trim().split(/ +/).filter(Boolean);
+  return splitWordsIntoLines(container, words);
 }
 
 type MvcareFeaturesSlideCopyProps = {
@@ -72,6 +189,7 @@ function MvcareFeaturesSlideCopy({
     const titleEl = titleMeasureRef.current;
     const descEl = descMeasureRef.current;
     if (!titleEl || !descEl) return;
+    if (titleEl.clientWidth === 0 || descEl.clientWidth === 0) return;
 
     setTitleLines(splitTextIntoLines(titleEl, title));
     setDescLines(splitTextIntoLines(descEl, description));
@@ -82,9 +200,19 @@ function MvcareFeaturesSlideCopy({
   }, [measureLines]);
 
   useEffect(() => {
-    const onResize = () => measureLines();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const measureRoot = descMeasureRef.current?.parentElement;
+    if (!measureRoot) return;
+
+    const observer = new ResizeObserver(() => {
+      measureLines();
+    });
+    observer.observe(measureRoot);
+
+    window.addEventListener("resize", measureLines);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measureLines);
+    };
   }, [measureLines]);
 
   let lineIndex = 0;
