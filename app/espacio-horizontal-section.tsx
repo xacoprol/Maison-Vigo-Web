@@ -87,8 +87,8 @@ const espacioPanels = [
         respeto por el ritmo de cada perro.
       </>
     ),
-    image: "/assets/images/caniche.webp",
-    imageAlt: "Retrato editorial en Maison Vigo.",
+    image: "/assets/images/la-bienvenida.webp",
+    imageAlt: "Detalle del espacio de bienvenida Maison Vigo.",
     modifier: "espacio__panel--four",
   },
 ];

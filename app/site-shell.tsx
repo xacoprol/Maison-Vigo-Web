@@ -120,7 +120,7 @@ export function SiteShell() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ReservaCtaLabel />
+            <ReservaCtaLabel compactOnMobile />
           </a>
         </div>
       </nav>

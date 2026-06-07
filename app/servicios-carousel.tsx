@@ -80,15 +80,16 @@ const getMobileMqSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
 /** SSR / hidratación: siempre escritorio hasta montar en cliente. */
 const getMobileMqServerSnapshot = () => false;
 
-function wrapTranslate(x: number, maxT: number, cycle: number): number {
-  let v = x;
-  while (v > 0) v -= cycle;
-  while (v < maxT) v += cycle;
-  return v;
-}
-
 function isServiceId(value: string): value is ServiceId {
   return value in SERVICE_IMAGES;
+}
+
+function clampTranslate(x: number, maxT: number): number {
+  return Math.max(maxT, Math.min(0, x));
+}
+
+function trackLabelsFor(mobile: boolean): readonly string[] {
+  return mobile ? ORDER_MOBILE : ORDER_DESKTOP;
 }
 
 export function ServiciosCarousel() {
@@ -99,7 +100,6 @@ export function ServiciosCarousel() {
   const currentRef = useRef(0);
   const maxTRef = useRef(0);
   const centerTRef = useRef(0);
-  const cyclePxRef = useRef(0);
   const isMobileRef = useRef(false);
   const rafRef = useRef<number>(0);
   const reducedMotionRef = useRef(false);
@@ -185,14 +185,12 @@ export function ServiciosCarousel() {
     const tw = cw * cells.length;
     const maxT = Math.min(0, vw - tw);
     maxTRef.current = maxT;
-    cyclePxRef.current = cw * N;
 
     const order = mobile ? ORDER_MOBILE : ORDER_DESKTOP;
     const gi = order.indexOf("Grooming");
     let centerX: number;
     if (mobile) {
-      const groomIdx = N + gi;
-      centerX = vw / 2 - (groomIdx * cw + cw / 2);
+      centerX = vw / 2 - (gi * cw + cw / 2);
     } else {
       /** Centrar el bloque de 5: se ven 4 celdas de ancho (½ + 3 + ½) */
       const trackCenterPx = (N * cw) / 2;
@@ -211,10 +209,7 @@ export function ServiciosCarousel() {
     currentRef.current = centerX;
     targetRef.current = centerX;
     applyTransform(centerX);
-    const labels = mobile
-      ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
-      : [...ORDER_DESKTOP];
-    syncHighlightFromTranslate(centerX, cw, labels);
+    syncHighlightFromTranslate(centerX, cw, trackLabelsFor(mobile));
     return true;
   }, [applyTransform, syncHighlightFromTranslate]);
 
@@ -335,15 +330,10 @@ export function ServiciosCarousel() {
         let next = cur + (tgt - cur) * 0.038;
         next = Math.abs(tgt - next) < 0.12 ? tgt : next;
 
-        if (isMobileRef.current && cyclePxRef.current > 0) {
+        if (isMobileRef.current) {
           const maxT = maxTRef.current;
-          const cyc = cyclePxRef.current;
-          const wrapped = wrapTranslate(next, maxT, cyc);
-          if (wrapped !== next) {
-            const d = wrapped - next;
-            targetRef.current += d;
-          }
-          next = wrapped;
+          targetRef.current = clampTranslate(targetRef.current, maxT);
+          next = clampTranslate(next, maxT);
         }
 
         currentRef.current = next;
@@ -361,10 +351,11 @@ export function ServiciosCarousel() {
             );
             const cw = cells[0]?.offsetWidth ?? 0;
             if (cw >= 8) {
-              const labels = isMobileRef.current
-                ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
-                : [...ORDER_DESKTOP];
-              syncHighlightFromTranslate(currentRef.current, cw, labels);
+              syncHighlightFromTranslate(
+                currentRef.current,
+                cw,
+                trackLabelsFor(isMobileRef.current),
+              );
             }
           }
         }
@@ -432,9 +423,7 @@ export function ServiciosCarousel() {
       vp.setPointerCapture(e.pointerId);
     }
     const maxT = maxTRef.current;
-    let next = d.startTarget + dx;
-    next = Math.max(maxT, Math.min(0, next));
-    targetRef.current = next;
+    targetRef.current = clampTranslate(d.startTarget + dx, maxT);
   };
 
   const onViewportPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -445,9 +434,7 @@ export function ServiciosCarousel() {
     endMobileDrag(e);
   };
 
-  const trackLabels = isMobile
-    ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
-    : [...ORDER_DESKTOP];
+  const trackLabels = trackLabelsFor(isMobile);
 
   return (
     <div
@@ -471,7 +458,7 @@ export function ServiciosCarousel() {
               alt=""
               fill
               className="servicios-carousel__photo-img"
-              sizes="(max-width: 900px) min(92vw, 572px), min(960px, 96vw)"
+              sizes="(max-width: 900px) min(98vw, 640px), min(1180px, 98vw)"
               quality={75}
               priority={label === "Grooming"}
             />
@@ -489,9 +476,9 @@ export function ServiciosCarousel() {
         onPointerLeave={endMobileDrag}
       >
         <div ref={trackRef} className="servicios-carousel__track">
-          {trackLabels.map((label, idx) => (
+          {trackLabels.map((label) => (
             <div
-              key={isMobile ? `m-${idx}-${label}` : `d-${label}`}
+              key={isMobile ? `m-${label}` : `d-${label}`}
               className="servicios-carousel__cell"
             >
               <Link
@@ -513,13 +500,10 @@ export function ServiciosCarousel() {
                   );
                   const cw = cells[0]?.offsetWidth ?? 0;
                   if (cw < 8) return;
-                  const labels = isMobileRef.current
-                    ? [...ORDER_MOBILE, ...ORDER_MOBILE, ...ORDER_MOBILE]
-                    : [...ORDER_DESKTOP];
                   syncHighlightFromTranslate(
                     currentRef.current,
                     cw,
-                    labels,
+                    trackLabelsFor(isMobileRef.current),
                   );
                 }}
                 onFocus={() => {

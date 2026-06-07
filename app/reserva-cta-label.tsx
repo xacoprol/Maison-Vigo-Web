@@ -18,7 +18,7 @@ export function ReservaCtaLabel({
         <WaveText text="Reserva una cita" screenReaderDuplicate={false} />
       </span>
       <span className="cta-reserva-label__short" aria-hidden={true}>
-        <WaveText text="Reserva" screenReaderDuplicate={false} />
+        <WaveText text="Reserva cita" screenReaderDuplicate={false} />
       </span>
       <span className="mob-wave-sr">Reserva una cita</span>
     </span>

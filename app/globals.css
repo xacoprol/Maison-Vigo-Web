@@ -1176,6 +1176,7 @@ body.intro-complete #hero .hero-video-overlay {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  color: var(--gold-lt);
   clip-path: ellipse(52% 0% at 50% 138%);
   transform: scale(0.8);
   will-change: clip-path, transform;
@@ -1423,7 +1424,15 @@ section {
    * (Mezclar `overflow-x: hidden` + `overflow-y: visible` hace que `y` pase a `auto` y aparece scroll.)
    */
   overflow: hidden;
-  background: #050505;
+  background-color: #050505;
+  background-image: linear-gradient(
+    to bottom,
+    #050505 0%,
+    #050505 clamp(32px, 8vw, 72px),
+    rgba(5, 5, 5, 0.94) clamp(96px, 18vw, 160px),
+    rgba(5, 5, 5, 0.62) clamp(168px, 28vw, 260px),
+    transparent clamp(240px, 38vw, 360px)
+  );
   padding: 72px 36px clamp(100px, 14vw, 200px);
   transform: scale(calc(1 + var(--concepto-exit-darken, 0) * 0.1));
   transform-origin: 50% 52%;
@@ -1540,8 +1549,40 @@ section {
   z-index: 1;
   background: transparent;
   top: clamp(8px, 4vw, 56px);
-  transform: translateX(-50%)
-    translateY(calc(-30vh + var(--concepto-bg-parallax-progress) * 18vh));
+  transform: translateX(-50%) translateY(-30vh);
+  overflow: hidden;
+}
+
+.concepto-image-shell--bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    #050505 0%,
+    #050505 12%,
+    rgba(5, 5, 5, 0.9) 28%,
+    rgba(5, 5, 5, 0.52) 46%,
+    transparent 62%
+  );
+}
+
+.concepto-image-shell--bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    #050505 0%,
+    #050505 10%,
+    rgba(5, 5, 5, 0.9) 24%,
+    rgba(5, 5, 5, 0.48) 42%,
+    transparent 58%
+  );
 }
 .concepto-image-shell--top {
   z-index: 4;
@@ -1557,8 +1598,7 @@ section {
 }
 .concepto-image-main--bg {
   z-index: 0;
-  transform: scale(1.08)
-    translateY(calc(var(--concepto-parallax-progress) * -16vh));
+  transform: scale(1.08);
 }
 .concepto-image-main--top {
   z-index: 1;
@@ -1576,6 +1616,8 @@ section {
   line-height: 1.8;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-align: left;
+  text-indent: clamp(56px, 9vw, 128px);
   color: rgba(244, 244, 242, 0.88);
   transform: translateX(-50%)
     translateY(calc(var(--concepto-parallax-progress) * -6vh));
@@ -1583,6 +1625,7 @@ section {
   z-index: 5;
 }
 .concepto-quote {
+  --concepto-quote-indent: clamp(56px, 9vw, 128px);
   position: absolute;
   right: clamp(-78px, -3vw, -24px);
   bottom: clamp(172px, 15.6vw, 218px);
@@ -1594,6 +1637,7 @@ section {
 }
 .concepto-quote-mark {
   display: block;
+  margin-left: var(--concepto-quote-indent);
   margin-bottom: 52px;
   width: 35px;
   height: 30px;
@@ -1611,10 +1655,13 @@ img.concepto-quote-mark {
   line-height: 1.35;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-align: left;
+  text-indent: var(--concepto-quote-indent);
   color: rgba(244, 244, 242, 0.93);
 }
 .concepto-quote footer {
-  margin-top: 14px;
+  margin-top: clamp(20px, 3vw, 28px);
+  margin-left: var(--concepto-quote-indent);
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -1636,7 +1683,7 @@ img.concepto-quote-mark {
   text-align: center;
   font-size: 14px;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-transform: none;
   color: rgba(244, 244, 242, 0.9);
   text-decoration: none;
   transform: translateX(-50%)
@@ -1675,12 +1722,16 @@ img.concepto-quote-mark {
  * Portátil (901px–1600px). Por encima, estilos base de escritorio ancho.
  */
 @media (min-width: 901px) and (max-width: 1600px) {
+  .concepto-intro-copy {
+    top: clamp(320px, 38vw, 500px);
+  }
+
   .concepto-quote {
     bottom: clamp(248px, 21.5vw, 328px);
   }
 
   .servicios-heading__title {
-    font-size: clamp(56px, 8.4vw, 148px);
+    font-size: clamp(54px, 8vw, 144px);
   }
 
   .servicios-carousel__label {
@@ -1721,8 +1772,8 @@ img.concepto-quote-mark {
   background: var(--servicios-bg);
   color: var(--cream);
   padding-top: clamp(20px, 3vw, 44px);
-  padding-bottom: clamp(40px, 6vw, 80px);
-  overflow-x: clip;
+  padding-bottom: clamp(12px, 2.5vw, 32px);
+  overflow: clip;
 }
 .servicios-parallax-layer {
   margin-left: calc(-1 * var(--servicios-bleed-x));
@@ -1768,7 +1819,7 @@ img.concepto-quote-mark {
   margin-right: 0;
   width: 100%;
   text-align: center;
-  padding: calc(clamp(64px, 11vw, 140px) + 100px) clamp(24px, 5vw, 64px)
+  padding: calc(clamp(48px, 9vw, 110px) + 72px) clamp(24px, 5vw, 64px)
     calc(clamp(16px, 2.5vw, 28px) + 100px);
   /* Deja pasar hover/scroll del carrusel bajo el título (capa z-index superior). */
   pointer-events: none;
@@ -1778,8 +1829,8 @@ img.concepto-quote-mark {
   margin: 0;
   font-family: var(--ff-serif);
   font-weight: 400;
-  /** Un poco por debajo de `.espacio__title` */
-  font-size: clamp(64px, 10vw, 172px);
+  /** Igual que `.espacio__title` */
+  font-size: clamp(62px, 9.5vw, 168px);
   line-height: 0.86;
   letter-spacing: -0.065em;
   text-transform: uppercase;
@@ -1806,8 +1857,8 @@ img.concepto-quote-mark {
 }
 .servicios-carousel-wrap {
   position: relative;
-  margin-top: clamp(-96px, -16vw, -52px);
-  margin-bottom: clamp(12px, 2vw, 28px);
+  margin-top: clamp(-112px, -18vw, -64px);
+  margin-bottom: clamp(4px, 1vw, 12px);
 }
 .servicios-carousel {
   position: relative;
@@ -1819,9 +1870,9 @@ img.concepto-quote-mark {
   margin-right: calc(-1 * var(--servicios-bleed-x));
   width: calc(100% + 2 * var(--servicios-bleed-x));
   cursor: default;
-  overflow: visible;
-  padding: clamp(28px, 5vw, 72px) 0;
-  min-height: clamp(420px, 56vw, 720px);
+  overflow: hidden;
+  padding: clamp(12px, 2.5vw, 36px) 0 clamp(12px, 2.5vw, 36px);
+  min-height: clamp(380px, 52vw, 680px);
   -webkit-user-select: none;
   user-select: none;
 }
@@ -1837,11 +1888,11 @@ img.concepto-quote-mark {
   width: 100%;
   box-sizing: border-box;
   /* Separación respecto al titular «Servicios» */
-  padding-top: clamp(48px, 9vw, 112px);
+  padding-top: clamp(24px, 4.5vw, 56px);
   /* Evita que el aro y los bordes se corten en los círculos laterales (p. ej. Bienestar) */
   padding-inline: clamp(14px, 3vw, 36px);
   /* Hueco bajo el track para subtítulo al hover (compacto para no alargar el bloque negro) */
-  padding-bottom: clamp(24px, 5vh, 72px);
+  padding-bottom: clamp(12px, 2.5vh, 36px);
 }
 @media (max-width: 900px) {
   .servicios-carousel__viewport {
@@ -1853,9 +1904,9 @@ img.concepto-quote-mark {
   left: 50%;
   top: 50%;
   z-index: 0;
-  width: min(1040px, 96%);
+  width: min(1180px, 98%);
   aspect-ratio: 3 / 4;
-  max-height: min(92vw, min(92vh, 920px));
+  max-height: 100%;
   transform: translate(-50%, -50%);
   margin: 0;
   border-radius: clamp(12px, 2vw, 20px);
@@ -2185,29 +2236,58 @@ img.concepto-quote-mark {
   filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.38));
 }
 .ritmo-cuidado__float-img--tijera {
-  width: 360px;
-  max-width: min(360px, 56vw);
+  width: 300px;
+  max-width: min(300px, 48vw);
   height: auto;
 }
 .ritmo-cuidado__float-img--deslanador {
-  width: 330px;
-  max-width: min(330px, 54vw);
+  width: 275px;
+  max-width: min(275px, 46vw);
   height: auto;
 }
 .ritmo-cuidado__float--tijera {
   top: clamp(-18px, -0.4vw, 6px);
-  right: clamp(72px, 12vw, 180px);
+  right: clamp(24px, 5vw, 96px);
 }
 .ritmo-cuidado__float--deslanador {
   bottom: clamp(-40px, -3vw, -4px);
-  left: clamp(72px, 13vw, 190px);
+  left: clamp(24px, 5.5vw, 96px);
+}
+@media (min-width: 901px) and (max-width: 1300px) {
+  .ritmo-cuidado__float-img--tijera {
+    width: 258px;
+    max-width: min(258px, 42vw);
+  }
+
+  .ritmo-cuidado__float-img--deslanador {
+    width: 238px;
+    max-width: min(238px, 40vw);
+  }
+
+  .ritmo-cuidado__float--tijera {
+    right: clamp(12px, 3.5vw, 56px);
+  }
+
+  .ritmo-cuidado__float--deslanador {
+    left: clamp(12px, 4vw, 56px);
+  }
 }
 @media (max-width: 900px) {
+  .ritmo-cuidado__float-img--tijera {
+    width: clamp(132px, 28vw, 184px);
+    max-width: min(184px, 42vw);
+  }
+
+  .ritmo-cuidado__float-img--deslanador {
+    width: clamp(120px, 25vw, 168px);
+    max-width: min(168px, 38vw);
+  }
+
   .ritmo-cuidado__float--tijera {
-    right: clamp(40px, 10vw, 96px);
+    right: clamp(8px, 4vw, 40px);
   }
   .ritmo-cuidado__float--deslanador {
-    left: clamp(32px, 9vw, 88px);
+    left: clamp(8px, 4.5vw, 36px);
   }
 }
 .ritmo-cuidado__item {
@@ -2596,6 +2676,9 @@ img.concepto-quote-mark {
     overflow: clip;
     overflow-clip-margin: 0;
   }
+  .ritmo-cuidado__eyebrow {
+    margin-bottom: clamp(36px, 8vw, 56px);
+  }
   .ritmo-cuidado__trigger-body {
     font-size: clamp(24px, 4.8vw, 44px);
   }
@@ -2606,7 +2689,8 @@ img.concepto-quote-mark {
     padding-bottom: clamp(18px, 4.5vw, 32px);
   }
   .ritmo-cuidado__desc {
-    font-size: clamp(14px, 3.35vw, 17px);
+    font-size: clamp(11px, 2.75vw, 14px);
+    line-height: 1.42;
     margin-top: clamp(20px, 5vw, 30px);
     margin-bottom: clamp(18px, 5vw, 28px);
     max-width: min(88ch, 96%);
@@ -2906,7 +2990,7 @@ a.contact-line:focus-visible .contact-text {
   #servicios {
     --servicios-bleed-x: 28px;
     padding-top: 20px;
-    padding-bottom: clamp(40px, 10vw, 80px);
+    padding-bottom: clamp(8px, 2vw, 20px);
   }
   .servicios-parallax-layer {
     margin-left: calc(-1 * var(--servicios-bleed-x));
@@ -2917,12 +3001,16 @@ a.contact-line:focus-visible .contact-text {
     margin-left: calc(-1 * var(--servicios-bleed-x));
     margin-right: calc(-1 * var(--servicios-bleed-x));
     width: calc(100% + 2 * var(--servicios-bleed-x));
-    padding: clamp(28px, 8vw, 56px) 0;
-    min-height: clamp(400px, 95vw, 640px);
+    padding: clamp(8px, 3vw, 24px) 0 clamp(8px, 3vw, 24px);
+    min-height: clamp(360px, 88vw, 600px);
+  }
+  .servicios-carousel__viewport {
+    padding-top: clamp(12px, 3.5vw, 28px);
+    padding-bottom: clamp(8px, 2vh, 20px);
   }
   .servicios-carousel__photo-panel {
-    width: min(96vw, 572px);
-    max-height: min(98vw, min(78vh, 700px));
+    width: min(98vw, 640px);
+    max-height: 100%;
   }
   .servicios-carousel__cell {
     width: 40vw;
@@ -2943,41 +3031,64 @@ a.contact-line:focus-visible .contact-text {
     margin-left: 0;
     margin-right: 0;
     width: 100%;
-    padding: calc(clamp(48px, 12vw, 96px) + 150px) clamp(20px, 5vw, 36px)
-      calc(clamp(4px, 2vw, 12px) + 150px);
+    padding: calc(clamp(24px, 6vw, 48px) + 80px) clamp(20px, 5vw, 36px)
+      calc(clamp(4px, 2vw, 12px) + 120px);
   }
   .servicios-heading__title {
-    font-size: clamp(48px, 15.5vw, 94px);
+    font-size: clamp(40px, 12.5vw, 78px);
     line-height: 0.86;
   }
   nav#navbar {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     column-gap: clamp(10px, 3vw, 16px);
-    padding: 24px var(--nav-pad-x);
+    padding: 32px var(--nav-pad-x) 24px;
+    overflow-x: clip;
+    overflow-y: visible;
   }
   nav#navbar.scrolled {
-    padding: 0 var(--nav-pad-x);
+    padding: 10px var(--nav-pad-x);
+  }
+  .nav-start {
+    grid-column: 1;
+    justify-self: start;
   }
   .nav-brand {
     grid-column: 2;
     justify-self: center;
     max-width: min(200px, 52vw);
     min-width: 0;
+    margin-top: 0;
   }
   .nav-brand-anim {
     --w2: min(128px, 48vw);
-    height: calc(76px * var(--w2) / 200px);
-    overflow: hidden;
+    height: calc(208px * var(--w2) / 520px);
+    overflow: visible;
   }
   .nav-end {
-    display: none;
+    display: flex;
+    grid-column: 3;
+    justify-self: end;
+    align-self: center;
+    gap: 0;
+    min-width: 0;
   }
   #hero {
     padding-top: 176px;
   }
-  .nav-links,
-  .nav-cta {
+  .nav-links {
     display: none;
+  }
+  .nav-cta {
+    display: inline-flex;
+    font-size: clamp(7px, 1.95vw, 9px);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .nav-cta .cta-reserva-label__full {
+    display: none;
+  }
+  .nav-cta .cta-reserva-label__short {
+    display: inline;
   }
   .hamburger {
     gap: 0;
@@ -3097,62 +3208,6 @@ a.contact-line:focus-visible .contact-text {
     width: 56px;
     height: 56px;
     font-size: 26px;
-  }
-  #concepto {
-    padding: 56px 20px clamp(72px, 18vw, 140px);
-  }
-  .concepto-showcase {
-    min-height: 1140px;
-    padding-bottom: clamp(40px, 12vw, 88px);
-  }
-  .concepto-heading {
-    top: 6px;
-  }
-  .concepto-title-display {
-    font-size: clamp(52px, 16vw, 116px);
-    letter-spacing: 0.04em;
-  }
-  .concepto-overline {
-    left: 88%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 9px;
-  }
-  .concepto-image-shell {
-    width: min(420px, 88vw);
-    top: 112px;
-  }
-  .concepto-intro-copy {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: 100%;
-    max-width: 420px;
-    margin: 620px auto 0;
-    text-align: left;
-    transform: translateY(calc(var(--concepto-parallax-progress) * -4.5vh));
-  }
-  .concepto-quote {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    width: 100%;
-    max-width: 420px;
-    margin: 34px auto 0;
-    transform: translateY(calc(-9vh + var(--concepto-parallax-progress) * 5.5vh));
-  }
-  .concepto-quote p {
-    font-size: clamp(18px, 6vw, 26px);
-  }
-  .concepto-circle-cta {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: 177px;
-    height: 177px;
-    margin: 40px auto 0;
-    font-size: 13px;
-    transform: translateY(calc(var(--concepto-parallax-progress) * -4.5vh));
   }
   .site-footer {
     --footer-pad-x: clamp(36px, 8vw, 52px);
@@ -3295,5 +3350,158 @@ a.contact-line:focus-visible .contact-text {
   .logo-intro-piece--three {
     width: min(202px, 56vw);
     transform: translate(-50%, calc(-50% + 74px));
+  }
+}
+
+/** Concepto — layout móvil/tablet (≤900px). Bloque al final para ganar en 900px. */
+@media (max-width: 900px) {
+  #concepto {
+    --concepto-quote-bottom: clamp(130px, 17vw, 180px);
+    --concepto-cta-bottom: clamp(40px, 6vw, 72px);
+    padding: 56px 20px clamp(36px, 6vw, 48px);
+  }
+
+  .concepto-showcase {
+    min-height: 800px;
+    padding-bottom: 0;
+  }
+
+  .concepto-heading {
+    top: 6px;
+  }
+
+  .concepto-title-display {
+    font-size: clamp(52px, 16vw, 116px);
+    letter-spacing: 0.04em;
+  }
+
+  .concepto-overline {
+    left: 84%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+  }
+
+  .concepto-image-shell {
+    width: min(420px, 88vw);
+    top: 112px;
+  }
+
+  .concepto-image-shell--bg {
+    width: min(580px, 100vw);
+  }
+
+  .concepto-image-shell--top {
+    width: min(580px, 100vw);
+    top: 16px;
+  }
+
+  .concepto-image-main--bg {
+    transform: scale(1.28);
+  }
+
+  .concepto-intro-copy {
+    position: absolute;
+    left: clamp(16px, 5vw, 28px);
+    top: clamp(320px, 38vw, 500px);
+    width: min(300px, 72vw);
+    max-width: none;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.65;
+    text-align: left;
+    text-indent: clamp(24px, 6vw, 40px);
+    transform: translateY(calc(var(--concepto-parallax-progress) * -6vh));
+  }
+
+  .concepto-quote {
+    --concepto-quote-indent: clamp(20px, 5vw, 32px);
+    position: absolute;
+    right: 0;
+    bottom: var(--concepto-quote-bottom);
+    left: auto;
+    top: auto;
+    width: min(260px, 58vw);
+    max-width: none;
+    margin: 0;
+    transform: translateY(calc(var(--concepto-parallax-progress) * 5.5vh));
+  }
+
+  .concepto-quote-mark {
+    margin-bottom: clamp(12px, 2.5vw, 18px);
+    width: 22px;
+    height: 19px;
+  }
+
+  .concepto-quote p {
+    font-size: clamp(12px, 3.5vw, 16px);
+    line-height: 1.34;
+  }
+
+  .concepto-quote footer {
+    font-size: 8px;
+    margin-top: clamp(16px, 3vw, 22px);
+  }
+
+  .concepto-circle-cta {
+    position: absolute;
+    left: calc(50% - min(580px, 100vw) / 2);
+    bottom: var(--concepto-cta-bottom);
+    width: 177px;
+    height: 177px;
+    margin: 0;
+    font-size: 13px;
+    transform: translateX(-50%)
+      translateY(calc(var(--concepto-parallax-progress) * -4.5vh));
+  }
+}
+
+/** Concepto — móvil estrecho (≤680px). */
+@media (max-width: 680px) {
+  .concepto-heading {
+    left: 50%;
+    top: clamp(-14px, -2.5vh, -6px);
+    width: 95vw;
+    max-width: 95vw;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transform: translateX(-50%)
+      translateY(calc(var(--concepto-parallax-progress) * -13vh));
+  }
+
+  .concepto-overline {
+    position: relative;
+    order: -1;
+    left: auto;
+    top: auto;
+    transform: none;
+    text-align: left;
+    font-size: clamp(8px, 2.2vw, 10px);
+    line-height: 1.45;
+    letter-spacing: 0.06em;
+    margin: clamp(-6px, -1.2vw, -2px) 0 clamp(18px, 4.5vw, 28px);
+  }
+
+  .concepto-overline span {
+    display: block;
+  }
+
+  .concepto-title-display {
+    text-align: left;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .concepto-image-shell--bg {
+    width: 100vw;
+    max-width: 100vw;
+    left: 50%;
+    transform: translateX(-50%) translateY(-30vh);
+  }
+
+  .concepto-circle-cta {
+    left: clamp(20px, 5.5vw, 32px);
+    transform: translateY(calc(var(--concepto-parallax-progress) * -4.5vh));
   }
 }

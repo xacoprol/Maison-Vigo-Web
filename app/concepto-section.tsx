@@ -8,7 +8,7 @@ type ConceptoSectionProps = {
 /** Bloque editorial `#concepto` de la home (Cuidado Perfeccionado). */
 export function ConceptoSection({
   ctaHref = "/#contacto",
-  ctaLabel = "Conócenos",
+  ctaLabel = "CONÓCENOS",
 }: ConceptoSectionProps) {
   return (
     <section id="concepto">
@@ -39,7 +39,6 @@ export function ConceptoSection({
         </div>
         <div
           className="concepto-image-shell concepto-image-shell--bg"
-          data-parallax="media"
         >
           <img
             src="https://grigoriak.doctor/assets/images/media/landing/1.intro/background@xs.webp?v=1776434913"
