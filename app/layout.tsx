@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 
@@ -22,6 +22,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = rootMetadata();
+
+/** Barra de estado / chrome del navegador en móvil (Safari, Chrome…). */
+export const viewport: Viewport = {
+  themeColor: "#050505",
+  colorScheme: "dark",
+};
 
 export default function RootLayout({
   children,

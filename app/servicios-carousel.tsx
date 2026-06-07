@@ -377,7 +377,8 @@ export function ServiciosCarousel() {
       if (!reducedMotionRef.current && sectionInViewRef.current) {
         const cur = currentRef.current;
         const tgt = targetRef.current;
-        let next = cur + (tgt - cur) * 0.038;
+        const ease = isMobileRef.current ? 0.11 : 0.038;
+        let next = cur + (tgt - cur) * ease;
         next = Math.abs(tgt - next) < 0.12 ? tgt : next;
 
         if (isMobileRef.current) {
@@ -429,11 +430,48 @@ export function ServiciosCarousel() {
 
   const DRAG_THRESHOLD_PX = 12;
 
+  const snapMobileToNearest = useCallback(() => {
+    if (!isMobileRef.current || reducedMotionRef.current) return;
+    const tr = trackRef.current;
+    const vp = viewportRef.current;
+    if (!tr || !vp) return;
+
+    const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+    const cw = cells[0]?.offsetWidth ?? 0;
+    if (cw < 8) return;
+
+    const cs = window.getComputedStyle(vp);
+    const padL = parseFloat(cs.paddingLeft) || 0;
+    const padR = parseFloat(cs.paddingRight) || 0;
+    const centerX = padL + (vp.clientWidth - padL - padR) / 2;
+    const maxT = maxTRef.current;
+    const labels = trackLabelsFor(true);
+
+    let bestIdx = 0;
+    let bestTranslate = clampTranslate(targetRef.current, maxT);
+    let bestDist = Infinity;
+
+    for (let i = 0; i < cells.length; i += 1) {
+      const snapTranslate = clampTranslate(centerX - (i * cw + cw / 2), maxT);
+      const dist = Math.abs(snapTranslate - targetRef.current);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i;
+        bestTranslate = snapTranslate;
+      }
+    }
+
+    targetRef.current = bestTranslate;
+    const label = labels[bestIdx];
+    if (label && isServiceId(label)) setHighlight(label);
+  }, [setHighlight]);
+
   const endMobileDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       const d = mobileDragRef.current;
-      if (d.pointerId !== e.pointerId) return;
-      if (d.active && viewportRef.current) {
+      if (d.pointerId !== null && d.pointerId !== e.pointerId) return;
+      const wasActive = d.active;
+      if (wasActive && viewportRef.current) {
         try {
           viewportRef.current.releasePointerCapture(e.pointerId);
         } catch {
@@ -446,8 +484,9 @@ export function ServiciosCarousel() {
         startTarget: 0,
         active: false,
       };
+      if (wasActive) snapMobileToNearest();
     },
-    [],
+    [snapMobileToNearest],
   );
 
   const onViewportPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
