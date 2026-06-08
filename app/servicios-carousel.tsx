@@ -89,6 +89,38 @@ function clampTranslate(x: number, maxT: number): number {
   return Math.max(maxT, Math.min(0, x));
 }
 
+/** Centro del área de contenido del viewport (coords. del track). */
+function viewportContentCenterX(vp: HTMLElement): number {
+  const cs = window.getComputedStyle(vp);
+  const padL = parseFloat(cs.paddingLeft) || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  return (vp.clientWidth - padL - padR) / 2;
+}
+
+function snapTranslateToNearest(
+  translate: number,
+  cellW: number,
+  cellCount: number,
+  maxT: number,
+  centerX: number,
+): { translate: number; index: number } {
+  let bestIdx = 0;
+  let bestTranslate = clampTranslate(translate, maxT);
+  let bestDist = Infinity;
+
+  for (let i = 0; i < cellCount; i += 1) {
+    const snapTranslate = clampTranslate(centerX - (i * cellW + cellW / 2), maxT);
+    const dist = Math.abs(snapTranslate - translate);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+      bestTranslate = snapTranslate;
+    }
+  }
+
+  return { translate: bestTranslate, index: bestIdx };
+}
+
 function trackLabelsFor(mobile: boolean): readonly ServiceId[] {
   return mobile ? ORDER_MOBILE : ORDER_DESKTOP;
 }
@@ -157,6 +189,8 @@ export function ServiciosCarousel() {
     startTarget: number;
     active: boolean;
   }>({ pointerId: null, startX: 0, startTarget: 0, active: false });
+  const hasInitializedRef = useRef(false);
+  const lastMobileLayoutRef = useRef<boolean | null>(null);
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
   const highlightedIdRef = useRef<ServiceId>("Grooming");
   const hoverIdRef = useRef<ServiceId | null>(null);
@@ -183,11 +217,7 @@ export function ServiciosCarousel() {
       const vp = viewportRef.current;
       if (!vp || cellW < 8 || labels.length === 0) return;
 
-      const cs = window.getComputedStyle(vp);
-      const padL = parseFloat(cs.paddingLeft) || 0;
-      const padR = parseFloat(cs.paddingRight) || 0;
-      const centerX = padL + (vp.clientWidth - padL - padR) / 2;
-
+      const centerX = viewportContentCenterX(vp);
       let bestIdx = 0;
       let bestDist = Infinity;
       for (let i = 0; i < labels.length; i++) {
@@ -250,16 +280,33 @@ export function ServiciosCarousel() {
 
     centerTRef.current = centerX;
 
-    if (reducedMotionRef.current) {
-      currentRef.current = centerX;
-      targetRef.current = centerX;
-      applyTransform(centerX);
-      return true;
+    const layoutChanged = lastMobileLayoutRef.current !== mobile;
+    const shouldReset =
+      !hasInitializedRef.current || layoutChanged || reducedMotionRef.current;
+    const prevTarget = targetRef.current;
+
+    let nextTranslate = centerX;
+    if (!shouldReset) {
+      nextTranslate = clampTranslate(prevTarget, maxT);
+      if (mobile && !mobileDragRef.current.active) {
+        const contentCenter = viewportContentCenterX(vp);
+        nextTranslate = snapTranslateToNearest(
+          nextTranslate,
+          cw,
+          cells.length,
+          maxT,
+          contentCenter,
+        ).translate;
+      }
     }
-    currentRef.current = centerX;
-    targetRef.current = centerX;
-    applyTransform(centerX);
-    syncHighlightFromTranslate(centerX, cw, trackLabelsFor(mobile));
+
+    currentRef.current = nextTranslate;
+    targetRef.current = nextTranslate;
+    applyTransform(nextTranslate);
+    syncHighlightFromTranslate(nextTranslate, cw, trackLabelsFor(mobile));
+
+    hasInitializedRef.current = true;
+    lastMobileLayoutRef.current = mobile;
     return true;
   }, [applyTransform, syncHighlightFromTranslate]);
 
@@ -281,6 +328,9 @@ export function ServiciosCarousel() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     isMobileRef.current = isMobile;
+    if (lastMobileLayoutRef.current !== isMobile) {
+      hasInitializedRef.current = false;
+    }
     measureWithRetry();
   }, [isMobile, measureWithRetry]);
 
@@ -375,19 +425,28 @@ export function ServiciosCarousel() {
 
     const loop = () => {
       if (!reducedMotionRef.current && sectionInViewRef.current) {
+        const dragging = mobileDragRef.current.active;
         const cur = currentRef.current;
         const tgt = targetRef.current;
-        const ease = isMobileRef.current ? 0.11 : 0.038;
-        let next = cur + (tgt - cur) * ease;
-        next = Math.abs(tgt - next) < 0.12 ? tgt : next;
 
-        if (isMobileRef.current) {
-          const maxT = maxTRef.current;
-          targetRef.current = clampTranslate(targetRef.current, maxT);
-          next = clampTranslate(next, maxT);
+        let next: number;
+        if (dragging) {
+          next = clampTranslate(tgt, maxTRef.current);
+          currentRef.current = next;
+        } else {
+          const ease = isMobileRef.current ? 0.16 : 0.038;
+          next = cur + (tgt - cur) * ease;
+          next = Math.abs(tgt - next) < 0.12 ? tgt : next;
+
+          if (isMobileRef.current) {
+            const maxT = maxTRef.current;
+            targetRef.current = clampTranslate(targetRef.current, maxT);
+            next = clampTranslate(next, maxT);
+          }
+
+          currentRef.current = next;
         }
 
-        currentRef.current = next;
         applyTransform(currentRef.current);
 
         const vp = viewportRef.current;
@@ -415,15 +474,8 @@ export function ServiciosCarousel() {
     };
     rafRef.current = requestAnimationFrame(loop);
 
-    const onMvScroll = () => {
-      if (!sectionInViewRef.current) return;
-      measureWithRetry();
-    };
-    window.addEventListener("mv-scroll", onMvScroll);
-
     return () => {
       observer?.disconnect();
-      window.removeEventListener("mv-scroll", onMvScroll);
       cancelAnimationFrame(rafRef.current);
     };
   }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
@@ -440,29 +492,19 @@ export function ServiciosCarousel() {
     const cw = cells[0]?.offsetWidth ?? 0;
     if (cw < 8) return;
 
-    const cs = window.getComputedStyle(vp);
-    const padL = parseFloat(cs.paddingLeft) || 0;
-    const padR = parseFloat(cs.paddingRight) || 0;
-    const centerX = padL + (vp.clientWidth - padL - padR) / 2;
+    const centerX = viewportContentCenterX(vp);
     const maxT = maxTRef.current;
     const labels = trackLabelsFor(true);
+    const { translate, index } = snapTranslateToNearest(
+      targetRef.current,
+      cw,
+      cells.length,
+      maxT,
+      centerX,
+    );
 
-    let bestIdx = 0;
-    let bestTranslate = clampTranslate(targetRef.current, maxT);
-    let bestDist = Infinity;
-
-    for (let i = 0; i < cells.length; i += 1) {
-      const snapTranslate = clampTranslate(centerX - (i * cw + cw / 2), maxT);
-      const dist = Math.abs(snapTranslate - targetRef.current);
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestIdx = i;
-        bestTranslate = snapTranslate;
-      }
-    }
-
-    targetRef.current = bestTranslate;
-    const label = labels[bestIdx];
+    targetRef.current = translate;
+    const label = labels[index];
     if (label && isServiceId(label)) setHighlight(label);
   }, [setHighlight]);
 
@@ -512,7 +554,10 @@ export function ServiciosCarousel() {
       vp.setPointerCapture(e.pointerId);
     }
     const maxT = maxTRef.current;
-    targetRef.current = clampTranslate(d.startTarget + dx, maxT);
+    const next = clampTranslate(d.startTarget + dx, maxT);
+    targetRef.current = next;
+    currentRef.current = next;
+    applyTransform(next);
   };
 
   const onViewportPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {

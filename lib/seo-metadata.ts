@@ -64,9 +64,9 @@ export function rootMetadata(): Metadata {
       title: siteConfig.defaultTitle,
       description: siteConfig.defaultDescription,
     },
-    themeColor: "#050505",
     appleWebApp: {
-      statusBarStyle: "black-translucent",
+      capable: true,
+      statusBarStyle: "black",
     },
   };
 }

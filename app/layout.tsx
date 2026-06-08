@@ -25,8 +25,12 @@ export const metadata: Metadata = rootMetadata();
 
 /** Barra de estado / chrome del navegador en móvil (Safari, Chrome…). */
 export const viewport: Viewport = {
-  themeColor: "#050505",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#050505" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
   colorScheme: "dark",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
