@@ -264,6 +264,14 @@ export function ServiciosCarousel() {
     const cw = cellW;
     if (cw < 8 || vw < 8) return false;
 
+    if (mobile) {
+      const padT = parseFloat(cs.paddingTop) || 0;
+      const padB = parseFloat(cs.paddingBottom) || 0;
+      vp.style.minHeight = `${cw + padT + padB}px`;
+    } else {
+      vp.style.minHeight = "";
+    }
+
     const tw = cw * cells.length;
     const maxT = Math.min(0, vw - tw);
     maxTRef.current = maxT;
@@ -436,9 +444,9 @@ export function ServiciosCarousel() {
           next = clampTranslate(tgt, maxTRef.current);
           currentRef.current = next;
         } else {
-          const ease = isMobileRef.current ? 0.16 : 0.038;
+          const ease = isMobileRef.current ? 0.32 : 0.038;
           next = cur + (tgt - cur) * ease;
-          next = Math.abs(tgt - next) < 0.12 ? tgt : next;
+          next = Math.abs(tgt - next) < 0.35 ? tgt : next;
 
           if (isMobileRef.current) {
             const maxT = maxTRef.current;
@@ -482,7 +490,11 @@ export function ServiciosCarousel() {
     };
   }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
 
-  const DRAG_THRESHOLD_PX = 8;
+  const DRAG_THRESHOLD_PX = 4;
+
+  const setDraggingUi = useCallback((active: boolean) => {
+    rootRef.current?.classList.toggle("is-dragging", active);
+  }, []);
 
   const snapMobileToNearest = useCallback(() => {
     if (!isMobileRef.current || reducedMotionRef.current) return;
@@ -517,22 +529,43 @@ export function ServiciosCarousel() {
       targetRef.current = next;
       currentRef.current = next;
       applyTransform(next);
+
+      const tr = trackRef.current;
+      const vp = viewportRef.current;
+      if (!tr || !vp) return;
+      const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+      const cw = cells[0]?.offsetWidth ?? 0;
+      if (cw >= 8) {
+        syncHighlightFromTranslate(next, cw, trackLabelsFor(true));
+      }
     },
-    [applyTransform],
+    [applyTransform, syncHighlightFromTranslate],
   );
 
-  const finishMobileDrag = useCallback(() => {
-    if (mobileDragRef.current.active) snapMobileToNearest();
-    mobileDragRef.current = {
-      pointerId: null,
-      startX: 0,
-      startTarget: 0,
-      active: false,
-    };
-    window.setTimeout(() => {
-      mobileDragMovedRef.current = false;
-    }, 0);
-  }, [snapMobileToNearest]);
+  const finishMobileDrag = useCallback(
+    (velocityX = 0) => {
+      if (mobileDragRef.current.active) {
+        if (Math.abs(velocityX) > 0.12) {
+          targetRef.current = clampTranslate(
+            targetRef.current + velocityX * 260,
+            maxTRef.current,
+          );
+        }
+        snapMobileToNearest();
+      }
+      setDraggingUi(false);
+      mobileDragRef.current = {
+        pointerId: null,
+        startX: 0,
+        startTarget: 0,
+        active: false,
+      };
+      window.setTimeout(() => {
+        mobileDragMovedRef.current = false;
+      }, 0);
+    },
+    [setDraggingUi, snapMobileToNearest],
+  );
 
   /** Touch nativo con bloqueo de eje (iOS/Android); más fiable que solo pointer en enlaces. */
   useEffect(() => {
@@ -545,6 +578,9 @@ export function ServiciosCarousel() {
       startY: 0,
       startTarget: 0,
       axis: null as "x" | "y" | null,
+      lastX: 0,
+      lastTime: 0,
+      velocityX: 0,
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -556,7 +592,11 @@ export function ServiciosCarousel() {
       touch.startY = t.clientY;
       touch.startTarget = targetRef.current;
       touch.axis = null;
+      touch.lastX = t.clientX;
+      touch.lastTime = performance.now();
+      touch.velocityX = 0;
       mobileDragMovedRef.current = false;
+      setDraggingUi(false);
       mobileDragRef.current = {
         pointerId: null,
         startX: t.clientX,
@@ -572,12 +612,21 @@ export function ServiciosCarousel() {
 
       const dx = t.clientX - touch.startX;
       const dy = t.clientY - touch.startY;
+      const now = performance.now();
+      const dt = now - touch.lastTime;
+      if (dt > 0 && dt < 80) {
+        const instantV = (t.clientX - touch.lastX) / dt;
+        touch.velocityX = touch.velocityX * 0.55 + instantV * 0.45;
+      }
+      touch.lastX = t.clientX;
+      touch.lastTime = now;
 
       if (!touch.axis) {
         if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) {
           return;
         }
-        touch.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+        touch.axis =
+          Math.abs(dx) >= Math.abs(dy) * 0.72 ? "x" : "y";
       }
 
       if (touch.axis === "y") return;
@@ -585,6 +634,7 @@ export function ServiciosCarousel() {
       e.preventDefault();
       mobileDragRef.current.active = true;
       mobileDragMovedRef.current = true;
+      setDraggingUi(true);
       applyMobileDrag(dx, touch.startTarget);
     };
 
@@ -594,9 +644,11 @@ export function ServiciosCarousel() {
         (t) => t.identifier === touch.id,
       );
       if (!ended) return;
+      const velocityX = touch.velocityX;
       touch.id = -1;
       touch.axis = null;
-      finishMobileDrag();
+      touch.velocityX = 0;
+      finishMobileDrag(velocityX);
     };
 
     vp.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -609,8 +661,9 @@ export function ServiciosCarousel() {
       vp.removeEventListener("touchmove", onTouchMove);
       vp.removeEventListener("touchend", onTouchEnd);
       vp.removeEventListener("touchcancel", onTouchEnd);
+      setDraggingUi(false);
     };
-  }, [applyMobileDrag, finishMobileDrag]);
+  }, [applyMobileDrag, finishMobileDrag, setDraggingUi]);
 
   const endMobilePointerDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -626,15 +679,17 @@ export function ServiciosCarousel() {
         }
       }
       if (wasActive) mobileDragMovedRef.current = true;
+      setDraggingUi(false);
       finishMobileDrag();
     },
-    [finishMobileDrag],
+    [finishMobileDrag, setDraggingUi],
   );
 
   const onViewportPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType === "touch") return;
     if (!isMobileRef.current || reducedMotionRef.current) return;
     mobileDragMovedRef.current = false;
+    setDraggingUi(false);
     mobileDragRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -655,6 +710,7 @@ export function ServiciosCarousel() {
       if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
       d.active = true;
       mobileDragMovedRef.current = true;
+      setDraggingUi(true);
       vp.setPointerCapture(e.pointerId);
     }
     applyMobileDrag(dx, d.startTarget);
