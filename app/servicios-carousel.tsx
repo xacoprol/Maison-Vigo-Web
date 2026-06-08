@@ -189,6 +189,8 @@ export function ServiciosCarousel() {
     startTarget: number;
     active: boolean;
   }>({ pointerId: null, startX: 0, startTarget: 0, active: false });
+  /** Evita navegar al soltar un arrastre horizontal sobre un orbe. */
+  const mobileDragMovedRef = useRef(false);
   const hasInitializedRef = useRef(false);
   const lastMobileLayoutRef = useRef<boolean | null>(null);
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
@@ -480,7 +482,7 @@ export function ServiciosCarousel() {
     };
   }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
 
-  const DRAG_THRESHOLD_PX = 12;
+  const DRAG_THRESHOLD_PX = 8;
 
   const snapMobileToNearest = useCallback(() => {
     if (!isMobileRef.current || reducedMotionRef.current) return;
@@ -508,8 +510,111 @@ export function ServiciosCarousel() {
     if (label && isServiceId(label)) setHighlight(label);
   }, [setHighlight]);
 
-  const endMobileDrag = useCallback(
+  const applyMobileDrag = useCallback(
+    (dx: number, startTarget: number) => {
+      const maxT = maxTRef.current;
+      const next = clampTranslate(startTarget + dx, maxT);
+      targetRef.current = next;
+      currentRef.current = next;
+      applyTransform(next);
+    },
+    [applyTransform],
+  );
+
+  const finishMobileDrag = useCallback(() => {
+    if (mobileDragRef.current.active) snapMobileToNearest();
+    mobileDragRef.current = {
+      pointerId: null,
+      startX: 0,
+      startTarget: 0,
+      active: false,
+    };
+    window.setTimeout(() => {
+      mobileDragMovedRef.current = false;
+    }, 0);
+  }, [snapMobileToNearest]);
+
+  /** Touch nativo con bloqueo de eje (iOS/Android); más fiable que solo pointer en enlaces. */
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+
+    const touch = {
+      id: -1,
+      startX: 0,
+      startY: 0,
+      startTarget: 0,
+      axis: null as "x" | "y" | null,
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isMobileRef.current || reducedMotionRef.current) return;
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touch.id = t.identifier;
+      touch.startX = t.clientX;
+      touch.startY = t.clientY;
+      touch.startTarget = targetRef.current;
+      touch.axis = null;
+      mobileDragMovedRef.current = false;
+      mobileDragRef.current = {
+        pointerId: null,
+        startX: t.clientX,
+        startTarget: targetRef.current,
+        active: false,
+      };
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isMobileRef.current || touch.id < 0) return;
+      const t = Array.from(e.touches).find((x) => x.identifier === touch.id);
+      if (!t) return;
+
+      const dx = t.clientX - touch.startX;
+      const dy = t.clientY - touch.startY;
+
+      if (!touch.axis) {
+        if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) {
+          return;
+        }
+        touch.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      }
+
+      if (touch.axis === "y") return;
+
+      e.preventDefault();
+      mobileDragRef.current.active = true;
+      mobileDragMovedRef.current = true;
+      applyMobileDrag(dx, touch.startTarget);
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touch.id < 0) return;
+      const ended = Array.from(e.changedTouches).some(
+        (t) => t.identifier === touch.id,
+      );
+      if (!ended) return;
+      touch.id = -1;
+      touch.axis = null;
+      finishMobileDrag();
+    };
+
+    vp.addEventListener("touchstart", onTouchStart, { passive: true });
+    vp.addEventListener("touchmove", onTouchMove, { passive: false });
+    vp.addEventListener("touchend", onTouchEnd, { passive: true });
+    vp.addEventListener("touchcancel", onTouchEnd, { passive: true });
+
+    return () => {
+      vp.removeEventListener("touchstart", onTouchStart);
+      vp.removeEventListener("touchmove", onTouchMove);
+      vp.removeEventListener("touchend", onTouchEnd);
+      vp.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [applyMobileDrag, finishMobileDrag]);
+
+  const endMobilePointerDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === "touch") return;
       const d = mobileDragRef.current;
       if (d.pointerId !== null && d.pointerId !== e.pointerId) return;
       const wasActive = d.active;
@@ -520,19 +625,16 @@ export function ServiciosCarousel() {
           /* ya liberado */
         }
       }
-      mobileDragRef.current = {
-        pointerId: null,
-        startX: 0,
-        startTarget: 0,
-        active: false,
-      };
-      if (wasActive) snapMobileToNearest();
+      if (wasActive) mobileDragMovedRef.current = true;
+      finishMobileDrag();
     },
-    [snapMobileToNearest],
+    [finishMobileDrag],
   );
 
   const onViewportPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
     if (!isMobileRef.current || reducedMotionRef.current) return;
+    mobileDragMovedRef.current = false;
     mobileDragRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -542,6 +644,7 @@ export function ServiciosCarousel() {
   };
 
   const onViewportPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
     if (!isMobileRef.current || reducedMotionRef.current) return;
     const d = mobileDragRef.current;
     if (d.pointerId !== e.pointerId) return;
@@ -551,21 +654,18 @@ export function ServiciosCarousel() {
     if (!d.active) {
       if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
       d.active = true;
+      mobileDragMovedRef.current = true;
       vp.setPointerCapture(e.pointerId);
     }
-    const maxT = maxTRef.current;
-    const next = clampTranslate(d.startTarget + dx, maxT);
-    targetRef.current = next;
-    currentRef.current = next;
-    applyTransform(next);
+    applyMobileDrag(dx, d.startTarget);
   };
 
   const onViewportPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    endMobileDrag(e);
+    endMobilePointerDrag(e);
   };
 
   const onViewportPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
-    endMobileDrag(e);
+    endMobilePointerDrag(e);
   };
 
   const trackLabels = trackLabelsFor(isMobile);
@@ -607,7 +707,6 @@ export function ServiciosCarousel() {
         onPointerMove={onViewportPointerMove}
         onPointerUp={onViewportPointerUp}
         onPointerCancel={onViewportPointerCancel}
-        onPointerLeave={endMobileDrag}
       >
         <div ref={trackRef} className="servicios-carousel__track">
           {trackLabels.map((label) => (
@@ -649,7 +748,7 @@ export function ServiciosCarousel() {
                   hoverIdRef.current = null;
                 }}
                 onClick={(event) => {
-                  if (mobileDragRef.current.active) {
+                  if (mobileDragMovedRef.current || mobileDragRef.current.active) {
                     event.preventDefault();
                   }
                 }}
