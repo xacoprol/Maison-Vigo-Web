@@ -128,6 +128,28 @@ function repositionMobileLoop(
   return translate;
 }
 
+/** Repite el salto hasta quedar en el bloque central (N .. 2N-1). */
+function anchorTranslateMobile(
+  translate: number,
+  cellW: number,
+  centerX: number,
+  pitch = cellW,
+): number {
+  let t = translate;
+  for (let guard = 0; guard < MOBILE_LOOP_SETS; guard += 1) {
+    const idx = indexFromTranslate(t, cellW, centerX, pitch);
+    if (idx >= N && idx < N * 2) return t;
+    const next = repositionMobileLoop(t, cellW, centerX, pitch);
+    if (next === t) return t;
+    t = next;
+  }
+  return t;
+}
+
+function isMiddleLoopIndex(index: number): boolean {
+  return index >= N && index < N * 2;
+}
+
 /** Distancia mínima de cualquier celda al centro del viewport. */
 function nearestCellDist(
   translate: number,
@@ -150,13 +172,32 @@ function snapTranslateMobile(
   centerX: number,
   pitch = cellW,
 ): { translate: number; index: number } {
-  let bestIdx = N;
+  const anchored = anchorTranslateMobile(translate, cellW, centerX, pitch);
+  const centerIdx = indexFromTranslate(anchored, cellW, centerX, pitch);
+  const candidates = new Set<number>([
+    Math.max(N, Math.min(N * 2 - 1, centerIdx)),
+  ]);
+  if (centerIdx > N) candidates.add(centerIdx - 1);
+  if (centerIdx < N * 2 - 1) candidates.add(centerIdx + 1);
+
+  let bestIdx: number = N;
   let bestDist = Infinity;
-  let bestTranslate = translate;
+  let bestTranslate = anchored;
+
+  for (const i of candidates) {
+    if (!isMiddleLoopIndex(i)) continue;
+    const snapTranslate = translateForIndex(i, cellW, centerX, pitch);
+    const dist = Math.abs(snapTranslate - anchored);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+      bestTranslate = snapTranslate;
+    }
+  }
 
   for (let i = N; i < N * 2; i += 1) {
     const snapTranslate = translateForIndex(i, cellW, centerX, pitch);
-    const dist = Math.abs(snapTranslate - translate);
+    const dist = Math.abs(snapTranslate - anchored);
     if (dist < bestDist) {
       bestDist = dist;
       bestIdx = i;
@@ -380,7 +421,14 @@ export function ServiciosCarousel() {
   /** Recupera el track si el translate se desincroniza tras muchos swipes. */
   const recoverMobileCarouselIfDrifted = useCallback(
     (cellW: number, pitch: number, centerX: number, cellCount: number) => {
-      if (!isMobileRef.current || cellW < 8) return;
+      if (
+        !isMobileRef.current ||
+        cellW < 8 ||
+        mobileDragRef.current.active ||
+        mobileAnimatingRef.current
+      ) {
+        return;
+      }
       const minDist = nearestCellDist(
         currentRef.current,
         cellW,
@@ -734,22 +782,31 @@ export function ServiciosCarousel() {
             if (cw >= 8) {
               const centerX = viewportContentCenterX(vp);
               const loopIdx = indexFromTranslate(next, cw, centerX, pitch);
-              if (loopIdx < N || loopIdx >= N * 2) {
+              if (!isMiddleLoopIndex(loopIdx)) {
                 const reposed = repositionMobileLoop(next, cw, centerX, pitch);
                 if (reposed !== next) {
+                  const delta = reposed - next;
                   next = reposed;
                   currentRef.current = reposed;
+                  targetRef.current += delta;
                 }
               }
-
-              recoverMobileCarouselIfDrifted(cw, pitch, centerX, cells.length);
 
               const settled =
                 !mobileAnimatingRef.current &&
                 Math.abs(next - targetRef.current) < 0.5;
               if (settled) {
+                const anchored = anchorTranslateMobile(
+                  currentRef.current,
+                  cw,
+                  centerX,
+                  pitch,
+                );
+                currentRef.current = anchored;
+                targetRef.current = anchored;
+                recoverMobileCarouselIfDrifted(cw, pitch, centerX, cells.length);
                 mobileSlideIndexRef.current = normalizeMobileIndex(
-                  indexFromTranslate(currentRef.current, cw, centerX, pitch),
+                  indexFromTranslate(anchored, cw, centerX, pitch),
                 );
                 commitPhotoFromLoopIndex(
                   N + mobileSlideIndexRef.current,
@@ -856,13 +913,16 @@ export function ServiciosCarousel() {
       const centerX = viewportContentCenterX(vp);
       const startTarget = mobileDragRef.current.startTarget;
       let next = startTarget + dx;
-      const idx = indexFromTranslate(next, cw, centerX, pitch);
-      if (idx < N) {
-        next += N * pitch;
-        mobileDragRef.current.startTarget += N * pitch;
-      } else if (idx >= N * 2) {
-        next -= N * pitch;
-        mobileDragRef.current.startTarget -= N * pitch;
+      for (let guard = 0; guard < MOBILE_LOOP_SETS; guard += 1) {
+        const idx = indexFromTranslate(next, cw, centerX, pitch);
+        if (isMiddleLoopIndex(idx)) break;
+        if (idx < N) {
+          next += N * pitch;
+          mobileDragRef.current.startTarget += N * pitch;
+        } else {
+          next -= N * pitch;
+          mobileDragRef.current.startTarget -= N * pitch;
+        }
       }
 
       targetRef.current = next;
@@ -890,9 +950,14 @@ export function ServiciosCarousel() {
           const pitch = mobileCellPitchRef.current || cw;
           if (cw >= 8) {
             const centerX = viewportContentCenterX(vp);
-            releaseX = repositionMobileLoop(releaseX, cw, centerX, pitch);
+            releaseX = anchorTranslateMobile(releaseX, cw, centerX, pitch);
             const flingPx = velocityX * 360;
-            const projected = releaseX + flingPx;
+            const projected = anchorTranslateMobile(
+              releaseX + flingPx,
+              cw,
+              centerX,
+              pitch,
+            );
             const { translate, index } = snapTranslateMobile(
               projected,
               cw,
@@ -1024,7 +1089,7 @@ export function ServiciosCarousel() {
           const pitch = mobileCellPitchRef.current || cw;
           if (tr && cw >= 8) {
             const centerX = viewportContentCenterX(vp);
-            const aligned = repositionMobileLoop(
+            const aligned = anchorTranslateMobile(
               currentRef.current,
               cw,
               centerX,
