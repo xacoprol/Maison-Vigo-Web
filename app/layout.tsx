@@ -5,6 +5,7 @@ import Script from "next/script";
 import { rootMetadata } from "@/lib/seo-metadata";
 
 import "./espacio-horizontal-section.scss";
+import "./espacio-mobile-section.scss";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-SMQNTFF93S";

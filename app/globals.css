@@ -2771,9 +2771,16 @@ img.concepto-quote-mark {
   .ritmo-cuidado__eyebrow {
     margin-bottom: clamp(36px, 8vw, 56px);
   }
+  .ritmo-cuidado__list-surface {
+    margin-inline: -28px;
+    width: calc(100% + 56px);
+  }
+  .ritmo-cuidado__trigger {
+    padding-inline: 0;
+  }
   .ritmo-cuidado__trigger-body {
     font-size: clamp(36px, 9.2vw, 64px);
-    max-width: calc(100% - clamp(40px, 6vw, 52px));
+    max-width: calc(100% - clamp(34px, 9vw, 48px));
   }
   .ritmo-cuidado__trigger-title {
     line-height: 1.1;

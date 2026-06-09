@@ -1,0 +1,190 @@
+.espacio-mobile {
+  --espacio-mobile-pad-x: clamp(40px, 11vw, 64px);
+  --espacio-mobile-text-offset: clamp(72px, 22vw, 128px);
+  --espacio-mobile-cream: var(--cream, #f4f4f2);
+  --espacio-mobile-gold: var(--gold-lt, #d4af7a);
+  position: relative;
+  display: none;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-bottom: clamp(48px, 12vw, 72px);
+  background: #050505;
+  color: var(--espacio-mobile-cream);
+  overflow-x: clip;
+}
+
+.espacio-mobile__carousel {
+  position: relative;
+  display: grid;
+}
+
+.espacio-mobile__slider {
+  grid-area: 1 / 1;
+  overflow: hidden;
+}
+
+.espacio-mobile__nav {
+  grid-area: 1 / 1;
+  align-self: start;
+  width: 100%;
+  aspect-ratio: 1;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--espacio-mobile-pad-x);
+  pointer-events: none;
+}
+
+.espacio-mobile__slide {
+  min-width: 100vw;
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.espacio-mobile__slide-inner {
+  padding-inline: 0;
+}
+
+.espacio-mobile__visual {
+  position: relative;
+  padding-bottom: clamp(36px, 9vw, 56px);
+}
+
+.espacio-mobile__figure {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0;
+  overflow: hidden;
+  background: rgba(244, 244, 242, 0.04);
+}
+
+.espacio-mobile__image {
+  object-fit: cover;
+  object-position: center;
+}
+
+.espacio-mobile__title {
+  position: absolute;
+  z-index: 2;
+  left: var(--espacio-mobile-pad-x);
+  right: var(--espacio-mobile-pad-x);
+  bottom: 0;
+  margin: 0;
+  max-width: 12ch;
+  font-family: var(--ff-serif);
+  font-size: clamp(40px, 12.5vw, 78px);
+  font-weight: 400;
+  line-height: 0.86;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  color: var(--espacio-mobile-cream);
+  transform: translateY(28%);
+  text-shadow: 0 12px 48px rgba(0, 0, 0, 0.58);
+  pointer-events: none;
+}
+
+.espacio-mobile__title .espacio__title-word--cream {
+  display: block;
+  margin-left: var(--espacio-mobile-text-offset);
+  color: var(--espacio-mobile-cream);
+}
+
+.espacio-mobile__title .espacio__title-word--gold {
+  display: block;
+  color: var(--espacio-mobile-gold);
+}
+
+.espacio-mobile__body {
+  display: block;
+  margin: clamp(88px, 22vw, 140px) 0 0;
+  padding-inline: var(--espacio-mobile-pad-x);
+  padding-right: calc(var(--espacio-mobile-pad-x) + clamp(8px, 2vw, 16px));
+  max-width: none;
+  font-family: var(--ff-sans);
+  font-size: clamp(11px, 3.1vw, 16px);
+  font-weight: 400;
+  line-height: 1.42;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+  color: var(--espacio-mobile-cream);
+}
+
+.espacio-mobile__body-offset {
+  display: inline-block;
+  width: var(--espacio-mobile-text-offset);
+  flex-shrink: 0;
+}
+
+.espacio-mobile__arrow {
+  pointer-events: auto;
+  display: inline-grid;
+  place-items: center;
+  width: clamp(72px, 18vw, 92px);
+  height: clamp(72px, 18vw, 92px);
+  padding: 0;
+  border: 1px solid var(--espacio-mobile-gold);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.35s ease,
+    opacity 0.35s ease;
+}
+
+.espacio-mobile__arrow:first-child {
+  transform: translateX(-50%);
+}
+
+.espacio-mobile__arrow:last-child {
+  transform: translateX(50%);
+}
+
+.espacio-mobile__arrow:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.espacio-mobile__arrow:hover:not(:disabled),
+.espacio-mobile__arrow:focus-visible {
+  border-color: var(--espacio-mobile-cream);
+}
+
+.espacio-mobile__arrow:focus-visible {
+  outline: 2px solid var(--espacio-mobile-gold);
+  outline-offset: 3px;
+}
+
+.espacio-mobile__arrow-icon {
+  display: block;
+  width: clamp(28px, 7.5vw, 36px);
+  height: clamp(28px, 7.5vw, 36px);
+  filter: invert(74%) sepia(42%) saturate(380%) hue-rotate(358deg) brightness(92%)
+    contrast(89%);
+  transition: filter 0.35s ease;
+}
+
+.espacio-mobile__arrow:hover:not(:disabled) .espacio-mobile__arrow-icon,
+.espacio-mobile__arrow:focus-visible .espacio-mobile__arrow-icon {
+  filter: invert(96%) sepia(4%) saturate(180%) hue-rotate(314deg) brightness(104%)
+    contrast(92%);
+}
+
+@media (max-width: 900px) {
+  .espacio-mobile {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espacio-mobile__arrow {
+    transition: none;
+  }
+
+  .espacio-mobile__arrow-icon {
+    transition: none;
+  }
+}
