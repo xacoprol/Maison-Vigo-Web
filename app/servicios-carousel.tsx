@@ -365,14 +365,20 @@ export function ServiciosCarousel() {
     const mobile = window.matchMedia(MOBILE_MQ).matches;
     isMobileRef.current = mobile;
 
+    const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+    if (cells.length === 0) return false;
+
+    /** Esperar al DOM acorde al breakpoint (evita init con 5 celdas SSR en móvil). */
+    const expectedCellCount = mobile
+      ? N * MOBILE_LOOP_SETS
+      : ORDER_DESKTOP.length;
+    if (cells.length !== expectedCellCount) return false;
+
     const cs = window.getComputedStyle(vp);
     const padX =
       (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     const vw = Math.max(0, vp.clientWidth - padX);
-    const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-    if (cells.length === 0) return false;
 
-    /** Ancho explícito: el track es `max-content` y el % no resuelve bien en flex. */
     const narrowMobile =
       mobile && window.matchMedia(NARROW_MQ).matches;
     const cellW = mobile
@@ -480,10 +486,16 @@ export function ServiciosCarousel() {
     reducedMotionRef.current = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    isMobileRef.current = isMobile;
     if (lastMobileLayoutRef.current !== isMobile) {
       hasInitializedRef.current = false;
     }
+    isMobileRef.current = isMobile;
+    measureWithRetry();
+  }, [isMobile, measureWithRetry]);
+
+  /** Tras hidratar, el track pasa de 5→15 celdas: forzar remeasure. */
+  useEffect(() => {
+    hasInitializedRef.current = false;
     measureWithRetry();
   }, [isMobile, measureWithRetry]);
 
