@@ -27,9 +27,9 @@ export type ServiceId = (typeof ORDER_MOBILE)[number];
 export const MOBILE_MQ = "(max-width: 900px)";
 export const NARROW_MQ = "(max-width: 680px)";
 
-/** ~1.85 celdas visibles: círculos más grandes, sin solape. */
-export const MOBILE_SLIDES_PER_VIEW = 1.85;
-export const MOBILE_SLIDES_PER_VIEW_NARROW = 1.58;
+/** ~2.05 celdas visibles (tamaño anterior), sin solape entre orbes. */
+export const MOBILE_SLIDES_PER_VIEW = 2.05;
+export const MOBILE_SLIDES_PER_VIEW_NARROW = 1.78;
 /** Separación entre orbes (0 = pegados sin solaparse). */
 export const MOBILE_SLIDE_SPACING = 0;
 
