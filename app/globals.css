@@ -3196,6 +3196,24 @@ a.contact-line:focus-visible .contact-text {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
+  .servicios-carousel__track--keen {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    max-height: none;
+    will-change: auto;
+    overflow: visible;
+    touch-action: pan-y;
+  }
+  .servicios-carousel__track--keen .servicios-carousel__cell {
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+  .servicios-carousel.is-dragging .servicios-carousel__track--keen {
+    touch-action: none;
+  }
   .servicios-carousel__label {
     font-size: clamp(13px, 3.85vw, 22px);
     letter-spacing: 0.1em;

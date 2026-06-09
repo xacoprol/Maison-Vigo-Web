@@ -13,240 +13,25 @@ import {
 
 import { servicioSlugFromLabel } from "@/lib/servicios-data";
 
-import { WaveText } from "./wave-text";
+import { ServiciosCarouselMobile } from "./servicios-carousel-mobile";
+import {
+  ORDER_DESKTOP,
+  ORDER_MOBILE,
+  SERVICE_IMAGES,
+  SERVICE_SUBTITLES,
+  ServiceOrbLabel,
+  type ServiceId,
+} from "./servicios-carousel-shared";
 
-/** Orden móvil (izquierda → derecha) */
-const ORDER_MOBILE = [
-  "Grooming",
-  "Bienestar",
-  "Guardería Familiar",
-  "Acompañamiento",
-  "Educación",
-] as const;
+const N = ORDER_DESKTOP.length;
 
-/**
- * Escritorio (izquierda → derecha): Acompañamiento antes que Grooming;
- * el track se centra como bloque de 5 (½ + 3 + ½ en el viewport).
- */
-const ORDER_DESKTOP = [
-  "Bienestar",
-  "Acompañamiento",
-  "Grooming",
-  "Guardería Familiar",
-  "Educación",
-] as const;
-
-type ServiceId = (typeof ORDER_MOBILE)[number];
-
-const MOBILE_MQ = "(max-width: 900px)";
-const NARROW_MQ = "(max-width: 680px)";
-/** ~2.05 celdas visibles: círculos más grandes en móvil. */
-const MOBILE_VISIBLE_DIVISOR = 2.05;
-const MOBILE_VISIBLE_DIVISOR_NARROW = 1.78;
-/** Solape entre círculos adyacentes para que queden pegados. */
-const MOBILE_CELL_OVERLAP_PX = 10;
-
-function mobileCellPitch(cellW: number): number {
-  return Math.max(8, cellW - MOBILE_CELL_OVERLAP_PX);
-}
-
-/** Pitch real medido en el track (centro a centro), más fiable que la fórmula. */
-function readPitchFromTrack(tr: HTMLElement): number | null {
-  const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-  if (cells.length < 2) return null;
-  const c0 = cells[0].offsetLeft + cells[0].offsetWidth / 2;
-  const c1 = cells[1].offsetLeft + cells[1].offsetWidth / 2;
-  const pitch = c1 - c0;
-  return pitch >= 8 ? pitch : null;
-}
-
-const SERVICE_IMAGES: Record<ServiceId, string> = {
-  Grooming: "/grooming.webp",
-  Bienestar: "/cuidado.webp",
-  "Guardería Familiar": "/guarderia.webp",
-  Acompañamiento: "/acompanamiento.webp",
-  Educación: "/educacion.webp",
-};
-
-const SERVICE_SUBTITLES: Record<ServiceId, string> = {
-  Grooming:
-    "Grooming con dermocosmética, observación y un ritmo de trabajo sereno.",
-  Bienestar:
-    "Diagnóstico, cosmética y cuidado de piel y manto con continuidad.",
-  "Guardería Familiar":
-    "Estancias de día en MV Home: entorno familiar, reducido y supervisado.",
-  Acompañamiento:
-    "Presencia y cuidado en los momentos en los que no puedes estar con ellos.",
-  Educación:
-    "Acompañamiento en convivencia, equilibrio y bienestar emocional.",
-};
-
-const N = ORDER_MOBILE.length;
-/** Copias del track en móvil para scroll infinito (izq / centro / der). */
-const MOBILE_LOOP_SETS = 3;
-
-function mobileTrackLabels(): ServiceId[] {
-  return Array.from({ length: MOBILE_LOOP_SETS }, () => [...ORDER_MOBILE]).flat();
-}
-
-/** Índice inicial: Grooming en la copia central. */
-function mobileGroomingLoopIndex(): number {
-  return N;
-}
-
-function normalizeMobileIndex(index: number): number {
-  return ((index % N) + N) % N;
-}
-
-function indexFromTranslate(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): number {
-  return Math.round((centerX - translate - cellW / 2) / pitch);
-}
-
-function translateForIndex(
-  index: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): number {
-  return centerX - (index * pitch + cellW / 2);
-}
-
-function cellCenterAt(
-  index: number,
-  cellW: number,
-  translate: number,
-  pitch = cellW,
-): number {
-  return index * pitch + cellW / 2 + translate;
-}
-
-/** Salta a la copia central equivalente sin animación (scroll infinito). */
-function repositionMobileLoop(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): number {
-  const idx = indexFromTranslate(translate, cellW, centerX, pitch);
-  if (idx < N) return translate - N * pitch;
-  if (idx >= N * 2) return translate + N * pitch;
-  return translate;
-}
-
-/** Repite el salto hasta quedar en el bloque central (N .. 2N-1). */
-function anchorTranslateMobile(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): number {
-  let t = translate;
-  for (let guard = 0; guard < MOBILE_LOOP_SETS; guard += 1) {
-    const idx = indexFromTranslate(t, cellW, centerX, pitch);
-    if (idx >= N && idx < N * 2) return t;
-    const next = repositionMobileLoop(t, cellW, centerX, pitch);
-    if (next === t) return t;
-    t = next;
-  }
-  return t;
-}
-
-function isMiddleLoopIndex(index: number): boolean {
-  return index >= N && index < N * 2;
-}
-
-function snapTranslateMobile(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): { translate: number; index: number } {
-  const anchored = anchorTranslateMobile(translate, cellW, centerX, pitch);
-  const centerIdx = indexFromTranslate(anchored, cellW, centerX, pitch);
-  const candidates = new Set<number>([
-    Math.max(N, Math.min(N * 2 - 1, centerIdx)),
-  ]);
-  if (centerIdx > N) candidates.add(centerIdx - 1);
-  if (centerIdx < N * 2 - 1) candidates.add(centerIdx + 1);
-
-  let bestIdx: number = N;
-  let bestDist = Infinity;
-  let bestTranslate = anchored;
-
-  for (const i of candidates) {
-    if (!isMiddleLoopIndex(i)) continue;
-    const snapTranslate = translateForIndex(i, cellW, centerX, pitch);
-    const dist = Math.abs(snapTranslate - anchored);
-    if (dist < bestDist) {
-      bestDist = dist;
-      bestIdx = i;
-      bestTranslate = snapTranslate;
-    }
-  }
-
-  for (let i = N; i < N * 2; i += 1) {
-    const snapTranslate = translateForIndex(i, cellW, centerX, pitch);
-    const dist = Math.abs(snapTranslate - anchored);
-    if (dist < bestDist) {
-      bestDist = dist;
-      bestIdx = i;
-      bestTranslate = snapTranslate;
-    }
-  }
-
-  return { translate: bestTranslate, index: bestIdx };
-}
-
-function mobileTranslateFromIndex(
-  loopIndex: number,
-  cellW: number,
-  centerX: number,
-  pitch = cellW,
-): number {
-  const idx = N + normalizeMobileIndex(loopIndex);
-  return translateForIndex(idx, cellW, centerX, pitch);
-}
-
-/** Índice de bucle (0..3N-1) más cercano a un translate, con pitch medido. */
-function loopIndexFromTranslate(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch: number,
-): number {
-  return indexFromTranslate(translate, cellW, centerX, pitch);
-}
-
-/** Mantiene el translate en el bloque central sin cambiar el servicio visible. */
-function clampTranslateToMiddleBlock(
-  translate: number,
-  cellW: number,
-  centerX: number,
-  pitch: number,
-): number {
-  return anchorTranslateMobile(translate, cellW, centerX, pitch);
-}
-
-function subscribeMediaQuery(
-  query: string,
-  onStoreChange: () => void,
-): () => void {
-  const mq = window.matchMedia(query);
+const subscribeMobileMq = (onStoreChange: () => void) => {
+  const mq = window.matchMedia("(max-width: 900px)");
   mq.addEventListener("change", onStoreChange);
   return () => mq.removeEventListener("change", onStoreChange);
-}
+};
 
-const subscribeMobileMq = (onStoreChange: () => void) =>
-  subscribeMediaQuery(MOBILE_MQ, onStoreChange);
-
-const getMobileMqSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
-
-/** SSR / hidratación: siempre escritorio hasta montar en cliente. */
+const getMobileMqSnapshot = () => window.matchMedia("(max-width: 900px)").matches;
 const getMobileMqServerSnapshot = () => false;
 
 function isServiceId(value: string): value is ServiceId {
@@ -257,25 +42,6 @@ function clampTranslate(x: number, maxT: number): number {
   return Math.max(maxT, Math.min(0, x));
 }
 
-/** Paso de resorte amortiguado (~60 fps) para el snap móvil. */
-function springStepMobile(
-  current: number,
-  target: number,
-  velocity: number,
-  dt = 1 / 60,
-): { value: number; velocity: number } {
-  const stiffness = 175;
-  const damping = 24;
-  const accel = (target - current) * stiffness - velocity * damping;
-  const nextVelocity = velocity + accel * dt;
-  const nextValue = current + nextVelocity * dt;
-  if (Math.abs(target - nextValue) < 0.35 && Math.abs(nextVelocity) < 0.12) {
-    return { value: target, velocity: 0 };
-  }
-  return { value: nextValue, velocity: nextVelocity };
-}
-
-/** Centro del área de contenido del viewport (coords. del track). */
 function viewportContentCenterX(vp: HTMLElement): number {
   const cs = window.getComputedStyle(vp);
   const padL = parseFloat(cs.paddingLeft) || 0;
@@ -283,56 +49,15 @@ function viewportContentCenterX(vp: HTMLElement): number {
   return (vp.clientWidth - padL - padR) / 2;
 }
 
-function trackLabelsFor(mobile: boolean): readonly ServiceId[] {
-  return mobile ? mobileTrackLabels() : ORDER_DESKTOP;
+function cellCenterAt(
+  index: number,
+  cellW: number,
+  translate: number,
+): number {
+  return index * cellW + cellW / 2 + translate;
 }
 
-/** En móvil estrecho, títulos de dos palabras en dos líneas dentro del orbe. */
-const LABEL_LINES: Partial<Record<ServiceId, readonly string[]>> = {
-  "Guardería Familiar": ["Guardería", "Familiar"],
-};
-
-function ServiceOrbLabel({ label }: { label: ServiceId }) {
-  const narrow = useSyncExternalStore(
-    (cb) => subscribeMediaQuery(NARROW_MQ, cb),
-    () => window.matchMedia(NARROW_MQ).matches,
-    () => false,
-  );
-
-  const lines =
-    narrow && LABEL_LINES[label] ? LABEL_LINES[label]! : [label];
-
-  if (lines.length === 1) {
-    return (
-      <span className="servicios-carousel__label mob-link--wave">
-        <WaveText
-          text={lines[0]}
-          screenReaderDuplicate={false}
-          charStaggerMs={14}
-        />
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className="servicios-carousel__label servicios-carousel__label--stacked mob-link--wave"
-      aria-label={label}
-    >
-      {lines.map((line) => (
-        <span key={line} className="servicios-carousel__label-line">
-          <WaveText
-            text={line}
-            screenReaderDuplicate={false}
-            charStaggerMs={14}
-          />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-export function ServiciosCarousel() {
+function ServiciosCarouselDesktop() {
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -340,122 +65,18 @@ export function ServiciosCarousel() {
   const currentRef = useRef(0);
   const maxTRef = useRef(0);
   const centerTRef = useRef(0);
-  const isMobileRef = useRef(false);
-  const rafRef = useRef<number>(0);
+  const rafRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const sectionInViewRef = useRef(false);
-  /** Móvil: arrastre horizontal; puntero inicial hasta umbral de movimiento */
-  const mobileDragRef = useRef<{
-    pointerId: number | null;
-    startX: number;
-    startTarget: number;
-    active: boolean;
-    lastDx: number;
-  }>({ pointerId: null, startX: 0, startTarget: 0, active: false, lastDx: 0 });
-  /** Evita navegar al soltar un arrastre horizontal sobre un orbe. */
-  const mobileDragMovedRef = useRef(false);
-  /** Velocidad del resorte móvil (px/s aprox.) tras soltar. */
-  const mobileSpringVelRef = useRef(0);
-  /** Foto visible: solo cambia cuando el slide queda asentado. */
-  const [photoId, setPhotoId] = useState<ServiceId>("Grooming");
-  const photoIdRef = useRef<ServiceId>("Grooming");
-  /** Índice lógico del slide activo (0..N-1) en el bloque central. */
-  const mobileSlideIndexRef = useRef(0);
-  const mobileCellWRef = useRef(0);
-  const mobileCellPitchRef = useRef(0);
-  const mobileAnimatingRef = useRef(false);
   const hasInitializedRef = useRef(false);
-  const lastMobileLayoutRef = useRef<boolean | null>(null);
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
   const highlightedIdRef = useRef<ServiceId>("Grooming");
   const hoverIdRef = useRef<ServiceId | null>(null);
-  const isMobile = useSyncExternalStore(
-    subscribeMobileMq,
-    getMobileMqSnapshot,
-    getMobileMqServerSnapshot,
-  );
 
   const applyTransform = useCallback((x: number) => {
     const tr = trackRef.current;
     if (tr) tr.style.transform = `translate3d(${x}px,0,0)`;
   }, []);
-
-  /** Métricas frescas del layout móvil (evita refs stale al cargar la sección). */
-  const getMobileLayoutMetrics = useCallback(() => {
-    const vp = viewportRef.current;
-    const tr = trackRef.current;
-    if (!vp || !tr || !isMobileRef.current) return null;
-
-    const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-    if (cells.length !== N * MOBILE_LOOP_SETS) return null;
-
-    const cw = cells[0]?.offsetWidth ?? 0;
-    if (cw < 8) return null;
-
-    const pitch = readPitchFromTrack(tr) ?? mobileCellPitch(cw);
-    mobileCellWRef.current = cw;
-    mobileCellPitchRef.current = pitch;
-
-    return {
-      vp,
-      tr,
-      cw,
-      pitch,
-      centerX: viewportContentCenterX(vp),
-    };
-  }, []);
-
-  const clearMobileOrbDepth = useCallback(() => {
-    const tr = trackRef.current;
-    if (!tr) return;
-    tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell").forEach((cell) => {
-      cell.style.transform = "";
-      cell.style.opacity = "";
-      cell.style.zIndex = "";
-    });
-  }, []);
-
-  /** Escala/opacidad según distancia al centro (solo móvil). */
-  const updateMobileOrbDepth = useCallback(
-    (translateX: number, cellW: number, pitch = cellW) => {
-    if (!isMobileRef.current) return;
-    const vp = viewportRef.current;
-    const tr = trackRef.current;
-    if (!vp || !tr || cellW < 8) return;
-
-    const centerX = viewportContentCenterX(vp);
-    const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-    let closestIdx = 0;
-    let closestDist = Infinity;
-
-    cells.forEach((cell, i) => {
-      const cellCenter = cellCenterAt(i, cellW, translateX, pitch);
-      const dist = Math.abs(cellCenter - centerX);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestIdx = i;
-      }
-    });
-
-    cells.forEach((cell, i) => {
-      const cellCenter = cellCenterAt(i, cellW, translateX, pitch);
-      const dist = Math.abs(cellCenter - centerX);
-      if (i === closestIdx) {
-        cell.style.transform = "scale(1)";
-        cell.style.opacity = "1";
-        cell.style.zIndex = "100";
-        return;
-      }
-      const norm = Math.min(1.15, dist / (cellW * 0.88));
-      const scale = Math.max(0.92, 1 - norm * 0.07);
-      const opacity = Math.max(0.75, 1 - norm * 0.2);
-      cell.style.transform = `scale(${scale})`;
-      cell.style.opacity = `${opacity}`;
-      cell.style.zIndex = `${Math.max(1, Math.round(80 - norm * 45))}`;
-    });
-  },
-    [],
-  );
 
   const setHighlight = useCallback((id: ServiceId) => {
     if (highlightedIdRef.current === id) return;
@@ -463,106 +84,23 @@ export function ServiciosCarousel() {
     setHighlightedId(id);
   }, []);
 
-  const commitPhoto = useCallback((id: ServiceId) => {
-    if (photoIdRef.current === id) return;
-    photoIdRef.current = id;
-    setPhotoId(id);
-  }, []);
-
-  const commitPhotoFromLoopIndex = useCallback(
-    (loopIndex: number) => {
-      const label = ORDER_MOBILE[normalizeMobileIndex(loopIndex)];
-      if (label) commitPhoto(label);
-    },
-    [commitPhoto],
-  );
-
-  const resolveMobileSnapTarget = useCallback(
-    (
-      releaseX: number,
-      velocityX: number,
-      dragDx: number,
-      cellW: number,
-      centerX: number,
-      pitch: number,
-    ): { translate: number; loopIndex: number; slideIndex: number } => {
-      const flingPx = velocityX * 360;
-      const projected = clampTranslateToMiddleBlock(
-        releaseX + flingPx,
-        cellW,
-        centerX,
-        pitch,
-      );
-      const slideIndex = mobileSlideIndexRef.current;
-      const wrapThreshold = pitch * 0.22;
-
-      if (
-        slideIndex === 0 &&
-        (dragDx > wrapThreshold || velocityX > 0.06) &&
-        Math.abs(releaseX - mobileTranslateFromIndex(0, cellW, centerX, pitch)) <
-          pitch * 0.45
-      ) {
-        const loopIndex = N * 2 - 1;
-        return {
-          translate: translateForIndex(loopIndex, cellW, centerX, pitch),
-          loopIndex,
-          slideIndex: N - 1,
-        };
-      }
-
-      if (
-        slideIndex === N - 1 &&
-        (dragDx < -wrapThreshold || velocityX < -0.06) &&
-        Math.abs(
-          releaseX - mobileTranslateFromIndex(N - 1, cellW, centerX, pitch),
-        ) < pitch * 0.45
-      ) {
-        const loopIndex = N;
-        return {
-          translate: translateForIndex(loopIndex, cellW, centerX, pitch),
-          loopIndex,
-          slideIndex: 0,
-        };
-      }
-
-      const snap = snapTranslateMobile(projected, cellW, centerX, pitch);
-      return {
-        translate: snap.translate,
-        loopIndex: snap.index,
-        slideIndex: normalizeMobileIndex(snap.index),
-      };
-    },
-    [],
-  );
-
-  const isMobileInteractionLocked = useCallback(() => {
-    return (
-      mobileDragRef.current.active ||
-      mobileAnimatingRef.current ||
-      Math.abs(mobileSpringVelRef.current) > 0.25
-    );
-  }, []);
-
-  /** Orbe activo según proximidad al centro (móvil: actualiza en tiempo real). */
   const syncHighlightFromTranslate = useCallback(
-    (translateX: number, cellW: number, labels: readonly string[], pitch = cellW) => {
+    (translateX: number, cellW: number) => {
       const vp = viewportRef.current;
-      if (!vp || cellW < 8 || labels.length === 0) return;
+      if (!vp || cellW < 8) return;
 
       const centerX = viewportContentCenterX(vp);
       let bestIdx = 0;
       let bestDist = Infinity;
-      for (let i = 0; i < labels.length; i++) {
-        const cellCenter = cellCenterAt(i, cellW, translateX, pitch);
+      for (let i = 0; i < ORDER_DESKTOP.length; i++) {
+        const cellCenter = cellCenterAt(i, cellW, translateX);
         const dist = Math.abs(cellCenter - centerX);
         if (dist < bestDist) {
           bestDist = dist;
           bestIdx = i;
         }
       }
-      const label = isMobileRef.current
-        ? ORDER_MOBILE[normalizeMobileIndex(bestIdx)]
-        : labels[bestIdx];
+      const label = ORDER_DESKTOP[bestIdx];
       if (isServiceId(label)) setHighlight(label);
     },
     [setHighlight],
@@ -572,235 +110,101 @@ export function ServiciosCarousel() {
     const vp = viewportRef.current;
     const tr = trackRef.current;
     if (!vp || !tr) return false;
-    const mobile = window.matchMedia(MOBILE_MQ).matches;
-    isMobileRef.current = mobile;
 
     const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-    if (cells.length === 0) return false;
-
-    /** Esperar al DOM acorde al breakpoint (evita init con 5 celdas SSR en móvil). */
-    const expectedCellCount = mobile
-      ? N * MOBILE_LOOP_SETS
-      : ORDER_DESKTOP.length;
-    if (cells.length !== expectedCellCount) return false;
-
-    if (mobile && isMobileInteractionLocked()) {
-      return hasInitializedRef.current;
-    }
+    if (cells.length !== ORDER_DESKTOP.length) return false;
 
     const cs = window.getComputedStyle(vp);
     const padX =
       (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     const vw = Math.max(0, vp.clientWidth - padX);
+    const cellW = vw / 4;
 
-    const narrowMobile =
-      mobile && window.matchMedia(NARROW_MQ).matches;
-    const cellW = mobile
-      ? vw / (narrowMobile ? MOBILE_VISIBLE_DIVISOR_NARROW : MOBILE_VISIBLE_DIVISOR)
-      : vw / 4;
-    const pitch = mobile ? mobileCellPitch(cellW) : cellW;
-    cells.forEach((cell, i) => {
+    cells.forEach((cell) => {
       cell.style.flex = `0 0 ${cellW}px`;
       cell.style.width = `${cellW}px`;
-      if (mobile) {
-        cell.style.marginLeft =
-          i === 0 ? "0px" : `${-MOBILE_CELL_OVERLAP_PX}px`;
-      } else {
-        cell.style.marginLeft = "";
-      }
-      if (!mobile) {
-        cell.style.transform = "";
-        cell.style.opacity = "";
-      }
+      cell.style.marginLeft = "";
+      cell.style.transform = "";
+      cell.style.opacity = "";
     });
 
-    const cw = cellW;
-    if (cw < 8 || vw < 8) return false;
+    if (cellW < 8 || vw < 8) return false;
 
-    const measuredPitch = mobile ? readPitchFromTrack(tr) ?? pitch : pitch;
-    if (mobile) {
-      mobileCellWRef.current = cw;
-      mobileCellPitchRef.current = measuredPitch;
-    }
+    vp.style.minHeight = "";
 
-    if (mobile) {
-      const padT = parseFloat(cs.paddingTop) || 0;
-      const padB = parseFloat(cs.paddingBottom) || 0;
-      vp.style.minHeight = `${cw + padT + padB}px`;
-    } else {
-      vp.style.minHeight = "";
-    }
-
-    const tw = cw * cells.length;
-    const maxT = mobile ? 0 : Math.min(0, vw - tw);
+    const tw = cellW * cells.length;
+    const maxT = Math.min(0, vw - tw);
     maxTRef.current = maxT;
 
-    let centerX: number;
-    const layoutPitch = mobile ? measuredPitch : pitch;
-    if (mobile) {
-      const contentCenter = viewportContentCenterX(vp);
-      centerX = translateForIndex(
-        mobileGroomingLoopIndex(),
-        cw,
-        contentCenter,
-        layoutPitch,
-      );
-    } else {
-      /** Centrar el bloque de 5: se ven 4 celdas de ancho (½ + 3 + ½) */
-      const trackCenterPx = (N * cw) / 2;
-      centerX = vw / 2 - trackCenterPx;
-      centerX = Math.max(maxT, Math.min(0, centerX));
-    }
-
+    const trackCenterPx = (N * cellW) / 2;
+    let centerX = vw / 2 - trackCenterPx;
+    centerX = Math.max(maxT, Math.min(0, centerX));
     centerTRef.current = centerX;
 
-    const layoutChanged = lastMobileLayoutRef.current !== mobile;
-    const shouldReset =
-      !hasInitializedRef.current || layoutChanged || reducedMotionRef.current;
-    const prevTarget = targetRef.current;
-
-    let nextTranslate = centerX;
-    if (!shouldReset) {
-      if (mobile) {
-        const contentCenter = viewportContentCenterX(vp);
-        nextTranslate = mobileTranslateFromIndex(
-          mobileSlideIndexRef.current,
-          cw,
-          contentCenter,
-          layoutPitch,
-        );
-      } else {
-        nextTranslate = clampTranslate(prevTarget, maxT);
-      }
-    } else if (mobile) {
-      mobileSlideIndexRef.current = 0;
-    }
+    const shouldReset = !hasInitializedRef.current || reducedMotionRef.current;
+    const nextTranslate = shouldReset
+      ? centerX
+      : clampTranslate(targetRef.current, maxT);
 
     currentRef.current = nextTranslate;
     targetRef.current = nextTranslate;
-    mobileSpringVelRef.current = 0;
-    mobileAnimatingRef.current = false;
-
     applyTransform(nextTranslate);
-    syncHighlightFromTranslate(
-      nextTranslate,
-      cw,
-      trackLabelsFor(mobile),
-      layoutPitch,
-    );
-    if (mobile) {
-      updateMobileOrbDepth(nextTranslate, cw, layoutPitch);
-      commitPhotoFromLoopIndex(N + mobileSlideIndexRef.current);
-    } else {
-      clearMobileOrbDepth();
-      commitPhoto(highlightedIdRef.current);
-    }
-
+    syncHighlightFromTranslate(nextTranslate, cellW);
     hasInitializedRef.current = true;
-    lastMobileLayoutRef.current = mobile;
     return true;
-  }, [
-    applyTransform,
-    clearMobileOrbDepth,
-    commitPhoto,
-    commitPhotoFromLoopIndex,
-    isMobileInteractionLocked,
-    syncHighlightFromTranslate,
-    updateMobileOrbDepth,
-  ]);
+  }, [applyTransform, syncHighlightFromTranslate]);
 
-  /** Reintenta hasta que el layout del track tenga medidas reales. */
   const measureWithRetry = useCallback(() => {
     if (measure()) return;
     let attempts = 0;
-    const maxAttempts = 64;
     const tick = () => {
-      if (measure() || attempts >= maxAttempts) return;
+      if (measure() || attempts >= 64) return;
       attempts += 1;
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   }, [measure]);
 
-  const safeMeasureWithRetry = useCallback(() => {
-    if (isMobileRef.current && isMobileInteractionLocked()) return;
-    measureWithRetry();
-  }, [isMobileInteractionLocked, measureWithRetry]);
-
   useLayoutEffect(() => {
     reducedMotionRef.current = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const layoutChanged = lastMobileLayoutRef.current !== isMobile;
-    if (layoutChanged) {
-      hasInitializedRef.current = false;
-      mobileSlideIndexRef.current = 0;
-    }
-    isMobileRef.current = isMobile;
     measureWithRetry();
-  }, [isMobile, measureWithRetry]);
+  }, [measureWithRetry]);
 
   useEffect(() => {
-    safeMeasureWithRetry();
-    const ro = new ResizeObserver(() => safeMeasureWithRetry());
+    measureWithRetry();
+    const ro = new ResizeObserver(measureWithRetry);
     const vp = viewportRef.current;
     const tr = trackRef.current;
     if (vp) ro.observe(vp);
     if (tr) ro.observe(tr);
-    window.addEventListener("resize", safeMeasureWithRetry);
+    window.addEventListener("resize", measureWithRetry);
+    document.fonts?.ready.then(measureWithRetry);
 
-    const onFontsReady = () => safeMeasureWithRetry();
-    document.fonts?.ready.then(onFontsReady);
-
-    const onIntroComplete = () => safeMeasureWithRetry();
+    const onIntroComplete = () => measureWithRetry();
     document.body.addEventListener("mv-intro-complete", onIntroComplete);
-
-    const revealLayer = document.querySelector(
-      ".servicios-carousel-wrap.reveal",
-    );
-    const revealObserver =
-      revealLayer &&
-      new MutationObserver(() => {
-        if (revealLayer.classList.contains("visible")) safeMeasureWithRetry();
-      });
-    if (revealLayer && revealObserver) {
-      revealObserver.observe(revealLayer, {
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-      if (revealLayer.classList.contains("visible")) safeMeasureWithRetry();
-    }
 
     return () => {
       ro.disconnect();
-      revealObserver?.disconnect();
-      window.removeEventListener("resize", safeMeasureWithRetry);
+      window.removeEventListener("resize", measureWithRetry);
       document.body.removeEventListener("mv-intro-complete", onIntroComplete);
     };
-  }, [safeMeasureWithRetry]);
+  }, [measureWithRetry]);
 
-  useEffect(() => {
-    if (!isMobile) return;
-    ORDER_MOBILE.forEach((label) => {
-      const img = new window.Image();
-      img.src = SERVICE_IMAGES[label];
-    });
-  }, [isMobile]);
-
-  /** Escritorio: barre el carrusel con la X del puntero en toda la sección #servicios (título + carrusel). */
   useEffect(() => {
     const section = document.getElementById("servicios");
     if (!section) return;
 
     const resetToCenter = () => {
-      if (reducedMotionRef.current || isMobileRef.current) return;
+      if (reducedMotionRef.current) return;
       hoverIdRef.current = null;
       targetRef.current = centerTRef.current;
       setHighlight("Grooming");
     };
 
     const onSectionPointerMove = (e: PointerEvent) => {
-      if (reducedMotionRef.current || isMobileRef.current) return;
+      if (reducedMotionRef.current) return;
       const maxT = maxTRef.current;
       const r = section.getBoundingClientRect();
       if (r.width <= 0) return;
@@ -825,106 +229,33 @@ export function ServiciosCarousel() {
       section &&
       new IntersectionObserver(
         ([entry]) => {
-          const visible = Boolean(entry?.isIntersecting);
-          sectionInViewRef.current = visible;
-          if (visible) safeMeasureWithRetry();
+          sectionInViewRef.current = Boolean(entry?.isIntersecting);
+          if (entry?.isIntersecting) measureWithRetry();
         },
         { rootMargin: "20% 0px", threshold: 0 },
       );
     if (section && observer) observer.observe(section);
 
     const loop = () => {
-      const mobileActive =
-        isMobileRef.current &&
-        (mobileDragRef.current.active ||
-          mobileAnimatingRef.current ||
-          Math.abs(mobileSpringVelRef.current) > 0.25);
-      const shouldRun =
-        !reducedMotionRef.current && (sectionInViewRef.current || mobileActive);
-
-      if (shouldRun) {
-        const dragging = mobileDragRef.current.active;
+      if (!reducedMotionRef.current && sectionInViewRef.current) {
         const cur = currentRef.current;
         const tgt = targetRef.current;
-
-        let next: number;
-        if (dragging) {
-          next = tgt;
-          currentRef.current = next;
-          mobileSpringVelRef.current = 0;
-          mobileAnimatingRef.current = false;
-        } else if (isMobileRef.current) {
-          if (reducedMotionRef.current) {
-            next = targetRef.current;
-            mobileSpringVelRef.current = 0;
-          } else {
-            const spring = springStepMobile(
-              cur,
-              targetRef.current,
-              mobileSpringVelRef.current,
-            );
-            next = spring.value;
-            mobileSpringVelRef.current = spring.velocity;
-          }
-          currentRef.current = next;
-          mobileAnimatingRef.current =
-            Math.abs(mobileSpringVelRef.current) > 0.25 ||
-            Math.abs(next - targetRef.current) > 0.5;
-
-          const settled =
-            !mobileAnimatingRef.current &&
-            Math.abs(next - targetRef.current) < 0.5;
-          if (settled) {
-            const metrics = getMobileLayoutMetrics();
-            if (metrics) {
-              const { cw, pitch, centerX } = metrics;
-              const anchored = clampTranslateToMiddleBlock(
-                currentRef.current,
-                cw,
-                centerX,
-                pitch,
-              );
-              currentRef.current = anchored;
-              targetRef.current = anchored;
-              mobileSlideIndexRef.current = normalizeMobileIndex(
-                loopIndexFromTranslate(anchored, cw, centerX, pitch),
-              );
-              commitPhotoFromLoopIndex(N + mobileSlideIndexRef.current);
-            }
-          }
-        } else {
-          const ease = 0.038;
-          next = cur + (tgt - cur) * ease;
-          next = Math.abs(tgt - next) < 0.35 ? tgt : next;
-          currentRef.current = next;
-        }
-
-        applyTransform(currentRef.current);
+        const ease = 0.038;
+        let next = cur + (tgt - cur) * ease;
+        next = Math.abs(tgt - next) < 0.35 ? tgt : next;
+        currentRef.current = next;
+        applyTransform(next);
 
         const vp = viewportRef.current;
         const tr = trackRef.current;
         if (vp && tr) {
-          const hoverId = hoverIdRef.current;
-          if (hoverId) {
-            setHighlight(hoverId);
+          if (hoverIdRef.current) {
+            setHighlight(hoverIdRef.current);
           } else {
-            const cells = tr.querySelectorAll<HTMLElement>(
-              ".servicios-carousel__cell",
-            );
-            const metrics = isMobileRef.current ? getMobileLayoutMetrics() : null;
-            const cw = metrics?.cw ?? cells[0]?.offsetWidth ?? 0;
-            const pitch = metrics?.pitch ?? cw;
-            if (cw >= 8) {
-              syncHighlightFromTranslate(
-                currentRef.current,
-                cw,
-                trackLabelsFor(isMobileRef.current),
-                isMobileRef.current ? pitch : cw,
-              );
-              if (isMobileRef.current) {
-                updateMobileOrbDepth(currentRef.current, cw, pitch);
-              }
-            }
+            const cw =
+              tr.querySelector<HTMLElement>(".servicios-carousel__cell")
+                ?.offsetWidth ?? 0;
+            if (cw >= 8) syncHighlightFromTranslate(currentRef.current, cw);
           }
         }
       }
@@ -936,283 +267,7 @@ export function ServiciosCarousel() {
       observer?.disconnect();
       cancelAnimationFrame(rafRef.current);
     };
-  }, [
-    applyTransform,
-    commitPhotoFromLoopIndex,
-    getMobileLayoutMetrics,
-    safeMeasureWithRetry,
-    setHighlight,
-    syncHighlightFromTranslate,
-    updateMobileOrbDepth,
-  ]);
-
-  const DRAG_THRESHOLD_PX = 4;
-
-  const setDraggingUi = useCallback((active: boolean) => {
-    rootRef.current?.classList.toggle("is-dragging", active);
-  }, []);
-
-  const snapMobileToNearest = useCallback(() => {
-    if (!isMobileRef.current || reducedMotionRef.current) return;
-    const metrics = getMobileLayoutMetrics();
-    if (!metrics) return;
-    const { cw, pitch, centerX } = metrics;
-
-    const { translate, index } = snapTranslateMobile(
-      targetRef.current,
-      cw,
-      centerX,
-      pitch,
-    );
-
-    targetRef.current = translate;
-    currentRef.current = translate;
-    mobileSlideIndexRef.current = normalizeMobileIndex(index);
-    const label = ORDER_MOBILE[normalizeMobileIndex(index)];
-    if (label) setHighlight(label);
-  }, [getMobileLayoutMetrics, setHighlight]);
-
-  const applyMobileDrag = useCallback(
-    (dx: number) => {
-      const metrics = getMobileLayoutMetrics();
-      if (!metrics) return;
-      const { cw, pitch, centerX } = metrics;
-
-      mobileDragRef.current.lastDx = dx;
-      const startTarget = mobileDragRef.current.startTarget;
-      const next = startTarget + dx;
-
-      const loopIndex = loopIndexFromTranslate(next, cw, centerX, pitch);
-      targetRef.current = next;
-      currentRef.current = next;
-      mobileSlideIndexRef.current = normalizeMobileIndex(loopIndex);
-      applyTransform(next);
-      syncHighlightFromTranslate(next, cw, trackLabelsFor(true), pitch);
-      updateMobileOrbDepth(next, cw, pitch);
-    },
-    [applyTransform, getMobileLayoutMetrics, syncHighlightFromTranslate, updateMobileOrbDepth],
-  );
-
-  const finishMobileDrag = useCallback(
-    (velocityX = 0) => {
-      if (mobileDragRef.current.active) {
-        const metrics = getMobileLayoutMetrics();
-        let releaseX = targetRef.current;
-        const dragDx = mobileDragRef.current.lastDx;
-
-        if (metrics) {
-          const { cw, pitch, centerX } = metrics;
-          releaseX = clampTranslateToMiddleBlock(releaseX, cw, centerX, pitch);
-          const snap = resolveMobileSnapTarget(
-            releaseX,
-            velocityX,
-            dragDx,
-            cw,
-            centerX,
-            pitch,
-          );
-          releaseX = snap.translate;
-          mobileSlideIndexRef.current = snap.slideIndex;
-          const label = ORDER_MOBILE[snap.slideIndex];
-          if (label) setHighlight(label);
-        } else {
-          snapMobileToNearest();
-        }
-
-        targetRef.current = releaseX;
-        if (!reducedMotionRef.current) {
-          mobileSpringVelRef.current = velocityX * 680;
-          mobileAnimatingRef.current = true;
-        } else {
-          mobileSpringVelRef.current = 0;
-          mobileAnimatingRef.current = false;
-          currentRef.current = releaseX;
-          applyTransform(releaseX);
-          commitPhotoFromLoopIndex(N + mobileSlideIndexRef.current);
-        }
-      }
-      setDraggingUi(false);
-      mobileDragRef.current = {
-        pointerId: null,
-        startX: 0,
-        startTarget: 0,
-        active: false,
-        lastDx: 0,
-      };
-      window.setTimeout(() => {
-        mobileDragMovedRef.current = false;
-        safeMeasureWithRetry();
-      }, 0);
-    },
-    [
-      applyTransform,
-      commitPhotoFromLoopIndex,
-      getMobileLayoutMetrics,
-      resolveMobileSnapTarget,
-      setDraggingUi,
-      setHighlight,
-      snapMobileToNearest,
-      safeMeasureWithRetry,
-    ],
-  );
-
-  const lenisPausedForDragRef = useRef(false);
-
-  const pauseLenisForDrag = useCallback(() => {
-    if (lenisPausedForDragRef.current) return;
-    window.__mvLenis?.stop();
-    lenisPausedForDragRef.current = true;
-  }, []);
-
-  const resumeLenisAfterDrag = useCallback(() => {
-    if (!lenisPausedForDragRef.current) return;
-    window.__mvLenis?.start();
-    lenisPausedForDragRef.current = false;
-  }, []);
-
-  /** Móvil: pointer nativo en capture (antes que Lenis) + pausa smooth scroll al arrastrar. */
-  useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-
-    const drag = {
-      pointerId: -1,
-      startX: 0,
-      startY: 0,
-      startTarget: 0,
-      axis: null as "x" | "y" | null,
-      lastX: 0,
-      lastTime: 0,
-      velocityX: 0,
-    };
-
-    const onPointerDown = (e: PointerEvent) => {
-      if (!isMobileRef.current || reducedMotionRef.current) return;
-      if (e.button !== 0) return;
-      if (!vp.contains(e.target as Node)) return;
-
-      getMobileLayoutMetrics();
-
-      drag.pointerId = e.pointerId;
-      drag.startX = e.clientX;
-      drag.startY = e.clientY;
-      drag.startTarget = currentRef.current;
-      drag.axis = null;
-      drag.lastX = e.clientX;
-      drag.lastTime = performance.now();
-      drag.velocityX = 0;
-      mobileSpringVelRef.current = 0;
-      mobileAnimatingRef.current = false;
-      mobileDragMovedRef.current = false;
-      setDraggingUi(false);
-      mobileDragRef.current = {
-        pointerId: e.pointerId,
-        startX: e.clientX,
-        startTarget: drag.startTarget,
-        active: false,
-        lastDx: 0,
-      };
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (!isMobileRef.current || drag.pointerId !== e.pointerId) return;
-
-      const dx = e.clientX - drag.startX;
-      const dy = e.clientY - drag.startY;
-      const now = performance.now();
-      const dt = now - drag.lastTime;
-      if (dt > 0 && dt < 100) {
-        const instantV = (e.clientX - drag.lastX) / dt;
-        drag.velocityX = drag.velocityX * 0.38 + instantV * 0.62;
-      }
-      drag.lastX = e.clientX;
-      drag.lastTime = now;
-
-      if (!drag.axis) {
-        if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) {
-          return;
-        }
-        /** En el carrusel priorizamos horizontal salvo gesto claramente vertical. */
-        drag.axis = Math.abs(dy) > Math.abs(dx) * 1.35 ? "y" : "x";
-        if (drag.axis === "y") {
-          resumeLenisAfterDrag();
-          drag.pointerId = -1;
-          return;
-        }
-        if (drag.axis === "x") {
-          pauseLenisForDrag();
-          const metrics = getMobileLayoutMetrics();
-          if (metrics) {
-            const { cw, pitch, centerX } = metrics;
-            const aligned = clampTranslateToMiddleBlock(
-              currentRef.current,
-              cw,
-              centerX,
-              pitch,
-            );
-            drag.startTarget = aligned;
-            currentRef.current = aligned;
-            targetRef.current = aligned;
-            mobileDragRef.current.startTarget = aligned;
-          }
-          try {
-            vp.setPointerCapture(e.pointerId);
-          } catch {
-            /* noop */
-          }
-        }
-      }
-
-      if (drag.axis === "y") return;
-
-      if (drag.axis !== "x") return;
-
-      e.preventDefault();
-      mobileDragRef.current.active = true;
-      mobileDragMovedRef.current = true;
-      setDraggingUi(true);
-      applyMobileDrag(dx);
-    };
-
-    const onPointerUp = (e: PointerEvent) => {
-      if (drag.pointerId !== e.pointerId) return;
-      const velocityX = drag.velocityX;
-      try {
-        vp.releasePointerCapture(e.pointerId);
-      } catch {
-        /* noop */
-      }
-      drag.pointerId = -1;
-      drag.axis = null;
-      drag.velocityX = 0;
-      finishMobileDrag(velocityX);
-      resumeLenisAfterDrag();
-    };
-
-    vp.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
-    vp.addEventListener("pointermove", onPointerMove, { capture: true, passive: false });
-    vp.addEventListener("pointerup", onPointerUp, { capture: true, passive: true });
-    vp.addEventListener("pointercancel", onPointerUp, { capture: true, passive: true });
-
-    return () => {
-      vp.removeEventListener("pointerdown", onPointerDown, true);
-      vp.removeEventListener("pointermove", onPointerMove, true);
-      vp.removeEventListener("pointerup", onPointerUp, true);
-      vp.removeEventListener("pointercancel", onPointerUp, true);
-      setDraggingUi(false);
-      resumeLenisAfterDrag();
-    };
-  }, [
-    applyMobileDrag,
-    finishMobileDrag,
-    getMobileLayoutMetrics,
-    pauseLenisForDrag,
-    resumeLenisAfterDrag,
-    setDraggingUi,
-  ]);
-
-  const trackLabels = trackLabelsFor(isMobile);
-  const activePhotoId = isMobile ? photoId : highlightedId;
+  }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
 
   return (
     <div
@@ -1228,7 +283,7 @@ export function ServiciosCarousel() {
             key={label}
             className={
               "servicios-carousel__photo-layer" +
-              (activePhotoId === label ? " is-active" : "")
+              (highlightedId === label ? " is-active" : "")
             }
           >
             <Image
@@ -1244,15 +299,11 @@ export function ServiciosCarousel() {
         ))}
       </div>
 
-      <div
-        ref={viewportRef}
-        className="servicios-carousel__viewport"
-        data-lenis-prevent-touch=""
-      >
+      <div ref={viewportRef} className="servicios-carousel__viewport">
         <div ref={trackRef} className="servicios-carousel__track">
-          {trackLabels.map((label, loopIndex) => (
+          {ORDER_DESKTOP.map((label) => (
             <div
-              key={isMobile ? `m-${loopIndex}-${label}` : `d-${label}`}
+              key={label}
               className="servicios-carousel__cell"
               data-service={label}
             >
@@ -1267,21 +318,13 @@ export function ServiciosCarousel() {
                 onPointerLeave={() => {
                   if (hoverIdRef.current !== label) return;
                   hoverIdRef.current = null;
-                  const vp = viewportRef.current;
                   const tr = trackRef.current;
-                  if (!vp || !tr) return;
-                  const cells = tr.querySelectorAll<HTMLElement>(
-                    ".servicios-carousel__cell",
-                  );
-                  const cw = cells[0]?.offsetWidth ?? 0;
-                  const pitch = mobileCellPitchRef.current || cw;
-                  if (cw < 8) return;
-                  syncHighlightFromTranslate(
-                    currentRef.current,
-                    cw,
-                    trackLabelsFor(isMobileRef.current),
-                    isMobileRef.current ? pitch : cw,
-                  );
+                  const cw =
+                    tr?.querySelector<HTMLElement>(".servicios-carousel__cell")
+                      ?.offsetWidth ?? 0;
+                  if (cw >= 8) {
+                    syncHighlightFromTranslate(currentRef.current, cw);
+                  }
                 }}
                 onFocus={() => {
                   hoverIdRef.current = label;
@@ -1290,11 +333,6 @@ export function ServiciosCarousel() {
                 onBlur={() => {
                   if (hoverIdRef.current !== label) return;
                   hoverIdRef.current = null;
-                }}
-                onClick={(event) => {
-                  if (mobileDragMovedRef.current || mobileDragRef.current.active) {
-                    event.preventDefault();
-                  }
                 }}
               >
                 <svg
@@ -1328,11 +366,9 @@ export function ServiciosCarousel() {
                 </span>
                 <span className="servicios-carousel__orb-text">
                   <ServiceOrbLabel label={label} />
-                  {!isMobile && (
-                    <span className="servicios-carousel__subtitle">
-                      {SERVICE_SUBTITLES[label]}
-                    </span>
-                  )}
+                  <span className="servicios-carousel__subtitle">
+                    {SERVICE_SUBTITLES[label]}
+                  </span>
                 </span>
               </Link>
             </div>
@@ -1341,4 +377,15 @@ export function ServiciosCarousel() {
       </div>
     </div>
   );
+}
+
+export function ServiciosCarousel() {
+  const isMobile = useSyncExternalStore(
+    subscribeMobileMq,
+    getMobileMqSnapshot,
+    getMobileMqServerSnapshot,
+  );
+
+  if (isMobile) return <ServiciosCarouselMobile />;
+  return <ServiciosCarouselDesktop />;
 }
