@@ -567,13 +567,27 @@ export function ServiciosCarousel() {
     [setDraggingUi, snapMobileToNearest],
   );
 
-  /** Touch nativo con bloqueo de eje (iOS/Android); más fiable que solo pointer en enlaces. */
+  const lenisPausedForDragRef = useRef(false);
+
+  const pauseLenisForDrag = useCallback(() => {
+    if (lenisPausedForDragRef.current) return;
+    window.__mvLenis?.stop();
+    lenisPausedForDragRef.current = true;
+  }, []);
+
+  const resumeLenisAfterDrag = useCallback(() => {
+    if (!lenisPausedForDragRef.current) return;
+    window.__mvLenis?.start();
+    lenisPausedForDragRef.current = false;
+  }, []);
+
+  /** Móvil: pointer nativo en capture (antes que Lenis) + pausa smooth scroll al arrastrar. */
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
 
-    const touch = {
-      id: -1,
+    const drag = {
+      pointerId: -1,
       startX: 0,
       startY: 0,
       startTarget: 0,
@@ -583,146 +597,109 @@ export function ServiciosCarousel() {
       velocityX: 0,
     };
 
-    const onTouchStart = (e: TouchEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       if (!isMobileRef.current || reducedMotionRef.current) return;
-      if (e.touches.length !== 1) return;
-      const t = e.touches[0];
-      touch.id = t.identifier;
-      touch.startX = t.clientX;
-      touch.startY = t.clientY;
-      touch.startTarget = targetRef.current;
-      touch.axis = null;
-      touch.lastX = t.clientX;
-      touch.lastTime = performance.now();
-      touch.velocityX = 0;
+      if (e.button !== 0) return;
+      if (!vp.contains(e.target as Node)) return;
+
+      pauseLenisForDrag();
+
+      drag.pointerId = e.pointerId;
+      drag.startX = e.clientX;
+      drag.startY = e.clientY;
+      drag.startTarget = targetRef.current;
+      drag.axis = null;
+      drag.lastX = e.clientX;
+      drag.lastTime = performance.now();
+      drag.velocityX = 0;
       mobileDragMovedRef.current = false;
       setDraggingUi(false);
       mobileDragRef.current = {
-        pointerId: null,
-        startX: t.clientX,
+        pointerId: e.pointerId,
+        startX: e.clientX,
         startTarget: targetRef.current,
         active: false,
       };
     };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isMobileRef.current || touch.id < 0) return;
-      const t = Array.from(e.touches).find((x) => x.identifier === touch.id);
-      if (!t) return;
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isMobileRef.current || drag.pointerId !== e.pointerId) return;
 
-      const dx = t.clientX - touch.startX;
-      const dy = t.clientY - touch.startY;
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
       const now = performance.now();
-      const dt = now - touch.lastTime;
+      const dt = now - drag.lastTime;
       if (dt > 0 && dt < 80) {
-        const instantV = (t.clientX - touch.lastX) / dt;
-        touch.velocityX = touch.velocityX * 0.55 + instantV * 0.45;
+        const instantV = (e.clientX - drag.lastX) / dt;
+        drag.velocityX = drag.velocityX * 0.55 + instantV * 0.45;
       }
-      touch.lastX = t.clientX;
-      touch.lastTime = now;
+      drag.lastX = e.clientX;
+      drag.lastTime = now;
 
-      if (!touch.axis) {
+      if (!drag.axis) {
         if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) {
           return;
         }
-        touch.axis =
-          Math.abs(dx) >= Math.abs(dy) * 0.72 ? "x" : "y";
+        /** En el carrusel priorizamos horizontal salvo gesto claramente vertical. */
+        drag.axis = Math.abs(dy) > Math.abs(dx) * 1.35 ? "y" : "x";
+        if (drag.axis === "y") {
+          resumeLenisAfterDrag();
+          drag.pointerId = -1;
+          return;
+        }
+        if (drag.axis === "x") {
+          try {
+            vp.setPointerCapture(e.pointerId);
+          } catch {
+            /* noop */
+          }
+        }
       }
 
-      if (touch.axis === "y") return;
+      if (drag.axis === "y") return;
 
       e.preventDefault();
       mobileDragRef.current.active = true;
       mobileDragMovedRef.current = true;
       setDraggingUi(true);
-      applyMobileDrag(dx, touch.startTarget);
+      applyMobileDrag(dx, drag.startTarget);
     };
 
-    const onTouchEnd = (e: TouchEvent) => {
-      if (touch.id < 0) return;
-      const ended = Array.from(e.changedTouches).some(
-        (t) => t.identifier === touch.id,
-      );
-      if (!ended) return;
-      const velocityX = touch.velocityX;
-      touch.id = -1;
-      touch.axis = null;
-      touch.velocityX = 0;
+    const onPointerUp = (e: PointerEvent) => {
+      if (drag.pointerId !== e.pointerId) return;
+      const velocityX = drag.velocityX;
+      try {
+        vp.releasePointerCapture(e.pointerId);
+      } catch {
+        /* noop */
+      }
+      drag.pointerId = -1;
+      drag.axis = null;
+      drag.velocityX = 0;
       finishMobileDrag(velocityX);
+      resumeLenisAfterDrag();
     };
 
-    vp.addEventListener("touchstart", onTouchStart, { passive: true });
-    vp.addEventListener("touchmove", onTouchMove, { passive: false });
-    vp.addEventListener("touchend", onTouchEnd, { passive: true });
-    vp.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    vp.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
+    vp.addEventListener("pointermove", onPointerMove, { capture: true, passive: false });
+    vp.addEventListener("pointerup", onPointerUp, { capture: true, passive: true });
+    vp.addEventListener("pointercancel", onPointerUp, { capture: true, passive: true });
 
     return () => {
-      vp.removeEventListener("touchstart", onTouchStart);
-      vp.removeEventListener("touchmove", onTouchMove);
-      vp.removeEventListener("touchend", onTouchEnd);
-      vp.removeEventListener("touchcancel", onTouchEnd);
+      vp.removeEventListener("pointerdown", onPointerDown, true);
+      vp.removeEventListener("pointermove", onPointerMove, true);
+      vp.removeEventListener("pointerup", onPointerUp, true);
+      vp.removeEventListener("pointercancel", onPointerUp, true);
       setDraggingUi(false);
+      resumeLenisAfterDrag();
     };
-  }, [applyMobileDrag, finishMobileDrag, setDraggingUi]);
-
-  const endMobilePointerDrag = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.pointerType === "touch") return;
-      const d = mobileDragRef.current;
-      if (d.pointerId !== null && d.pointerId !== e.pointerId) return;
-      const wasActive = d.active;
-      if (wasActive && viewportRef.current) {
-        try {
-          viewportRef.current.releasePointerCapture(e.pointerId);
-        } catch {
-          /* ya liberado */
-        }
-      }
-      if (wasActive) mobileDragMovedRef.current = true;
-      setDraggingUi(false);
-      finishMobileDrag();
-    },
-    [finishMobileDrag, setDraggingUi],
-  );
-
-  const onViewportPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    if (!isMobileRef.current || reducedMotionRef.current) return;
-    mobileDragMovedRef.current = false;
-    setDraggingUi(false);
-    mobileDragRef.current = {
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startTarget: targetRef.current,
-      active: false,
-    };
-  };
-
-  const onViewportPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    if (!isMobileRef.current || reducedMotionRef.current) return;
-    const d = mobileDragRef.current;
-    if (d.pointerId !== e.pointerId) return;
-    const vp = viewportRef.current;
-    if (!vp) return;
-    const dx = e.clientX - d.startX;
-    if (!d.active) {
-      if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
-      d.active = true;
-      mobileDragMovedRef.current = true;
-      setDraggingUi(true);
-      vp.setPointerCapture(e.pointerId);
-    }
-    applyMobileDrag(dx, d.startTarget);
-  };
-
-  const onViewportPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    endMobilePointerDrag(e);
-  };
-
-  const onViewportPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
-    endMobilePointerDrag(e);
-  };
+  }, [
+    applyMobileDrag,
+    finishMobileDrag,
+    pauseLenisForDrag,
+    resumeLenisAfterDrag,
+    setDraggingUi,
+  ]);
 
   const trackLabels = trackLabelsFor(isMobile);
 
@@ -730,6 +707,7 @@ export function ServiciosCarousel() {
     <div
       ref={rootRef}
       className="servicios-carousel"
+      data-lenis-prevent-touch=""
       role="region"
       aria-roledescription="carrusel"
       aria-label="Cuidado integral destacado"
@@ -759,10 +737,6 @@ export function ServiciosCarousel() {
       <div
         ref={viewportRef}
         className="servicios-carousel__viewport"
-        onPointerDown={onViewportPointerDown}
-        onPointerMove={onViewportPointerMove}
-        onPointerUp={onViewportPointerUp}
-        onPointerCancel={onViewportPointerCancel}
       >
         <div ref={trackRef} className="servicios-carousel__track">
           {trackLabels.map((label) => (

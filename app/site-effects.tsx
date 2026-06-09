@@ -93,6 +93,7 @@ export function SiteEffects() {
         easing: lenisEase,
         wheelMultiplier: 0.9,
         touchMultiplier: 1,
+        prevent: (node) => node.closest(".servicios-carousel") !== null,
       });
 
       const lenisRaf = (time: number) => {
