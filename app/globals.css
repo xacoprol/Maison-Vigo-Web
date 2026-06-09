@@ -3071,8 +3071,22 @@ a.contact-line:focus-visible .contact-text {
     transition-duration: 0.72s;
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
+  .servicios-carousel:not(.is-dragging) .servicios-carousel__photo-layer {
+    transition-duration: 1.15s;
+    transition-timing-function: cubic-bezier(0.33, 1, 0.48, 1);
+  }
   .servicios-carousel.is-dragging .servicios-carousel__photo-layer {
-    transition-duration: 0.48s;
+    transition-duration: 0.35s;
+  }
+  .servicios-carousel__photo-layer.is-active .servicios-carousel__photo-img {
+    transform: scale(1);
+  }
+  .servicios-carousel__photo-img {
+    transform: scale(1.04);
+    transition: transform 1.15s cubic-bezier(0.33, 1, 0.48, 1);
+  }
+  .servicios-carousel:not(.is-dragging) .servicios-carousel__photo-layer.is-active .servicios-carousel__photo-img {
+    transform: scale(1);
   }
   .servicios-carousel__orb {
     touch-action: none;
