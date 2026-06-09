@@ -2772,10 +2772,12 @@ img.concepto-quote-mark {
     margin-bottom: clamp(36px, 8vw, 56px);
   }
   .ritmo-cuidado__trigger-body {
-    font-size: clamp(28px, 6.2vw, 52px);
+    font-size: clamp(36px, 9.2vw, 64px);
+    max-width: calc(100% - clamp(40px, 6vw, 52px));
   }
   .ritmo-cuidado__trigger-title {
-    line-height: 1.12;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
   }
   .ritmo-cuidado__panel-grid {
     padding-bottom: clamp(18px, 4.5vw, 32px);
@@ -3126,12 +3128,16 @@ a.contact-line:focus-visible .contact-text {
   .servicios-carousel.is-dragging .servicios-carousel__viewport {
     touch-action: none;
   }
+  .servicios-carousel.is-dragging .servicios-carousel__track,
+  .servicios-carousel.is-dragging .servicios-carousel__orb {
+    touch-action: none;
+  }
   .servicios-carousel__viewport {
     position: relative;
     padding-top: clamp(12px, 3.5vw, 28px);
-    padding-bottom: clamp(8px, 2vh, 20px);
+    padding-bottom: clamp(28px, 8vw, 56px);
     padding-inline: clamp(10px, 2.5vw, 20px);
-    touch-action: manipulation;
+    touch-action: pan-y;
     overscroll-behavior-x: none;
     overflow: hidden;
   }
@@ -3148,6 +3154,8 @@ a.contact-line:focus-visible .contact-text {
     overflow: hidden;
     transform-origin: center center;
     will-change: transform, opacity;
+    position: relative;
+    flex-shrink: 0;
   }
   .servicios-carousel__photo-layer {
     transition-duration: 0.72s;
@@ -3171,11 +3179,12 @@ a.contact-line:focus-visible .contact-text {
     transform: scale(1);
   }
   .servicios-carousel__orb {
-    touch-action: none;
+    touch-action: pan-y;
     -webkit-tap-highlight-color: transparent;
   }
   .servicios-carousel__track {
-    touch-action: none;
+    touch-action: pan-y;
+    gap: 0;
     position: absolute;
     left: 0;
     top: clamp(12px, 3.5vw, 28px);
