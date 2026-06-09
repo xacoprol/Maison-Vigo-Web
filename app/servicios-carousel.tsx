@@ -50,6 +50,16 @@ function mobileCellPitch(cellW: number): number {
   return Math.max(8, cellW - MOBILE_CELL_OVERLAP_PX);
 }
 
+/** Pitch real medido en el track (centro a centro), más fiable que la fórmula. */
+function readPitchFromTrack(tr: HTMLElement): number | null {
+  const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+  if (cells.length < 2) return null;
+  const c0 = cells[0].offsetLeft + cells[0].offsetWidth / 2;
+  const c1 = cells[1].offsetLeft + cells[1].offsetWidth / 2;
+  const pitch = c1 - c0;
+  return pitch >= 8 ? pitch : null;
+}
+
 const SERVICE_IMAGES: Record<ServiceId, string> = {
   Grooming: "/grooming.webp",
   Bienestar: "/cuidado.webp",
@@ -359,21 +369,25 @@ export function ServiciosCarousel() {
     });
   }, []);
 
-  /** Escala/opacidad según distancia al centro (solo móvil). */
+  /** Escala/opacidad según distancia visual al centro (solo móvil). */
   const updateMobileOrbDepth = useCallback(
-    (translateX: number, cellW: number, pitch = cellW) => {
+    (_translateX: number, cellW: number, pitch = cellW) => {
     if (!isMobileRef.current) return;
     const vp = viewportRef.current;
     const tr = trackRef.current;
     if (!vp || !tr || cellW < 8) return;
 
-    const centerX = viewportContentCenterX(vp);
+    const vpRect = vp.getBoundingClientRect();
+    const viewportCenterX = vpRect.left + vpRect.width / 2;
     const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
     let closestIdx = 0;
     let closestDist = Infinity;
+
     cells.forEach((cell, i) => {
-      const cellCenter = cellCenterAt(i, cellW, translateX, pitch);
-      const dist = Math.abs(cellCenter - centerX);
+      const rect = cell.getBoundingClientRect();
+      if (rect.width < 4) return;
+      const cellCenter = rect.left + rect.width / 2;
+      const dist = Math.abs(cellCenter - viewportCenterX);
       if (dist < closestDist) {
         closestDist = dist;
         closestIdx = i;
@@ -381,20 +395,22 @@ export function ServiciosCarousel() {
     });
 
     cells.forEach((cell, i) => {
-      const cellCenter = cellCenterAt(i, cellW, translateX, pitch);
-      const dist = Math.abs(cellCenter - centerX);
+      const rect = cell.getBoundingClientRect();
+      if (rect.width < 4) return;
+      const cellCenter = rect.left + rect.width / 2;
+      const dist = Math.abs(cellCenter - viewportCenterX);
       if (i === closestIdx) {
         cell.style.transform = "scale(1)";
         cell.style.opacity = "1";
         cell.style.zIndex = "100";
         return;
       }
-      const norm = Math.min(1.15, dist / (cellW * 0.88));
-      const scale = Math.max(0.92, 1 - norm * 0.07);
-      const opacity = Math.max(0.72, 1 - norm * 0.22);
+      const norm = Math.min(1.1, dist / Math.max(cellW * 0.92, pitch * 0.92));
+      const scale = Math.max(0.94, 1 - norm * 0.05);
+      const opacity = Math.max(0.88, 1 - norm * 0.12);
       cell.style.transform = `scale(${scale})`;
       cell.style.opacity = `${opacity}`;
-      cell.style.zIndex = `${Math.max(1, Math.round(80 - norm * 50))}`;
+      cell.style.zIndex = `${Math.max(1, Math.round(80 - norm * 40))}`;
     });
   },
     [],
@@ -420,23 +436,37 @@ export function ServiciosCarousel() {
     [commitPhoto],
   );
 
-  /** Mantiene posición y destino dentro del bloque central (scroll infinito). */
-  const syncMobileLoopTranslate = useCallback(
+  /** Reposiciona solo la posición visual (no el destino del resorte). */
+  const repositionMobileCurrent = useCallback(
     (
       translate: number,
       cellW: number,
       centerX: number,
       pitch: number,
-      syncTarget: boolean,
     ): number => {
-      const anchored = anchorTranslateMobile(translate, cellW, centerX, pitch);
-      if (anchored !== translate) {
-        const delta = anchored - translate;
-        currentRef.current = anchored;
-        if (syncTarget) {
-          targetRef.current += delta;
+      if (!isMiddleLoopIndex(indexFromTranslate(translate, cellW, centerX, pitch))) {
+        const reposed = repositionMobileLoop(translate, cellW, centerX, pitch);
+        if (reposed !== translate) {
+          currentRef.current = reposed;
+          return reposed;
         }
       }
+      return translate;
+    },
+    [],
+  );
+
+  /** Normaliza posición y destino al asentar el slide. */
+  const settleMobileLoopTranslate = useCallback(
+    (
+      translate: number,
+      cellW: number,
+      centerX: number,
+      pitch: number,
+    ): number => {
+      const anchored = anchorTranslateMobile(translate, cellW, centerX, pitch);
+      currentRef.current = anchored;
+      targetRef.current = anchored;
       return anchored;
     },
     [],
@@ -525,7 +555,7 @@ export function ServiciosCarousel() {
     if (cw < 8 || vw < 8) return false;
     if (mobile) {
       mobileCellWRef.current = cw;
-      mobileCellPitchRef.current = pitch;
+      mobileCellPitchRef.current = readPitchFromTrack(tr) ?? pitch;
     }
 
     if (mobile) {
@@ -733,7 +763,15 @@ export function ServiciosCarousel() {
     if (section && observer) observer.observe(section);
 
     const loop = () => {
-      if (!reducedMotionRef.current && sectionInViewRef.current) {
+      const mobileActive =
+        isMobileRef.current &&
+        (mobileDragRef.current.active ||
+          mobileAnimatingRef.current ||
+          Math.abs(mobileSpringVelRef.current) > 0.25);
+      const shouldRun =
+        !reducedMotionRef.current && (sectionInViewRef.current || mobileActive);
+
+      if (shouldRun) {
         const dragging = mobileDragRef.current.active;
         const cur = currentRef.current;
         const tgt = targetRef.current;
@@ -753,13 +791,6 @@ export function ServiciosCarousel() {
             next = targetRef.current;
             mobileSpringVelRef.current = 0;
           } else if (vp && cw >= 8) {
-            const centerX = viewportContentCenterX(vp);
-            targetRef.current = anchorTranslateMobile(
-              targetRef.current,
-              cw,
-              centerX,
-              pitch,
-            );
             const spring = springStepMobile(
               cur,
               targetRef.current,
@@ -785,27 +816,19 @@ export function ServiciosCarousel() {
           if (vp && tr && cw >= 8) {
             const centerX = viewportContentCenterX(vp);
             const pitchSync = mobileCellPitchRef.current || cw;
-            next = syncMobileLoopTranslate(
-              next,
-              cw,
-              centerX,
-              pitchSync,
-              true,
-            );
+            next = repositionMobileCurrent(next, cw, centerX, pitchSync);
             currentRef.current = next;
 
             const settled =
               !mobileAnimatingRef.current &&
               Math.abs(next - targetRef.current) < 0.5;
             if (settled) {
-              const anchored = syncMobileLoopTranslate(
+              const anchored = settleMobileLoopTranslate(
                 currentRef.current,
                 cw,
                 centerX,
                 pitchSync,
-                true,
               );
-              targetRef.current = anchored;
               mobileSlideIndexRef.current = normalizeMobileIndex(
                 indexFromTranslate(anchored, cw, centerX, pitchSync),
               );
@@ -858,7 +881,8 @@ export function ServiciosCarousel() {
   }, [
     applyTransform,
     commitPhotoFromLoopIndex,
-    syncMobileLoopTranslate,
+    repositionMobileCurrent,
+    settleMobileLoopTranslate,
     safeMeasureWithRetry,
     setHighlight,
     syncHighlightFromTranslate,
@@ -968,6 +992,7 @@ export function ServiciosCarousel() {
         }
 
         targetRef.current = releaseX;
+        currentRef.current = releaseX;
         if (!reducedMotionRef.current) {
           mobileSpringVelRef.current = velocityX * 680;
           mobileAnimatingRef.current = true;
