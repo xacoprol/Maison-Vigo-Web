@@ -89,6 +89,31 @@ function clampTranslate(x: number, maxT: number): number {
   return Math.max(maxT, Math.min(0, x));
 }
 
+/** Resistencia suave al pasar de los extremos (feel premium en arrastre). */
+function rubberBandTranslate(x: number, maxT: number, strength = 0.3): number {
+  if (x >= maxT && x <= 0) return x;
+  if (x > 0) return x * strength;
+  return maxT + (x - maxT) * strength;
+}
+
+/** Paso de resorte amortiguado (~60 fps) para el snap móvil. */
+function springStepMobile(
+  current: number,
+  target: number,
+  velocity: number,
+  dt = 1 / 60,
+): { value: number; velocity: number } {
+  const stiffness = 210;
+  const damping = 24;
+  const accel = (target - current) * stiffness - velocity * damping;
+  const nextVelocity = velocity + accel * dt;
+  const nextValue = current + nextVelocity * dt;
+  if (Math.abs(target - nextValue) < 0.4 && Math.abs(nextVelocity) < 0.2) {
+    return { value: target, velocity: 0 };
+  }
+  return { value: nextValue, velocity: nextVelocity };
+}
+
 /** Centro del área de contenido del viewport (coords. del track). */
 function viewportContentCenterX(vp: HTMLElement): number {
   const cs = window.getComputedStyle(vp);
@@ -191,6 +216,8 @@ export function ServiciosCarousel() {
   }>({ pointerId: null, startX: 0, startTarget: 0, active: false });
   /** Evita navegar al soltar un arrastre horizontal sobre un orbe. */
   const mobileDragMovedRef = useRef(false);
+  /** Velocidad del resorte móvil (px/s aprox.) tras soltar. */
+  const mobileSpringVelRef = useRef(0);
   const hasInitializedRef = useRef(false);
   const lastMobileLayoutRef = useRef<boolean | null>(null);
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
@@ -205,6 +232,34 @@ export function ServiciosCarousel() {
   const applyTransform = useCallback((x: number) => {
     const tr = trackRef.current;
     if (tr) tr.style.transform = `translate3d(${x}px,0,0)`;
+  }, []);
+
+  const clearMobileOrbDepth = useCallback(() => {
+    const tr = trackRef.current;
+    if (!tr) return;
+    tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell").forEach((cell) => {
+      cell.style.transform = "";
+      cell.style.opacity = "";
+    });
+  }, []);
+
+  /** Escala/opacidad según distancia al centro (solo móvil). */
+  const updateMobileOrbDepth = useCallback((translateX: number, cellW: number) => {
+    if (!isMobileRef.current) return;
+    const vp = viewportRef.current;
+    const tr = trackRef.current;
+    if (!vp || !tr || cellW < 8) return;
+
+    const centerX = viewportContentCenterX(vp);
+    tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell").forEach((cell, i) => {
+      const cellCenter = i * cellW + cellW / 2 + translateX;
+      const dist = Math.abs(cellCenter - centerX);
+      const norm = Math.min(1, dist / (cellW * 0.9));
+      const scale = 1 - norm * 0.12;
+      const opacity = 1 - norm * 0.34;
+      cell.style.transform = `scale(${scale})`;
+      cell.style.opacity = `${opacity}`;
+    });
   }, []);
 
   const setHighlight = useCallback((id: ServiceId) => {
@@ -259,6 +314,10 @@ export function ServiciosCarousel() {
     cells.forEach((cell) => {
       cell.style.flex = `0 0 ${cellW}px`;
       cell.style.width = `${cellW}px`;
+      if (!mobile) {
+        cell.style.transform = "";
+        cell.style.opacity = "";
+      }
     });
 
     const cw = cellW;
@@ -314,11 +373,21 @@ export function ServiciosCarousel() {
     targetRef.current = nextTranslate;
     applyTransform(nextTranslate);
     syncHighlightFromTranslate(nextTranslate, cw, trackLabelsFor(mobile));
+    if (mobile) {
+      updateMobileOrbDepth(nextTranslate, cw);
+    } else {
+      clearMobileOrbDepth();
+    }
 
     hasInitializedRef.current = true;
     lastMobileLayoutRef.current = mobile;
     return true;
-  }, [applyTransform, syncHighlightFromTranslate]);
+  }, [
+    applyTransform,
+    clearMobileOrbDepth,
+    syncHighlightFromTranslate,
+    updateMobileOrbDepth,
+  ]);
 
   /** Reintenta hasta que el layout del track tenga medidas reales. */
   const measureWithRetry = useCallback(() => {
@@ -441,19 +510,29 @@ export function ServiciosCarousel() {
 
         let next: number;
         if (dragging) {
-          next = clampTranslate(tgt, maxTRef.current);
+          next = tgt;
+          currentRef.current = next;
+          mobileSpringVelRef.current = 0;
+        } else if (isMobileRef.current) {
+          const maxT = maxTRef.current;
+          targetRef.current = clampTranslate(targetRef.current, maxT);
+          if (reducedMotionRef.current) {
+            next = targetRef.current;
+            mobileSpringVelRef.current = 0;
+          } else {
+            const spring = springStepMobile(
+              cur,
+              targetRef.current,
+              mobileSpringVelRef.current,
+            );
+            next = clampTranslate(spring.value, maxT);
+            mobileSpringVelRef.current = spring.velocity;
+          }
           currentRef.current = next;
         } else {
-          const ease = isMobileRef.current ? 0.32 : 0.038;
+          const ease = 0.038;
           next = cur + (tgt - cur) * ease;
           next = Math.abs(tgt - next) < 0.35 ? tgt : next;
-
-          if (isMobileRef.current) {
-            const maxT = maxTRef.current;
-            targetRef.current = clampTranslate(targetRef.current, maxT);
-            next = clampTranslate(next, maxT);
-          }
-
           currentRef.current = next;
         }
 
@@ -476,6 +555,9 @@ export function ServiciosCarousel() {
                 cw,
                 trackLabelsFor(isMobileRef.current),
               );
+              if (isMobileRef.current) {
+                updateMobileOrbDepth(currentRef.current, cw);
+              }
             }
           }
         }
@@ -488,7 +570,13 @@ export function ServiciosCarousel() {
       observer?.disconnect();
       cancelAnimationFrame(rafRef.current);
     };
-  }, [applyTransform, measureWithRetry, setHighlight, syncHighlightFromTranslate]);
+  }, [
+    applyTransform,
+    measureWithRetry,
+    setHighlight,
+    syncHighlightFromTranslate,
+    updateMobileOrbDepth,
+  ]);
 
   const DRAG_THRESHOLD_PX = 4;
 
@@ -525,7 +613,7 @@ export function ServiciosCarousel() {
   const applyMobileDrag = useCallback(
     (dx: number, startTarget: number) => {
       const maxT = maxTRef.current;
-      const next = clampTranslate(startTarget + dx, maxT);
+      const next = rubberBandTranslate(startTarget + dx, maxT);
       targetRef.current = next;
       currentRef.current = next;
       applyTransform(next);
@@ -537,21 +625,52 @@ export function ServiciosCarousel() {
       const cw = cells[0]?.offsetWidth ?? 0;
       if (cw >= 8) {
         syncHighlightFromTranslate(next, cw, trackLabelsFor(true));
+        updateMobileOrbDepth(next, cw);
       }
     },
-    [applyTransform, syncHighlightFromTranslate],
+    [applyTransform, syncHighlightFromTranslate, updateMobileOrbDepth],
   );
 
   const finishMobileDrag = useCallback(
     (velocityX = 0) => {
       if (mobileDragRef.current.active) {
-        if (Math.abs(velocityX) > 0.12) {
-          targetRef.current = clampTranslate(
-            targetRef.current + velocityX * 260,
-            maxTRef.current,
-          );
+        const tr = trackRef.current;
+        const vp = viewportRef.current;
+        const maxT = maxTRef.current;
+        let releaseX = clampTranslate(targetRef.current, maxT);
+
+        if (tr && vp) {
+          const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
+          const cw = cells[0]?.offsetWidth ?? 0;
+          if (cw >= 8) {
+            const centerX = viewportContentCenterX(vp);
+            const flingPx = velocityX * 420;
+            const projected = clampTranslate(releaseX + flingPx, maxT);
+            const { translate, index } = snapTranslateToNearest(
+              projected,
+              cw,
+              cells.length,
+              maxT,
+              centerX,
+            );
+            releaseX = translate;
+            const label = trackLabelsFor(true)[index];
+            if (label && isServiceId(label)) setHighlight(label);
+          } else {
+            snapMobileToNearest();
+          }
+        } else {
+          snapMobileToNearest();
         }
-        snapMobileToNearest();
+
+        targetRef.current = releaseX;
+        if (!reducedMotionRef.current) {
+          /** px/ms → impulso inicial del resorte (feel de inercia al soltar). */
+          mobileSpringVelRef.current = velocityX * 880;
+        } else {
+          mobileSpringVelRef.current = 0;
+          currentRef.current = releaseX;
+        }
       }
       setDraggingUi(false);
       mobileDragRef.current = {
@@ -564,7 +683,7 @@ export function ServiciosCarousel() {
         mobileDragMovedRef.current = false;
       }, 0);
     },
-    [setDraggingUi, snapMobileToNearest],
+    [setDraggingUi, setHighlight, snapMobileToNearest],
   );
 
   const lenisPausedForDragRef = useRef(false);
@@ -612,6 +731,7 @@ export function ServiciosCarousel() {
       drag.lastX = e.clientX;
       drag.lastTime = performance.now();
       drag.velocityX = 0;
+      mobileSpringVelRef.current = 0;
       mobileDragMovedRef.current = false;
       setDraggingUi(false);
       mobileDragRef.current = {
@@ -629,9 +749,9 @@ export function ServiciosCarousel() {
       const dy = e.clientY - drag.startY;
       const now = performance.now();
       const dt = now - drag.lastTime;
-      if (dt > 0 && dt < 80) {
+      if (dt > 0 && dt < 100) {
         const instantV = (e.clientX - drag.lastX) / dt;
-        drag.velocityX = drag.velocityX * 0.55 + instantV * 0.45;
+        drag.velocityX = drag.velocityX * 0.38 + instantV * 0.62;
       }
       drag.lastX = e.clientX;
       drag.lastTime = now;

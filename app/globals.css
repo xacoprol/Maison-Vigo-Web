@@ -3064,6 +3064,15 @@ a.contact-line:focus-visible .contact-text {
   }
   .servicios-carousel__cell {
     overflow: hidden;
+    transform-origin: center center;
+    will-change: transform, opacity;
+  }
+  .servicios-carousel__photo-layer {
+    transition-duration: 0.72s;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .servicios-carousel.is-dragging .servicios-carousel__photo-layer {
+    transition-duration: 0.48s;
   }
   .servicios-carousel__orb {
     touch-action: none;
@@ -3079,6 +3088,8 @@ a.contact-line:focus-visible .contact-text {
     height: auto;
     max-height: 100%;
     will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
   .servicios-carousel__label {
     font-size: clamp(11px, 3.1vw, 18px);
