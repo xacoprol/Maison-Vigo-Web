@@ -15,10 +15,12 @@ export function SiteShell() {
   return (
     <>
       <div
-        className="cookie-banner"
+        className="cookie-banner cookie-banner--awaiting"
         id="cookieBanner"
-        role="status"
+        role="dialog"
         aria-live="polite"
+        aria-label="Consentimiento de cookies"
+        aria-hidden="true"
       >
         <p className="cookie-banner-text">
           Este sitio recopila{" "}
