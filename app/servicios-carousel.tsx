@@ -107,17 +107,16 @@ function repositionMobileLoop(
   return translate;
 }
 
-function snapTranslateInfinite(
+function snapTranslateMobile(
   translate: number,
   cellW: number,
-  cellCount: number,
   centerX: number,
 ): { translate: number; index: number } {
-  let bestIdx = 0;
-  let bestTranslate = translate;
+  let bestIdx = N;
   let bestDist = Infinity;
+  let bestTranslate = translate;
 
-  for (let i = 0; i < cellCount; i += 1) {
+  for (let i = N; i < N * 2; i += 1) {
     const snapTranslate = translateForIndex(i, cellW, centerX);
     const dist = Math.abs(snapTranslate - translate);
     if (dist < bestDist) {
@@ -128,6 +127,15 @@ function snapTranslateInfinite(
   }
 
   return { translate: bestTranslate, index: bestIdx };
+}
+
+function mobileTranslateFromIndex(
+  loopIndex: number,
+  cellW: number,
+  centerX: number,
+): number {
+  const idx = N + normalizeMobileIndex(loopIndex);
+  return translateForIndex(idx, cellW, centerX);
 }
 
 function subscribeMediaQuery(
@@ -162,8 +170,8 @@ function springStepMobile(
   velocity: number,
   dt = 1 / 60,
 ): { value: number; velocity: number } {
-  const stiffness = 168;
-  const damping = 21;
+  const stiffness = 175;
+  const damping = 24;
   const accel = (target - current) * stiffness - velocity * damping;
   const nextVelocity = velocity + accel * dt;
   const nextValue = current + nextVelocity * dt;
@@ -256,6 +264,10 @@ export function ServiciosCarousel() {
   /** Foto visible: solo cambia cuando el slide queda asentado. */
   const [photoId, setPhotoId] = useState<ServiceId>("Grooming");
   const photoIdRef = useRef<ServiceId>("Grooming");
+  /** Índice lógico del slide activo (0..N-1) en el bloque central. */
+  const mobileSlideIndexRef = useRef(0);
+  const mobileCellWRef = useRef(0);
+  const mobileAnimatingRef = useRef(false);
   const hasInitializedRef = useRef(false);
   const lastMobileLayoutRef = useRef<boolean | null>(null);
   const [highlightedId, setHighlightedId] = useState<ServiceId>("Grooming");
@@ -327,11 +339,22 @@ export function ServiciosCarousel() {
       if (next !== translate) {
         currentRef.current = next;
         targetRef.current = next;
+        mobileSlideIndexRef.current = normalizeMobileIndex(
+          indexFromTranslate(next, cellW, centerX),
+        );
       }
       return next;
     },
     [],
   );
+
+  const isMobileInteractionLocked = useCallback(() => {
+    return (
+      mobileDragRef.current.active ||
+      mobileAnimatingRef.current ||
+      Math.abs(mobileSpringVelRef.current) > 0.25
+    );
+  }, []);
 
   /** Orbe activo según proximidad al centro (móvil: actualiza en tiempo real). */
   const syncHighlightFromTranslate = useCallback(
@@ -374,6 +397,8 @@ export function ServiciosCarousel() {
       : ORDER_DESKTOP.length;
     if (cells.length !== expectedCellCount) return false;
 
+    if (mobile && isMobileInteractionLocked()) return true;
+
     const cs = window.getComputedStyle(vp);
     const padX =
       (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
@@ -395,6 +420,7 @@ export function ServiciosCarousel() {
 
     const cw = cellW;
     if (cw < 8 || vw < 8) return false;
+    if (mobile) mobileCellWRef.current = cw;
 
     if (mobile) {
       const padT = parseFloat(cs.paddingTop) || 0;
@@ -430,28 +456,28 @@ export function ServiciosCarousel() {
     if (!shouldReset) {
       if (mobile) {
         const contentCenter = viewportContentCenterX(vp);
-        nextTranslate = repositionMobileLoop(prevTarget, cw, contentCenter);
-        if (!mobileDragRef.current.active) {
-          nextTranslate = snapTranslateInfinite(
-            nextTranslate,
-            cw,
-            cells.length,
-            contentCenter,
-          ).translate;
-        }
+        nextTranslate = mobileTranslateFromIndex(
+          mobileSlideIndexRef.current,
+          cw,
+          contentCenter,
+        );
       } else {
         nextTranslate = clampTranslate(prevTarget, maxT);
       }
+    } else if (mobile) {
+      mobileSlideIndexRef.current = 0;
     }
 
     currentRef.current = nextTranslate;
     targetRef.current = nextTranslate;
+    mobileSpringVelRef.current = 0;
+    mobileAnimatingRef.current = false;
+
     applyTransform(nextTranslate);
     syncHighlightFromTranslate(nextTranslate, cw, trackLabelsFor(mobile));
     if (mobile) {
       updateMobileOrbDepth(nextTranslate, cw);
-      const contentCenter = viewportContentCenterX(vp);
-      commitPhotoFromLoopIndex(indexFromTranslate(nextTranslate, cw, contentCenter));
+      commitPhotoFromLoopIndex(N + mobileSlideIndexRef.current);
     } else {
       clearMobileOrbDepth();
       commitPhoto(highlightedIdRef.current);
@@ -465,6 +491,7 @@ export function ServiciosCarousel() {
     clearMobileOrbDepth,
     commitPhoto,
     commitPhotoFromLoopIndex,
+    isMobileInteractionLocked,
     syncHighlightFromTranslate,
     updateMobileOrbDepth,
   ]);
@@ -473,7 +500,7 @@ export function ServiciosCarousel() {
   const measureWithRetry = useCallback(() => {
     if (measure()) return;
     let attempts = 0;
-    const maxAttempts = 48;
+    const maxAttempts = 64;
     const tick = () => {
       if (measure() || attempts >= maxAttempts) return;
       attempts += 1;
@@ -482,36 +509,37 @@ export function ServiciosCarousel() {
     requestAnimationFrame(tick);
   }, [measure]);
 
+  const safeMeasureWithRetry = useCallback(() => {
+    if (isMobileRef.current && isMobileInteractionLocked()) return;
+    measureWithRetry();
+  }, [isMobileInteractionLocked, measureWithRetry]);
+
   useLayoutEffect(() => {
     reducedMotionRef.current = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    if (lastMobileLayoutRef.current !== isMobile) {
+    const layoutChanged = lastMobileLayoutRef.current !== isMobile;
+    if (layoutChanged) {
       hasInitializedRef.current = false;
+      mobileSlideIndexRef.current = 0;
     }
     isMobileRef.current = isMobile;
     measureWithRetry();
   }, [isMobile, measureWithRetry]);
 
-  /** Tras hidratar, el track pasa de 5→15 celdas: forzar remeasure. */
   useEffect(() => {
-    hasInitializedRef.current = false;
-    measureWithRetry();
-  }, [isMobile, measureWithRetry]);
-
-  useEffect(() => {
-    measureWithRetry();
-    const ro = new ResizeObserver(() => measureWithRetry());
+    safeMeasureWithRetry();
+    const ro = new ResizeObserver(() => safeMeasureWithRetry());
     const vp = viewportRef.current;
     const tr = trackRef.current;
     if (vp) ro.observe(vp);
     if (tr) ro.observe(tr);
-    window.addEventListener("resize", measureWithRetry);
+    window.addEventListener("resize", safeMeasureWithRetry);
 
-    const onFontsReady = () => measureWithRetry();
+    const onFontsReady = () => safeMeasureWithRetry();
     document.fonts?.ready.then(onFontsReady);
 
-    const onIntroComplete = () => measureWithRetry();
+    const onIntroComplete = () => safeMeasureWithRetry();
     document.body.addEventListener("mv-intro-complete", onIntroComplete);
 
     const revealLayer = document.querySelector(
@@ -520,27 +548,23 @@ export function ServiciosCarousel() {
     const revealObserver =
       revealLayer &&
       new MutationObserver(() => {
-        if (revealLayer.classList.contains("visible")) measureWithRetry();
+        if (revealLayer.classList.contains("visible")) safeMeasureWithRetry();
       });
     if (revealLayer && revealObserver) {
       revealObserver.observe(revealLayer, {
         attributes: true,
         attributeFilter: ["class"],
       });
-      if (revealLayer.classList.contains("visible")) measureWithRetry();
+      if (revealLayer.classList.contains("visible")) safeMeasureWithRetry();
     }
 
     return () => {
       ro.disconnect();
       revealObserver?.disconnect();
-      window.removeEventListener("resize", measureWithRetry);
+      window.removeEventListener("resize", safeMeasureWithRetry);
       document.body.removeEventListener("mv-intro-complete", onIntroComplete);
     };
-  }, [measureWithRetry]);
-
-  useEffect(() => {
-    measureWithRetry();
-  }, [isMobile, measureWithRetry]);
+  }, [safeMeasureWithRetry]);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -590,7 +614,7 @@ export function ServiciosCarousel() {
         ([entry]) => {
           const visible = Boolean(entry?.isIntersecting);
           sectionInViewRef.current = visible;
-          if (visible) measureWithRetry();
+          if (visible) safeMeasureWithRetry();
         },
         { rootMargin: "20% 0px", threshold: 0 },
       );
@@ -607,6 +631,7 @@ export function ServiciosCarousel() {
           next = tgt;
           currentRef.current = next;
           mobileSpringVelRef.current = 0;
+          mobileAnimatingRef.current = false;
         } else if (isMobileRef.current) {
           if (reducedMotionRef.current) {
             next = targetRef.current;
@@ -621,24 +646,36 @@ export function ServiciosCarousel() {
             mobileSpringVelRef.current = spring.velocity;
           }
           currentRef.current = next;
+          mobileAnimatingRef.current =
+            Math.abs(mobileSpringVelRef.current) > 0.25 ||
+            Math.abs(next - targetRef.current) > 0.5;
 
           const vp = viewportRef.current;
           const tr = trackRef.current;
-          if (vp && tr && !dragging) {
+          if (vp && tr) {
             const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-            const cw = cells[0]?.offsetWidth ?? 0;
+            const cw = cells[0]?.offsetWidth ?? mobileCellWRef.current;
             if (cw >= 8) {
               const centerX = viewportContentCenterX(vp);
-              const settled =
-                Math.abs(mobileSpringVelRef.current) < 0.12 &&
-                Math.abs(next - targetRef.current) < 0.6;
-              if (settled) {
+              const loopIdx = indexFromTranslate(next, cw, centerX);
+              if (loopIdx < N || loopIdx >= N * 2) {
                 const reposed = applyMobileLoopReposition(next, cw, centerX);
                 if (reposed !== next) {
+                  next = reposed;
+                  currentRef.current = reposed;
                   applyTransform(reposed);
                 }
-                commitPhotoFromLoopIndex(
+              }
+
+              const settled =
+                !mobileAnimatingRef.current &&
+                Math.abs(next - targetRef.current) < 0.5;
+              if (settled) {
+                mobileSlideIndexRef.current = normalizeMobileIndex(
                   indexFromTranslate(currentRef.current, cw, centerX),
+                );
+                commitPhotoFromLoopIndex(
+                  N + mobileSlideIndexRef.current,
                 );
               }
             }
@@ -688,7 +725,7 @@ export function ServiciosCarousel() {
     applyTransform,
     applyMobileLoopReposition,
     commitPhotoFromLoopIndex,
-    measureWithRetry,
+    safeMeasureWithRetry,
     setHighlight,
     syncHighlightFromTranslate,
     updateMobileOrbDepth,
@@ -711,14 +748,15 @@ export function ServiciosCarousel() {
     if (cw < 8) return;
 
     const centerX = viewportContentCenterX(vp);
-    const { translate, index } = snapTranslateInfinite(
+    const { translate, index } = snapTranslateMobile(
       targetRef.current,
       cw,
-      cells.length,
       centerX,
     );
 
     targetRef.current = translate;
+    currentRef.current = translate;
+    mobileSlideIndexRef.current = normalizeMobileIndex(index);
     const label = ORDER_MOBILE[normalizeMobileIndex(index)];
     if (label) setHighlight(label);
   }, [setHighlight]);
@@ -747,6 +785,9 @@ export function ServiciosCarousel() {
 
       targetRef.current = next;
       currentRef.current = next;
+      mobileSlideIndexRef.current = normalizeMobileIndex(
+        indexFromTranslate(next, cw, centerX),
+      );
       applyTransform(next);
       syncHighlightFromTranslate(next, cw, trackLabelsFor(true));
       updateMobileOrbDepth(next, cw);
@@ -769,14 +810,14 @@ export function ServiciosCarousel() {
             releaseX = repositionMobileLoop(releaseX, cw, centerX);
             const flingPx = velocityX * 360;
             const projected = releaseX + flingPx;
-            const { translate, index } = snapTranslateInfinite(
+            const { translate, index } = snapTranslateMobile(
               projected,
               cw,
-              cells.length,
               centerX,
             );
             releaseX = translate;
-            const label = ORDER_MOBILE[normalizeMobileIndex(index)];
+            mobileSlideIndexRef.current = normalizeMobileIndex(index);
+            const label = ORDER_MOBILE[mobileSlideIndexRef.current];
             if (label) setHighlight(label);
           } else {
             snapMobileToNearest();
@@ -787,20 +828,14 @@ export function ServiciosCarousel() {
 
         targetRef.current = releaseX;
         if (!reducedMotionRef.current) {
-          mobileSpringVelRef.current = velocityX * 720;
+          mobileSpringVelRef.current = velocityX * 680;
+          mobileAnimatingRef.current = true;
         } else {
           mobileSpringVelRef.current = 0;
+          mobileAnimatingRef.current = false;
           currentRef.current = releaseX;
-          if (tr && vp) {
-            const cells = tr.querySelectorAll<HTMLElement>(".servicios-carousel__cell");
-            const cw = cells[0]?.offsetWidth ?? 0;
-            if (cw >= 8) {
-              const centerX = viewportContentCenterX(vp);
-              commitPhotoFromLoopIndex(
-                indexFromTranslate(releaseX, cw, centerX),
-              );
-            }
-          }
+          applyTransform(releaseX);
+          commitPhotoFromLoopIndex(N + mobileSlideIndexRef.current);
         }
       }
       setDraggingUi(false);
@@ -812,9 +847,10 @@ export function ServiciosCarousel() {
       };
       window.setTimeout(() => {
         mobileDragMovedRef.current = false;
+        safeMeasureWithRetry();
       }, 0);
     },
-    [setDraggingUi, setHighlight, snapMobileToNearest, commitPhotoFromLoopIndex],
+    [setDraggingUi, setHighlight, snapMobileToNearest, commitPhotoFromLoopIndex, safeMeasureWithRetry],
   );
 
   const lenisPausedForDragRef = useRef(false);
@@ -854,21 +890,32 @@ export function ServiciosCarousel() {
 
       pauseLenisForDrag();
 
+      let startTarget = currentRef.current;
+      const tr = trackRef.current;
+      const cw = mobileCellWRef.current;
+      if (tr && cw >= 8) {
+        const centerX = viewportContentCenterX(vp);
+        startTarget = repositionMobileLoop(startTarget, cw, centerX);
+        currentRef.current = startTarget;
+        targetRef.current = startTarget;
+      }
+
       drag.pointerId = e.pointerId;
       drag.startX = e.clientX;
       drag.startY = e.clientY;
-      drag.startTarget = targetRef.current;
+      drag.startTarget = startTarget;
       drag.axis = null;
       drag.lastX = e.clientX;
       drag.lastTime = performance.now();
       drag.velocityX = 0;
       mobileSpringVelRef.current = 0;
+      mobileAnimatingRef.current = false;
       mobileDragMovedRef.current = false;
       setDraggingUi(false);
       mobileDragRef.current = {
         pointerId: e.pointerId,
         startX: e.clientX,
-        startTarget: targetRef.current,
+        startTarget,
         active: false,
       };
     };
