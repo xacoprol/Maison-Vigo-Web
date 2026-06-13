@@ -104,6 +104,7 @@
   padding-inline: var(--espacio-mobile-pad-x);
   padding-right: calc(var(--espacio-mobile-pad-x) + clamp(8px, 2vw, 16px));
   max-width: none;
+  touch-action: pan-y;
   font-family: var(--ff-sans);
   font-size: clamp(11px, 3.1vw, 16px);
   font-weight: 400;

@@ -2,12 +2,7 @@
 
 import Image from "next/image";
 import { useKeenSlider } from "keen-slider/react";
-import {
-  useCallback,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 
 import { espacioPanels } from "@/lib/espacio-panels";
 
@@ -54,7 +49,6 @@ function CarouselArrow({ direction, disabled, onClick }: CarouselArrowProps) {
 }
 
 export function EspacioMobileSection() {
-  const lenisPausedRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const reducedMotion = useSyncExternalStore(
@@ -62,18 +56,6 @@ export function EspacioMobileSection() {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     () => false,
   );
-
-  const pauseLenis = useCallback(() => {
-    if (lenisPausedRef.current) return;
-    window.__mvLenis?.stop();
-    lenisPausedRef.current = true;
-  }, []);
-
-  const resumeLenis = useCallback(() => {
-    if (!lenisPausedRef.current) return;
-    window.__mvLenis?.start();
-    lenisPausedRef.current = false;
-  }, []);
 
   const [sliderRef, sliderRefApi] = useKeenSlider<HTMLDivElement>(
     {
@@ -96,8 +78,6 @@ export function EspacioMobileSection() {
       slideChanged(slider) {
         setActiveIndex(slider.track.details.rel);
       },
-      dragStarted: pauseLenis,
-      dragEnded: resumeLenis,
     },
     [],
   );
@@ -119,11 +99,7 @@ export function EspacioMobileSection() {
       aria-label="Espacio editorial Maison Vigo"
     >
       <div className="espacio-mobile__carousel">
-        <div
-          ref={sliderRef}
-          className="espacio-mobile__slider keen-slider"
-          data-lenis-prevent
-        >
+        <div ref={sliderRef} className="espacio-mobile__slider keen-slider">
           {espacioPanels.map((panel) => (
             <article
               key={panel.id}
