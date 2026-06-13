@@ -15,7 +15,7 @@ export function SiteShell() {
   return (
     <>
       <div
-        className="cookie-banner cookie-banner--awaiting"
+        className="cookie-banner cookie-banner--awaiting cookie-banner--hidden"
         id="cookieBanner"
         role="dialog"
         aria-live="polite"

@@ -23,6 +23,8 @@ import { isMobileSiteNav } from "@/lib/nav-mobile";
  * específicas de la home se quedan en `<HomeEffects />`.
  */
 const lenisEase = (t: number) => 1 - Math.pow(1 - t, 3);
+/** Desactivar para ocultar el banner de cookies sin quitar el markup. */
+const COOKIE_BANNER_ENABLED = false;
 
 export function SiteEffects() {
   const router = useRouter();
@@ -184,6 +186,11 @@ export function SiteEffects() {
     let cookieIntroFallbackTimer: number | undefined;
     const onCookieIntroComplete = () => revealCookieBanner();
     const initCookieBanner = () => {
+      if (!COOKIE_BANNER_ENABLED) {
+        hideCookieBanner();
+        return;
+      }
+
       const consent = getStoredConsent();
       if (consent === "accepted" || consent === "rejected") {
         hideCookieBanner();
