@@ -94,8 +94,8 @@ export const espacioPanels: EspacioPanel[] = [
         respeto por el ritmo de cada perro.
       </>
     ),
-    image: "/assets/images/la-bienvenida.webp",
-    imageAlt: "Detalle del espacio de bienvenida Maison Vigo.",
+    image: "/assets/images/grooming-room.webp",
+    imageAlt: "Detalle del grooming room Maison Vigo.",
     modifier: "espacio__panel--four",
   },
 ];
