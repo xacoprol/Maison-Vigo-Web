@@ -2090,6 +2090,14 @@ img.concepto-quote-mark {
   border-radius: 999px;
   background: transparent;
 }
+.servicios-carousel .servicios-carousel__badge {
+  border-radius: 999px;
+  background: var(--servicios-bg, #050505);
+}
+.servicios-carousel .servicios-carousel__badge-disc {
+  inset: 0;
+  background: var(--servicios-bg, #050505);
+}
 .servicios-carousel__plus {
   position: relative;
   z-index: 1;
