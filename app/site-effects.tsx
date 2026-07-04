@@ -97,8 +97,21 @@ export function SiteEffects() {
         easing: lenisEase,
         wheelMultiplier: 0.9,
         touchMultiplier: 1,
-        prevent: (node) =>
-          node.closest(".servicios-carousel__viewport") !== null,
+        /**
+         * Desktop: El espacio usa scroll vertical para el carril horizontal — no
+         * bloquear nunca. Móvil: solo pausar Lenis al arrastrar carruseles.
+         */
+        prevent: (node) => {
+          if (!window.matchMedia("(max-width: 900px)").matches) {
+            return false;
+          }
+          const espacioMobile = node.closest(".espacio-mobile");
+          if (espacioMobile?.classList.contains("is-dragging")) {
+            return true;
+          }
+          const serviciosCarousel = node.closest(".servicios-carousel");
+          return serviciosCarousel?.classList.contains("is-dragging") ?? false;
+        },
       });
 
       const lenisRaf = (time: number) => {

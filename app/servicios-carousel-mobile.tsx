@@ -222,7 +222,6 @@ export function ServiciosCarouselMobile() {
 
       <div
         className="servicios-carousel__viewport"
-        data-lenis-prevent-touch=""
       >
         <div
           ref={sliderRef}

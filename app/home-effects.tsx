@@ -132,8 +132,10 @@ export function HomeEffects() {
     const serviciosCarouselReveal = document.querySelector<HTMLElement>(
       ".servicios-carousel-wrap.reveal",
     );
+    const espacioDesktopSection = document.querySelector<HTMLElement>(
+      ".espacio[data-espacio]",
+    );
     let serviciosParallaxTarget = 0;
-    let serviciosParallaxCurrent = 0;
     let lastScrollY = window.scrollY;
 
     const hasSeenIntroRecently = () =>
@@ -207,63 +209,49 @@ export function HomeEffects() {
     const updateServiciosParallaxTarget = () => {
       if (!serviciosSection || prefersReducedMotion) {
         serviciosParallaxTarget = 0;
+        serviciosSection?.style.setProperty("--servicios-parallax", "0");
         return;
       }
+
+      /**
+       * Desktop: mientras El espacio sigue visible (scroll horizontal por
+       * scroll vertical), no activar parallax de servicios — evita choque al
+       * pasar de una sección a otra.
+       */
+      if (
+        espacioDesktopSection &&
+        !window.matchMedia("(max-width: 900px)").matches
+      ) {
+        const espacioRect = espacioDesktopSection.getBoundingClientRect();
+        if (espacioRect.bottom > 0) {
+          serviciosParallaxTarget = 0;
+          serviciosSection.style.setProperty("--servicios-parallax", "0");
+          return;
+        }
+      }
+
       const ih = window.innerHeight;
       const anchor = serviciosCarouselEl ?? serviciosSection;
       const sr = anchor.getBoundingClientRect();
       if (sr.bottom <= 0) {
         serviciosParallaxTarget = sr.top < 0 ? 1 : 0;
-        return;
-      }
-      if (sr.top >= ih) {
+      } else if (sr.top >= ih) {
         serviciosParallaxTarget = 0;
-        return;
-      }
-      const focusY = sr.top + sr.height * 0.38;
-      const rangeStart = ih * 0.96;
-      const rangeEnd = ih * 0.28;
-      serviciosParallaxTarget =
-        (rangeStart - focusY) / Math.max(rangeStart - rangeEnd, 1);
-      serviciosParallaxTarget = Math.min(
-        Math.max(serviciosParallaxTarget, 0),
-        1,
-      );
-    };
-
-    let serviciosRafId = 0;
-    const tickServiciosParallax = () => {
-      if (!serviciosSection) {
-        serviciosRafId = 0;
-        return;
-      }
-      if (prefersReducedMotion) {
-        serviciosSection.style.setProperty("--servicios-parallax", "0");
-        serviciosParallaxCurrent = 0;
-        serviciosParallaxTarget = 0;
-        serviciosRafId = 0;
-        return;
-      }
-      const diff = serviciosParallaxTarget - serviciosParallaxCurrent;
-      if (Math.abs(diff) < 0.0006) {
-        serviciosParallaxCurrent = serviciosParallaxTarget;
       } else {
-        serviciosParallaxCurrent += diff * 0.13;
+        const focusY = sr.top + sr.height * 0.38;
+        const rangeStart = ih * 0.96;
+        const rangeEnd = ih * 0.28;
+        serviciosParallaxTarget =
+          (rangeStart - focusY) / Math.max(rangeStart - rangeEnd, 1);
+        serviciosParallaxTarget = Math.min(
+          Math.max(serviciosParallaxTarget, 0),
+          1,
+        );
       }
       serviciosSection.style.setProperty(
         "--servicios-parallax",
-        serviciosParallaxCurrent.toFixed(3),
+        serviciosParallaxTarget.toFixed(3),
       );
-      if (serviciosParallaxCurrent !== serviciosParallaxTarget) {
-        serviciosRafId = window.requestAnimationFrame(tickServiciosParallax);
-      } else {
-        serviciosRafId = 0;
-      }
-    };
-    const ensureServiciosRaf = () => {
-      if (!serviciosRafId) {
-        serviciosRafId = window.requestAnimationFrame(tickServiciosParallax);
-      }
     };
 
     const runScrollEffects = (scrollY?: number) => {
@@ -328,7 +316,6 @@ export function HomeEffects() {
         }
       }
       updateServiciosParallaxTarget();
-      ensureServiciosRaf();
       if (!serviciosTitleRevealed && serviciosHeadingDisplay) {
         const hr = serviciosHeadingDisplay.getBoundingClientRect();
         if (hr.top < ih * 0.58) {
@@ -378,9 +365,6 @@ export function HomeEffects() {
         window.removeEventListener("resize", onResizeIntro);
       }
       window.removeEventListener("mv-scroll", onMvScroll);
-      if (serviciosRafId) {
-        window.cancelAnimationFrame(serviciosRafId);
-      }
       navbar.classList.remove("nav-hidden");
       if (heroSection) {
         heroSection.style.setProperty("--hero-scroll-progress", "0");

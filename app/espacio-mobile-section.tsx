@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useKeenSlider } from "keen-slider/react";
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { espacioPanels } from "@/lib/espacio-panels";
 
@@ -49,6 +49,8 @@ function CarouselArrow({ direction, disabled, onClick }: CarouselArrowProps) {
 }
 
 export function EspacioMobileSection() {
+  const rootRef = useRef<HTMLElement>(null);
+  const lenisPausedRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const reducedMotion = useSyncExternalStore(
@@ -56,6 +58,18 @@ export function EspacioMobileSection() {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     () => false,
   );
+
+  const pauseLenis = useCallback(() => {
+    if (lenisPausedRef.current) return;
+    window.__mvLenis?.stop();
+    lenisPausedRef.current = true;
+  }, []);
+
+  const resumeLenis = useCallback(() => {
+    if (!lenisPausedRef.current) return;
+    window.__mvLenis?.start();
+    lenisPausedRef.current = false;
+  }, []);
 
   const [sliderRef, sliderRefApi] = useKeenSlider<HTMLDivElement>(
     {
@@ -78,9 +92,19 @@ export function EspacioMobileSection() {
       slideChanged(slider) {
         setActiveIndex(slider.track.details.rel);
       },
+      dragStarted() {
+        rootRef.current?.classList.add("is-dragging");
+        pauseLenis();
+      },
+      dragEnded() {
+        rootRef.current?.classList.remove("is-dragging");
+        resumeLenis();
+      },
     },
     [],
   );
+
+  useEffect(() => () => resumeLenis(), [resumeLenis]);
 
   const goPrev = useCallback(() => {
     sliderRefApi.current?.prev();
@@ -94,6 +118,7 @@ export function EspacioMobileSection() {
 
   return (
     <section
+      ref={rootRef}
       className="espacio-mobile"
       data-espacio-mobile
       aria-label="Espacio editorial Maison Vigo"
