@@ -133,7 +133,7 @@ export function ContactFormSection() {
     >
       <div className="contact-form-section__media" aria-hidden={true}>
         <Image
-          src="/assets/images/la-bienvenida.webp"
+          src="/assets/images/contacto-footer.webp"
           alt=""
           fill
           className="contact-form-section__img"
