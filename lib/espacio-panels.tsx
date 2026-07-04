@@ -50,7 +50,7 @@ export const espacioPanels: EspacioPanel[] = [
         acompañan la llegada antes de cada sesión.
       </>
     ),
-    image: "/assets/images/la-bienvenida.webp",
+    image: "/assets/images/contacto-footer.webp",
     imageAlt: "Detalle del espacio de bienvenida Maison Vigo.",
     modifier: "espacio__panel--two",
   },
