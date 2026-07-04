@@ -50,6 +50,18 @@ const MOBILE_HEADLINE_TRANS = 0.48;
 const MOBILE_HEADLINE_EASE = "power1.inOut";
 const MOBILE_HEADLINE_OFF = 138;
 
+function slideshowProgressForIndex(index: number, slideCount: number) {
+  return slideCount <= 1 ? 0 : index / (slideCount - 1);
+}
+
+function slideshowIndexFromProgress(progress: number, slideCount: number) {
+  if (slideCount <= 1) return 0;
+  return Math.min(
+    slideCount - 1,
+    Math.floor(progress * (slideCount - 1) + 0.001),
+  );
+}
+
 type SlideshowElements = {
   captions: HTMLElement[];
   headlineLine1: HTMLElement[];
@@ -253,28 +265,28 @@ function transitionSlideshowSlides(
     to,
     at,
   );
-  tl.set(slideEls[to], { zIndex: 4 }, at - trans * 0.15);
+  tl.set(slideEls[to], { zIndex: 4 }, at - trans);
   tl.fromTo(
     clips[to],
     { clipPath: "inset(100% 0% 0% 0%)" },
     {
       clipPath: "inset(0% 0% 0% 0%)",
-      duration: trans * 1.4,
+      duration: trans,
       ease: "power2.inOut",
     },
-    at - trans * 0.1,
+    at - trans,
   );
   tl.fromTo(
     images[to],
     { scale: 1.15 },
-    { scale: 1, duration: trans * 0.95, ease: "power1.out" },
-    at,
+    { scale: 1, duration: trans, ease: "power1.out" },
+    at - trans,
   );
   tl.fromTo(
     captions[to],
     { opacity: 0 },
     { opacity: 1, duration: trans * 0.65, ease: "power1.out" },
-    at + trans * 0.08,
+    at - trans * 0.35,
   );
 }
 
@@ -498,8 +510,7 @@ export function ServicioScrollCarousel({
       const slideCount = slides.length;
       if (slideCount === 0) return false;
 
-      const progress =
-        slideCount <= 1 ? 0 : index / Math.max(slideCount - 1, 1);
+      const progress = slideshowProgressForIndex(index, slideCount);
 
       const trigger =
         scrollTriggerRef.current ??
@@ -514,21 +525,23 @@ export function ServicioScrollCarousel({
       const lenis = window.__mvLenis;
       const immediate = options?.immediate ?? true;
 
+      const syncScroll = () => {
+        window.ScrollTrigger?.update();
+      };
+
       if (lenis) {
-        lenis.stop();
+        lenis.start();
         lenis.scrollTo(scrollY, {
           immediate,
-          ...(immediate ? {} : { duration: 0.55 }),
-          onComplete: () => {
-            window.ScrollTrigger?.update();
-          },
+          duration: immediate ? 0 : 0.55,
+          force: true,
+          programmatic: true,
+          onComplete: syncScroll,
         });
-        if (immediate) {
-          window.ScrollTrigger?.update();
-        }
+        syncScroll();
       } else {
         trigger.scroll(scrollY);
-        window.ScrollTrigger?.update();
+        syncScroll();
       }
 
       return true;
@@ -575,12 +588,12 @@ export function ServicioScrollCarousel({
 
       if (index === activeStepRef.current) return;
 
-      const from = activeStepRef.current;
-      const isAdjacent = Math.abs(index - from) === 1;
-
-      if (!scrollToSlideshowProgress(index, { immediate: !isAdjacent })) {
+      if (!scrollToSlideshowProgress(index, { immediate: true })) {
         pendingSlideRef.current = index;
+        return;
       }
+
+      setActiveStepUi(index);
     },
     [runMobileTransition, scrollToSlideshowProgress, setActiveStepUi, slides.length],
   );
@@ -730,11 +743,7 @@ export function ServicioScrollCarousel({
             anticipatePin: 0,
             invalidateOnRefresh: false,
             onUpdate: (self: { progress: number }) => {
-              const idx = Math.min(
-                slideCount - 1,
-                Math.max(0, Math.floor(self.progress * slideCount * 0.999)),
-              );
-              setActiveStepUi(idx);
+              setActiveStepUi(slideshowIndexFromProgress(self.progress, slideCount));
             },
           },
         });
@@ -794,44 +803,45 @@ export function ServicioScrollCarousel({
           );
         };
 
-        lockDesktopHeadlineSlide(0, 0);
-
         const transitionTo = (from: number, to: number, at: number) => {
+          const windowStart = at - TRANS;
           tl.to(
             captions[from],
             { opacity: 0, duration: TRANS * 0.5, ease: "power1.inOut" },
-            at - TRANS,
+            windowStart,
           );
           pushDesktopHeadlineSlide(from, to, at);
           lockDesktopHeadlineSlide(to, at);
-          tl.set(slideEls[to], { zIndex: 4 }, at - TRANS * 0.15);
+          tl.set(slideEls[to], { zIndex: 4 }, windowStart);
           tl.fromTo(
             clips[to],
             { clipPath: "inset(100% 0% 0% 0%)" },
             {
               clipPath: "inset(0% 0% 0% 0%)",
-              duration: TRANS * 1.4,
+              duration: TRANS,
               ease: "power2.inOut",
             },
-            at - TRANS * 0.1,
+            windowStart,
           );
           tl.fromTo(
             images[to],
             { scale: 1.15 },
-            { scale: 1, duration: SEG * 0.8 },
-            at,
+            { scale: 1, duration: TRANS, ease: "power1.out" },
+            windowStart,
           );
           tl.fromTo(
             captions[to],
             { opacity: 0 },
             { opacity: 1, duration: TRANS * 0.65, ease: "power1.out" },
-            at + TRANS * 0.08,
+            windowStart + TRANS * 0.15,
           );
         };
 
-        transitionTo(0, 1, SEG);
-        transitionTo(1, 2, SEG * 2);
-        tl.to(images[2], { scale: 1, duration: SEG * 0.8 }, SEG * 2);
+        lockDesktopHeadlineSlide(0, 0);
+
+        for (let i = 0; i < slideCount - 1; i += 1) {
+          transitionTo(i, i + 1, SEG * (i + 1));
+        }
 
         setActiveStepUi(0);
         ScrollTrigger.refresh();
