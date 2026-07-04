@@ -159,14 +159,6 @@ export function SiteShell() {
                 MV CARE
               </Link>
             </div>
-            <div className="mobile-menu-secondary">
-              <a
-                href="/#contacto"
-                className="mob-link mob-link--secondary mob-link--wave"
-              >
-                <WaveText text="Contacto" />
-              </a>
-            </div>
           </div>
         </div>
 
