@@ -71,8 +71,8 @@ export const espacioPanels: EspacioPanel[] = [
         guía cada cuidado en Maison Vigo.
       </>
     ),
-    image: "/assets/images/secado.webp",
-    imageAlt: "Textura visual del ritual de cuidado.",
+    image: "/assets/images/the-selection.webp",
+    imageAlt: "Detalle de The Selection en Maison Vigo.",
     modifier: "espacio__panel--three",
   },
   {
