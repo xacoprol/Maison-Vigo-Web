@@ -2,11 +2,12 @@
  * Configuración única del sitio y “interruptores” de SEO.
  *
  * En cada página nueva: exportar `metadata` con `title` + `description`,
- * y si indexas, añadir la URL en `app/sitemap.ts`.
+ * y añadir la URL en `app/sitemap.ts`.
  *
- * Para lanzamiento en buscadores:
- * - `NEXT_PUBLIC_SITE_URL` = URL canónica (sin barra final)
- * - `NEXT_PUBLIC_ALLOW_INDEXING=true`
+ * Indexación: activa por defecto. Para staging/preview:
+ * `NEXT_PUBLIC_ALLOW_INDEXING=false`
+ *
+ * URL canónica: `NEXT_PUBLIC_SITE_URL` (sin barra final).
  *
  * IA / asistentes: contenido en `/llms.txt` y `/.well-known/llms.txt` (Markdown).
  */
@@ -14,8 +15,15 @@ export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
   "https://www.maisonvigo.es";
 
+/** Imagen social por defecto (Open Graph / Twitter). */
+export const defaultOgImage = "/foto1.jpg";
+
+/**
+ * Indexación activa salvo que se desactive explícitamente
+ * (`NEXT_PUBLIC_ALLOW_INDEXING=false`).
+ */
 export const allowIndexing =
-  process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+  process.env.NEXT_PUBLIC_ALLOW_INDEXING !== "false";
 
 /** Portal de reservas (metadata + JSON-LD + llms.txt). Override con NEXT_PUBLIC_BOOKING_URL si cambia. */
 export const bookingUrl =

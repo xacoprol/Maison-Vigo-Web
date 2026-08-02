@@ -1,8 +1,17 @@
-import { allowIndexing, bookingUrl, siteConfig, siteUrl } from "@/lib/site-config";
+import { legalCompany } from "@/lib/legal/company";
+import {
+  allowIndexing,
+  bookingUrl,
+  defaultOgImage,
+  siteConfig,
+  siteUrl,
+} from "@/lib/site-config";
 
 /** JSON-LD (negocio + sitio + reserva) para buscadores y consumo por agentes de IA. */
 export function SeoJsonLd() {
   if (!allowIndexing) return null;
+
+  const telephone = `+34${legalCompany.phone.replace(/\s/g, "")}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -11,13 +20,25 @@ export function SeoJsonLd() {
         "@type": ["LocalBusiness", "PetGroomer"],
         "@id": `${siteUrl}/#business`,
         name: siteConfig.shortName,
+        legalName: legalCompany.legalName,
         description: siteConfig.defaultDescription,
         url: siteUrl,
+        image: `${siteUrl}${defaultOgImage}`,
+        telephone,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: legalCompany.address,
+          addressLocality: legalCompany.city,
+          addressRegion: legalCompany.province,
+          postalCode: legalCompany.postalCode,
+          addressCountry: "ES",
+        },
         areaServed: {
           "@type": "City",
           name: "Vigo",
         },
         inLanguage: "es",
+        priceRange: "€€",
         knowsAbout: [
           "Peluquería canina",
           "Grooming canino",

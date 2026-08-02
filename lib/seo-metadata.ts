@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 
-import { allowIndexing, siteConfig, siteUrl } from "./site-config";
+import {
+  allowIndexing,
+  defaultOgImage,
+  siteConfig,
+  siteUrl,
+} from "./site-config";
 
 const stagingRobots = {
   index: false,
@@ -36,6 +41,14 @@ export function rootMetadata(): Metadata {
       template: siteConfig.titleTemplate,
     },
     description: siteConfig.defaultDescription,
+    keywords: [
+      "peluquería canina Vigo",
+      "grooming canino",
+      "Maison Vigo",
+      "cuidado perros Vigo",
+      "guardería canina",
+      "bienestar animal",
+    ],
     applicationName: siteConfig.shortName,
     icons: {
       icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
@@ -58,11 +71,20 @@ export function rootMetadata(): Metadata {
       siteName: siteConfig.shortName,
       title: siteConfig.defaultTitle,
       description: siteConfig.defaultDescription,
+      images: [
+        {
+          url: defaultOgImage,
+          width: 1200,
+          height: 1600,
+          alt: siteConfig.shortName,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: siteConfig.defaultTitle,
       description: siteConfig.defaultDescription,
+      images: [defaultOgImage],
     },
     appleWebApp: {
       capable: true,

@@ -28,15 +28,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const servicio = getServicio(slug);
   if (!servicio) return {};
+  const description = servicio.subtitle.replace(/\n/g, " ");
   return {
     title: servicio.title,
-    description: servicio.subtitle,
+    description,
     alternates: { canonical: `/servicios/${servicio.slug}` },
     openGraph: {
       title: `${servicio.title} — ${siteConfig.shortName}`,
-      description: servicio.subtitle,
+      description,
       url: `/servicios/${servicio.slug}`,
-      images: [{ url: servicio.image }],
+      images: [{ url: servicio.image, alt: servicio.imageAlt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${servicio.title} — ${siteConfig.shortName}`,
+      description,
+      images: [servicio.image],
     },
   };
 }

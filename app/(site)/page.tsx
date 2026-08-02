@@ -1,10 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+import { siteConfig } from "@/lib/site-config";
 
 import { ConceptoSection } from "../concepto-section";
 import { EspacioHorizontalSection } from "../espacio-horizontal-section";
 import { HomeEffects } from "../home-effects";
 import { RitmoCuidadoAccordion } from "../ritmo-cuidado-accordion";
 import { ServiciosCarousel } from "../servicios-carousel";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: siteConfig.defaultTitle,
+  },
+  description: siteConfig.defaultDescription,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: siteConfig.defaultTitle,
+    description: siteConfig.defaultDescription,
+    url: "/",
+  },
+};
 
 export default function Home() {
   return (
