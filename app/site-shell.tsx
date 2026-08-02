@@ -3,17 +3,20 @@ import Link from "next/link";
 
 import { bookingUrl } from "@/lib/site-config";
 
+import { CareAssist } from "./care-assist";
 import { ReservaCtaLabel } from "./reserva-cta-label";
 import { WaveText } from "./wave-text";
 
 /**
  * UI persistente que se monta en el `RootLayout`: navbar, menú móvil,
- * panel de reserva, banner de cookies y FAB de WhatsApp. Los handlers
- * interactivos viven en `<SiteEffects />`.
+ * panel de reserva, banner de cookies, FAB de WhatsApp y orientación IA.
+ * Los handlers interactivos viven en `<SiteEffects />`.
  */
 export function SiteShell() {
   return (
     <>
+      <CareAssist />
+
       <div
         className="cookie-banner cookie-banner--awaiting cookie-banner--hidden"
         id="cookieBanner"

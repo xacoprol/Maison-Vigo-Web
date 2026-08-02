@@ -1,0 +1,151 @@
+import { bookingUrl, siteConfig } from "@/lib/site-config";
+import { getServicioServiciosItems } from "@/lib/servicio-servicios-data";
+import { serviciosList, type ServicioSlug } from "@/lib/servicios-data";
+
+export const CARE_ASSIST_MAX_USER_MESSAGES = 6;
+export const CARE_ASSIST_MAX_MESSAGE_CHARS = 400;
+export const CARE_ASSIST_MAX_HISTORY = 12;
+
+export type CareAssistRole = "user" | "assistant";
+
+export type CareAssistMessage = {
+  role: CareAssistRole;
+  content: string;
+};
+
+export type CareAssistChip = {
+  id: string;
+  label: string;
+  prompt: string;
+};
+
+export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
+  {
+    id: "grooming",
+    label: "Manto y estética",
+    prompt: "Mi perro necesita cuidado del manto y la estética. ¿Qué servicio encaja?",
+  },
+  {
+    id: "bienestar",
+    label: "Piel o bienestar",
+    prompt: "Tiene la piel sensible o necesita un seguimiento de bienestar. ¿Qué me recomendáis?",
+  },
+  {
+    id: "guarderia",
+    label: "Guardería de día",
+    prompt: "Busco una guardería de día tranquila y supervisada. ¿Encaja Guardería Familiar?",
+  },
+  {
+    id: "evento",
+    label: "Boda o evento",
+    prompt: "Tengo una boda o evento y quiero acompañamiento para mi perro. ¿Cómo funciona?",
+  },
+  {
+    id: "educacion",
+    label: "Educación",
+    prompt: "Necesitamos ayuda con convivencia, hábitos o educación. ¿Qué ofrecéis?",
+  },
+  {
+    id: "reserva",
+    label: "Quiero reservar",
+    prompt: "Quiero reservar una cita. ¿Cuál es el siguiente paso?",
+  },
+];
+
+export const CARE_ASSIST_SERVICE_SLUGS = new Set<string>(
+  serviciosList.map((s) => s.slug),
+);
+
+export function isServicioSlug(value: unknown): value is ServicioSlug {
+  return typeof value === "string" && CARE_ASSIST_SERVICE_SLUGS.has(value);
+}
+
+function buildServicesCatalog(): string {
+  return serviciosList
+    .map((servicio) => {
+      const offerings = getServicioServiciosItems(servicio.slug)
+        .map((item) => `  - ${item.title}`)
+        .join("\n");
+      return [
+        `### ${servicio.title} (slug: ${servicio.slug})`,
+        `URL: /servicios/${servicio.slug}`,
+        servicio.subtitle.replace(/\n/g, " "),
+        servicio.body,
+        "Incluye:",
+        offerings,
+      ].join("\n");
+    })
+    .join("\n\n");
+}
+
+export function buildCareAssistSystemPrompt(): string {
+  return [
+    `Eres la orientación de cuidado de ${siteConfig.shortName} (Vigo).`,
+    "Hablas en español de España, con calma, claridad y tono editorial — nunca comercial agresivo.",
+    "Tu trabajo: entender qué necesita el perro/familia y orientar hacia UN servicio (o aclarar si hace falta más info).",
+    "Luego invita a reservar o a escribir por WhatsApp si la duda es operativa.",
+    "",
+    "Reglas estrictas:",
+    "- No inventes precios, tarifas, disponibilidad ni huecos de agenda.",
+    "- No des diagnósticos veterinarios ni tratamientos médicos; ante duda de salud, sugiere consultar al veterinario y al equipo en salón.",
+    "- No inventes direcciones, horarios ni teléfonos distintos a los del sitio.",
+    "- No digas que eres ChatGPT u OpenAI; eres orientación de Maison Vigo.",
+    "- Respuestas cortas: 2–4 frases máximo, más una sugerencia clara.",
+    "- Si el usuario quiere reservar, indica que puede hacerlo desde «Reservar cita» en la web (portal de reservas).",
+    `- URL de reserva (referencia): ${bookingUrl}`,
+    "- También pueden contactar por WhatsApp o teléfono del pie de página.",
+    "",
+    "Formato de respuesta: SOLO un JSON válido, sin markdown ni texto fuera del JSON:",
+    '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false}',
+    "serviceSlug: el servicio más adecuado, o null si aún no está claro.",
+    "suggestBooking: true si conviene reservar o pedir cita.",
+    "",
+    "Catálogo de servicios:",
+    buildServicesCatalog(),
+    "",
+    "MV Care: espacio digital del cliente (citas, historial, plan). Página: /mvcare. No gestiones cuentas aquí; orienta a esa página o a reservar.",
+  ].join("\n");
+}
+
+export type CareAssistModelResult = {
+  reply: string;
+  serviceSlug: ServicioSlug | null;
+  suggestBooking: boolean;
+};
+
+export function parseCareAssistModelContent(
+  raw: string,
+): CareAssistModelResult {
+  const trimmed = raw.trim();
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return {
+      reply: trimmed.slice(0, 600) || "Cuéntame un poco más qué necesita tu perro.",
+      serviceSlug: null,
+      suggestBooking: false,
+    };
+  }
+
+  try {
+    const data = JSON.parse(jsonMatch[0]) as {
+      reply?: unknown;
+      serviceSlug?: unknown;
+      suggestBooking?: unknown;
+    };
+    const reply =
+      typeof data.reply === "string" && data.reply.trim()
+        ? data.reply.trim().slice(0, 800)
+        : "Cuéntame un poco más qué necesita tu perro.";
+    return {
+      reply,
+      serviceSlug: isServicioSlug(data.serviceSlug) ? data.serviceSlug : null,
+      suggestBooking: data.suggestBooking === true,
+    };
+  } catch {
+    return {
+      reply: trimmed.slice(0, 600),
+      serviceSlug: null,
+      suggestBooking: false,
+    };
+  }
+}

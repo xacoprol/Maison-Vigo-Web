@@ -25,6 +25,7 @@ Maison Vigo es una peluquería canina en ${siteConfig.regionLabel}. El sitio des
 - **Concepto**: filosofía de trabajo y enfoque por perro.
 - **Cuidado integral**: carrusel interactivo de servicios (Grooming, Bienestar, Guardería familiar, Acompañamiento, Educación).
 - **Espacio y MV CARE**: instalaciones y línea de productos cuando estén publicadas.
+- **Orientación en sitio**: asistente breve que recomienda un servicio y enlaza a reserva; no inventa precios ni disponibilidad.
 
 ## Uso sugerido de esta información
 
