@@ -164,12 +164,9 @@ export function SiteShell() {
             </div>
 
             <div className="mobile-menu-assist">
-              <div className="mobile-menu-assist-copy">
-                <p className="mobile-menu-assist-eyebrow">Orientación</p>
-                <p className="mobile-menu-assist-title">
-                  ¿Qué necesita tu perro?
-                </p>
-              </div>
+              <p className="mobile-menu-assist-title">
+                ¿Qué necesita tu perro?
+              </p>
               <button
                 type="button"
                 className="mobile-menu-assist-cta js-open-care-assist"

@@ -345,19 +345,39 @@ export function CareAssist() {
         </div>
 
         {!limitReached ? (
-          <div className="care-assist-chips" role="list">
-            {CARE_ASSIST_CHIPS.map((chip) => (
-              <button
-                key={chip.id}
-                type="button"
-                className="care-assist-chip"
-                role="listitem"
-                disabled={pending}
-                onClick={() => void sendMessage(chip.prompt)}
-              >
-                {chip.label}
-              </button>
-            ))}
+          <div className="care-assist-chips-block">
+            <p className="care-assist-chips-label" id="care-assist-chips-label">
+              Empieza por…
+            </p>
+            <div
+              className="care-assist-chips"
+              role="list"
+              aria-labelledby="care-assist-chips-label"
+            >
+              {CARE_ASSIST_CHIPS.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className={
+                    "care-assist-chip" +
+                    (input === chip.prompt ? " is-selected" : "")
+                  }
+                  role="listitem"
+                  disabled={pending}
+                  onClick={() => {
+                    setInput(chip.prompt);
+                    const coarse = window.matchMedia("(pointer: coarse)").matches;
+                    if (!coarse) {
+                      window.requestAnimationFrame(() =>
+                        inputRef.current?.focus(),
+                      );
+                    }
+                  }}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <p className="care-assist-limit">

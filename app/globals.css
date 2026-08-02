@@ -749,41 +749,18 @@ nav#navbar.scrolled .nav-brand-piece--one {
   margin-top: 32px;
 }
 
-/** Card de orientación IA integrada en el panel del menú. */
+/** Orientación IA en el menú: solo texto + botón, sin recuadro. */
 .mobile-menu-assist {
   margin-top: auto;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 14px;
   max-width: min(360px, 100%);
-  padding: 18px 18px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(187, 149, 93, 0.34);
-  background:
-    linear-gradient(
-      165deg,
-      rgba(212, 175, 122, 0.1) 0%,
-      rgba(18, 16, 20, 0.55) 42%,
-      rgba(10, 10, 10, 0.72) 100%
-    );
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.mobile-menu-assist-copy {
-  display: grid;
-  gap: 6px;
-}
-.mobile-menu-assist-eyebrow {
-  margin: 0;
-  font-family: var(--ff-sans);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--gold-lt);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 .mobile-menu-assist-title {
   margin: 0;
@@ -3457,7 +3434,6 @@ a.contact-line:focus-visible .contact-text {
   }
   .mobile-menu-assist {
     max-width: min(100%, 340px);
-    padding: 16px 16px 14px;
     gap: 12px;
     /* Deja aire al círculo «Reservar» que asoma por la derecha. */
     margin-right: clamp(48px, 18vw, 96px);
