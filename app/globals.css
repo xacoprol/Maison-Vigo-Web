@@ -794,42 +794,6 @@ nav#navbar.scrolled .nav-brand-piece--one {
   letter-spacing: 0.02em;
   color: var(--cream);
 }
-.mobile-menu-assist-lead {
-  margin: 0;
-  font-family: var(--ff-sans);
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: 0.02em;
-  color: rgba(244, 244, 242, 0.62);
-}
-.mobile-menu-assist-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.mobile-menu-assist-chip {
-  appearance: none;
-  border-radius: 999px;
-  border: 1px solid rgba(244, 244, 242, 0.16);
-  background: rgba(244, 244, 242, 0.04);
-  color: rgba(244, 244, 242, 0.82);
-  font-family: var(--ff-sans);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition:
-    color 0.25s ease,
-    border-color 0.25s ease,
-    background 0.25s ease;
-}
-.mobile-menu-assist-chip:hover,
-.mobile-menu-assist-chip:focus-visible {
-  color: var(--gold-lt);
-  border-color: rgba(212, 175, 122, 0.55);
-  background: rgba(212, 175, 122, 0.1);
-  outline: none;
-}
 .mobile-menu-assist-cta {
   appearance: none;
   align-self: flex-start;
@@ -3500,13 +3464,6 @@ a.contact-line:focus-visible .contact-text {
   }
   .mobile-menu-assist-title {
     font-size: clamp(20px, 5.6vw, 26px);
-  }
-  .mobile-menu-assist-lead {
-    font-size: 12px;
-  }
-  .mobile-menu-assist-chip {
-    font-size: 10px;
-    padding: 7px 11px;
   }
   .mob-link--primary {
     font-size: clamp(28px, 9.5vw, 52px);

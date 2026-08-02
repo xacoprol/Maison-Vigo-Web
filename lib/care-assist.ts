@@ -60,18 +60,6 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   },
 ];
 
-/** Chips compactos para la card del menú (no saturar el panel). */
-export const CARE_ASSIST_MENU_CHIP_IDS = [
-  "grooming",
-  "guarderia",
-  "educacion",
-] as const;
-
-export const CARE_ASSIST_MENU_CHIPS: CareAssistChip[] =
-  CARE_ASSIST_MENU_CHIP_IDS.map(
-    (id) => CARE_ASSIST_CHIPS.find((chip) => chip.id === id)!,
-  );
-
 export const CARE_ASSIST_SERVICE_SLUGS = new Set<string>(
   serviciosList.map((s) => s.slug),
 );

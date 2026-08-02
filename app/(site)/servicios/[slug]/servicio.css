@@ -552,10 +552,10 @@
     width: calc(100% - 2 * var(--servicio-body-inset-x));
     max-width: none;
     padding: 0;
-    /* Sube con el scroll (más que en desktop) para no quedar pegado al slideshow. */
+    /* Lift mínimo en móvil (el texto no debe “huir” hacia arriba). */
     transform: translate3d(
       0,
-      calc(var(--servicio-parallax) * min(-28vh, -200px)),
+      calc(var(--servicio-parallax) * min(-4vh, -28px)),
       0
     );
     will-change: transform;

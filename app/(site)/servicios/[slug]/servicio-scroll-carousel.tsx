@@ -103,14 +103,58 @@ function getSlideshowElements(root: HTMLElement): SlideshowElements {
 function syncHeadlineRowHeights(root: HTMLElement) {
   root.querySelectorAll<HTMLElement>(".servicio-slideshow__headline-row").forEach(
     (row) => {
-      const items = row.querySelectorAll<HTMLElement>(
-        ".servicio-slideshow__headline-line-item",
+      const items = Array.from(
+        row.querySelectorAll<HTMLElement>(
+          ".servicio-slideshow__headline-line-item",
+        ),
       );
+      if (items.length === 0) return;
+
       let maxH = 0;
-      items.forEach((item) => {
-        maxH = Math.max(maxH, item.getBoundingClientRect().height);
+      const snapshots = items.map((item) => {
+        const prev = {
+          position: item.style.position,
+          top: item.style.top,
+          left: item.style.left,
+          right: item.style.right,
+          height: item.style.height,
+          overflow: item.style.overflow,
+          visibility: item.style.visibility,
+          transform: item.style.transform,
+          opacity: item.style.opacity,
+          zIndex: item.style.zIndex,
+        };
+        /* Medir en flujo real: absolute + height 100% siempre devolvía 1 línea. */
+        item.style.position = "static";
+        item.style.top = "auto";
+        item.style.left = "auto";
+        item.style.right = "auto";
+        item.style.height = "auto";
+        item.style.overflow = "visible";
+        item.style.visibility = "hidden";
+        item.style.transform = "none";
+        item.style.opacity = "1";
+        item.style.zIndex = "auto";
+        maxH = Math.max(maxH, item.offsetHeight);
+        return { item, prev };
       });
-      if (maxH > 0) row.style.minHeight = `${Math.ceil(maxH) + 10}px`;
+
+      snapshots.forEach(({ item, prev }) => {
+        item.style.position = prev.position;
+        item.style.top = prev.top;
+        item.style.left = prev.left;
+        item.style.right = prev.right;
+        item.style.height = prev.height;
+        item.style.overflow = prev.overflow;
+        item.style.visibility = prev.visibility;
+        item.style.transform = prev.transform;
+        item.style.opacity = prev.opacity;
+        item.style.zIndex = prev.zIndex;
+      });
+
+      if (maxH > 0) {
+        row.style.minHeight = `${Math.ceil(maxH) + 6}px`;
+      }
     },
   );
 }

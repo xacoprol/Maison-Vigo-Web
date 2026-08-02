@@ -64,9 +64,8 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
       const mobile = isMobileLayout();
 
       return {
-        opacity: servicioBodyOpacityFromProgress(progress),
-        /* Móvil: sube con el scroll (factor mayor) para no quedarse pegado abajo. */
-        parallaxPx: mobile ? -scrolled * 0.42 : -scrolled * 0.05,
+        opacity: servicioBodyOpacityFromProgress(progress, { mobile }),
+        parallaxPx: -scrolled * 0.05,
       };
     };
 
@@ -80,16 +79,14 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
       if (Math.abs(targetO - currentO) < 0.002) {
         currentO = targetO;
       } else {
-        currentO += (targetO - currentO) * 0.22;
+        currentO += (targetO - currentO) * (mobile ? 0.12 : 0.22);
       }
 
-      if (mobile) {
-        /* Sin lerp lento: evita el “bote” al alcanzar el target. */
-        currentY = targetY;
-      } else if (Math.abs(targetY - currentY) < 0.2) {
+      if (Math.abs(targetY - currentY) < 0.2) {
         currentY = targetY;
       } else {
-        currentY += (targetY - currentY) * 0.028;
+        /* Móvil: lerp más lento para que no “salte” hacia arriba. */
+        currentY += (targetY - currentY) * (mobile ? 0.045 : 0.028);
       }
 
       currentOpacityRef.current = currentO;
@@ -98,7 +95,7 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
 
       if (
         Math.abs(targetO - currentO) > 0.002 ||
-        (!mobile && Math.abs(targetY - currentY) > 0.35)
+        Math.abs(targetY - currentY) > 0.35
       ) {
         rafId = requestAnimationFrame(tick);
       } else {
