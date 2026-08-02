@@ -32,6 +32,8 @@ export const viewport: Viewport = {
   ],
   colorScheme: "dark",
   viewportFit: "cover",
+  /* Chrome/Android: el teclado redimensiona el layout en vez de solapar. */
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

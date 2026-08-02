@@ -375,7 +375,11 @@
   font-size: 16px;
   line-height: 1.45;
   outline: none;
-  touch-action: manipulation;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* pan-y: permite deslizar el texto; manipulation lo bloqueaba. */
+  touch-action: pan-y;
   -webkit-user-select: text;
   user-select: text;
 }
@@ -488,19 +492,27 @@ body.reserva-open .care-assist-fab {
   /* Bottom sheet redondeado arriba. */
   .care-assist-panel {
     --care-assist-radius: 22px;
+    --care-assist-kb-inset: 0px;
+    --care-assist-vv-h: 100svh;
     top: auto;
     right: 0;
     left: 0;
-    bottom: 0;
+    /* Se eleva justo por encima del teclado (visualViewport). */
+    bottom: var(--care-assist-kb-inset);
     width: 100vw;
-    height: min(82svh, 720px);
-    max-height: calc(100svh - 48px);
+    height: min(82svh, 720px, var(--care-assist-vv-h));
+    max-height: calc(var(--care-assist-vv-h) - 8px);
     border-radius: var(--care-assist-radius) var(--care-assist-radius) 0 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
     transform: translateY(108%);
     opacity: 1;
+    /* Sin animar bottom/height: el teclado no debe “empujar” con transición. */
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease,
+      visibility 0.45s;
   }
 
   .care-assist-panel.is-open {

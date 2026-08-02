@@ -149,12 +149,51 @@ export function CareAssist() {
       event.preventDefault();
     };
 
+    /**
+     * Teclado móvil: anclar el sheet al visualViewport para que no
+     * “salte” todo hacia arriba al enfocar el input.
+     */
+    const vv = window.visualViewport;
+    const syncKeyboardLayout = () => {
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      if (!vv) {
+        panel.style.removeProperty("--care-assist-kb-inset");
+        panel.style.removeProperty("--care-assist-vv-h");
+        return;
+      }
+
+      const insetBottom = Math.max(
+        0,
+        window.innerHeight - (vv.height + vv.offsetTop),
+      );
+      panel.style.setProperty("--care-assist-kb-inset", `${insetBottom}px`);
+      panel.style.setProperty(
+        "--care-assist-vv-h",
+        `${Math.round(vv.height)}px`,
+      );
+
+      /* iOS a veces desplaza el layout al enfocar; lo devolvemos. */
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    syncKeyboardLayout();
+    vv?.addEventListener("resize", syncKeyboardLayout);
+    vv?.addEventListener("scroll", syncKeyboardLayout);
     window.addEventListener("keydown", onKey);
     document.addEventListener("touchmove", onTouchMove, { passive: false });
 
     return () => {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("touchmove", onTouchMove);
+      vv?.removeEventListener("resize", syncKeyboardLayout);
+      vv?.removeEventListener("scroll", syncKeyboardLayout);
+      const panel = panelRef.current;
+      panel?.style.removeProperty("--care-assist-kb-inset");
+      panel?.style.removeProperty("--care-assist-vv-h");
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
       body.classList.remove("care-assist-open");
@@ -403,6 +442,14 @@ export function CareAssist() {
             autoComplete="off"
             autoCorrect="on"
             onChange={(event) => setInput(event.target.value)}
+            onFocus={() => {
+              /* Evita el scrollIntoView agresivo de iOS al abrir el teclado. */
+              const y = window.scrollY;
+              window.requestAnimationFrame(() => {
+                window.scrollTo(0, y);
+                window.setTimeout(() => window.scrollTo(0, 0), 50);
+              });
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
