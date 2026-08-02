@@ -533,8 +533,17 @@
 
 @media (max-width: 900px) {
   .servicio__hero {
-    /* Más aire bajo el lead; el body vive en la franja negra y sube al scroll. */
-    --servicio-lead-body-gap: 260px;
+    /**
+     * En móvil 250px de negro se veía como un hueco vacío largo.
+     * Franja más corta + body más cerca del lead.
+     */
+    --servicio-hero-extra-black: 100px;
+    --servicio-lead-body-gap: 140px;
+  }
+
+  /* Degradado más corto para no alargar el “negro” bajo la foto. */
+  .servicio__hero::after {
+    height: clamp(96px, 18vh, 160px);
   }
 
   .servicio__hero-body {

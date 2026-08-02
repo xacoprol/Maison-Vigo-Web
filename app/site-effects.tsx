@@ -13,9 +13,12 @@ import {
   sectionIdFromHash,
   setPendingHomeSection,
 } from "@/lib/hash-nav";
+import {
+  CARE_ASSIST_OPEN_EVENT,
+  type CareAssistOpenDetail,
+} from "@/lib/care-assist";
 import { lockScroll, resetScrollLock, unlockScroll } from "@/lib/scroll-lock";
 import { bookingUrl } from "@/lib/site-config";
-import { isMobileSiteNav } from "@/lib/nav-mobile";
 
 /**
  * Maneja UI global que existe en todas las páginas (nav, menú móvil,
@@ -348,6 +351,30 @@ export function SiteEffects() {
     const onReservaOverlayClick = (event: MouseEvent) => {
       if (event.target === reservaPanel) closeReservaPanelFn();
     };
+    /**
+     * Card de orientación del menú: libera el lock duro del menú
+     * (rompe el teclado en iOS) y abre el panel de CareAssist.
+     */
+    const openCareAssistFromMenu = (prompt?: string) => {
+      if (mobileMenu?.classList.contains("open")) {
+        closeMenuFn();
+      }
+      const detail: CareAssistOpenDetail = {};
+      if (prompt) detail.prompt = prompt;
+      document.body.dispatchEvent(
+        new CustomEvent(CARE_ASSIST_OPEN_EVENT, { detail }),
+      );
+    };
+    const onOpenCareAssistClick = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const target = event.currentTarget as HTMLElement | null;
+      const prompt = target?.dataset.carePrompt?.trim();
+      openCareAssistFromMenu(prompt || undefined);
+    };
+    const careAssistTriggers = document.querySelectorAll<HTMLElement>(
+      ".js-open-care-assist",
+    );
     const onCloseMenuClick = (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -365,6 +392,7 @@ export function SiteEffects() {
     };
     const onEsc = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      if (document.body.classList.contains("care-assist-open")) return;
       if (reservaPanel?.classList.contains("open")) {
         closeReservaPanelFn();
         return;
@@ -450,55 +478,10 @@ export function SiteEffects() {
       }
     };
 
-    /**
-     * Móvil: un clic lleva a `#contacto` en la página actual (footer).
-     * Escritorio: abre el panel de reserva embebido.
-     */
+    /** Abre el panel de reserva embebido (móvil y escritorio). */
     const onOpenReservaClick = (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
-
-      if (isMobileSiteNav()) {
-        const contact = document.getElementById("contacto");
-        if (contact) {
-          const wasMenuOpen = mobileMenu?.classList.contains("open") ?? false;
-          if (wasMenuOpen) closeMenuFn();
-
-          const targetUrl = buildSectionUrl(
-            "contacto",
-            window.location.pathname,
-          );
-          history.replaceState(history.state, "", targetUrl);
-
-          const scroll = () => {
-            const lenisInstance = window.__mvLenis ?? lenis;
-            if (lenisInstance) {
-              lenisInstance.resize();
-              lenisInstance.scrollTo(contact, {
-                duration: 1.25,
-                easing: lenisEase,
-                force: true,
-                programmatic: true,
-              });
-              return;
-            }
-            contact.scrollIntoView({
-              behavior: prefersReducedMotion ? "auto" : "smooth",
-            });
-          };
-
-          if (wasMenuOpen) {
-            window.setTimeout(scroll, 0);
-          } else {
-            requestAnimationFrame(scroll);
-          }
-          return;
-        }
-
-        navigateToHomeSection("contacto", event as MouseEvent);
-        return;
-      }
-
       openReservaPanelFn();
     };
 
@@ -580,6 +563,9 @@ export function SiteEffects() {
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
     document.addEventListener("click", onOpenReservaDelegated);
     closeReservaPanel?.addEventListener("click", onCloseReservaClick);
+    careAssistTriggers.forEach((el) => {
+      el.addEventListener("click", onOpenCareAssistClick);
+    });
     window.addEventListener("keydown", onEsc);
 
     const reveals = document.querySelectorAll(".reveal");
@@ -636,6 +622,9 @@ export function SiteEffects() {
       openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
       document.removeEventListener("click", onOpenReservaDelegated);
       closeReservaPanel?.removeEventListener("click", onCloseReservaClick);
+      careAssistTriggers.forEach((el) => {
+        el.removeEventListener("click", onOpenCareAssistClick);
+      });
       window.removeEventListener("keydown", onEsc);
       window.removeEventListener("hashchange", onHashChange);
       document.removeEventListener("click", onHashLinkClick, true);

@@ -14,10 +14,10 @@ import {
   CARE_ASSIST_CHIPS,
   CARE_ASSIST_MAX_MESSAGE_CHARS,
   CARE_ASSIST_MAX_USER_MESSAGES,
+  CARE_ASSIST_OPEN_EVENT,
   type CareAssistMessage,
+  type CareAssistOpenDetail,
 } from "@/lib/care-assist";
-import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
-import { bookingUrl } from "@/lib/site-config";
 
 import "./care-assist.css";
 
@@ -61,6 +61,10 @@ export function CareAssist() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<UiMessage[]>([WELCOME]);
+  const pendingPromptRef = useRef<string | null>(null);
+  const sendMessageRef = useRef<(text: string) => Promise<void>>(
+    async () => {},
+  );
   const userTurns = messages.filter((m) => m.role === "user").length;
   const limitReached = userTurns >= CARE_ASSIST_MAX_USER_MESSAGES;
 
@@ -70,30 +74,92 @@ export function CareAssist() {
     el.scrollTop = el.scrollHeight;
   }, []);
 
+  /** Apertura desde el menú u otros puntos del sitio. */
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<CareAssistOpenDetail>).detail;
+      const prompt = detail?.prompt?.trim();
+      if (prompt) pendingPromptRef.current = prompt;
+      setOpen(true);
+    };
+    document.body.addEventListener(CARE_ASSIST_OPEN_EVENT, onOpen);
+    return () => {
+      document.body.removeEventListener(CARE_ASSIST_OPEN_EVENT, onOpen);
+    };
+  }, []);
+
+  /** Solo al abrir: no re-enfocar en cada mensaje (rompe el teclado en iOS). */
   useEffect(() => {
     if (!open) return;
     scrollToBottom();
-    const t = window.setTimeout(() => inputRef.current?.focus(), 180);
+
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    if (coarse) return;
+
+    const t = window.setTimeout(() => inputRef.current?.focus(), 240);
     return () => window.clearTimeout(t);
-  }, [open, messages, pending, scrollToBottom]);
+  }, [open, scrollToBottom]);
+
+  /** Chip del menú: envía el prompt al terminar de abrir el panel. */
+  useEffect(() => {
+    if (!open) return;
+    const prompt = pendingPromptRef.current;
+    if (!prompt) return;
+    pendingPromptRef.current = null;
+    const t = window.setTimeout(() => {
+      void sendMessageRef.current(prompt);
+    }, 280);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
+    scrollToBottom();
+  }, [messages, pending, open, scrollToBottom]);
 
-    lockScroll();
-    document.body.classList.add("care-assist-open");
-    document.documentElement.classList.add("care-assist-open");
+  /**
+   * Bloqueo suave: sin `position: fixed` en body (eso congela el input en iOS).
+   * Paramos Lenis y evitamos scroll del documento fuera del panel.
+   */
+  useEffect(() => {
+    if (!open) return;
+
+    const lenis = window.__mvLenis;
+    lenis?.stop();
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.classList.add("care-assist-open");
+    html.classList.add("care-assist-open");
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+
+    const onTouchMove = (event: TouchEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const panel = panelRef.current;
+      if (panel?.contains(target)) return;
+      event.preventDefault();
+    };
+
     window.addEventListener("keydown", onKey);
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
 
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.classList.remove("care-assist-open");
-      document.documentElement.classList.remove("care-assist-open");
-      unlockScroll();
+      document.removeEventListener("touchmove", onTouchMove);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      body.classList.remove("care-assist-open");
+      html.classList.remove("care-assist-open");
+      lenis?.start();
     };
   }, [open]);
 
@@ -174,6 +240,8 @@ export function CareAssist() {
     [limitReached, messages, pending],
   );
 
+  sendMessageRef.current = sendMessage;
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     void sendMessage(input);
@@ -233,7 +301,7 @@ export function CareAssist() {
           </button>
         </header>
 
-        <div ref={listRef} className="care-assist-messages" tabIndex={0}>
+        <div ref={listRef} className="care-assist-messages">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -252,15 +320,13 @@ export function CareAssist() {
                     </Link>
                   ) : null}
                   {message.suggestBooking ? (
-                    <a
-                      href={bookingUrl}
-                      className="care-assist-action care-assist-action--gold"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      className="care-assist-action care-assist-action--gold js-open-reserva-panel"
                       onClick={() => setOpen(false)}
                     >
                       Reservar cita
-                    </a>
+                    </button>
                   ) : null}
                 </div>
               )}
@@ -312,12 +378,15 @@ export function CareAssist() {
             maxLength={CARE_ASSIST_MAX_MESSAGE_CHARS}
             placeholder="Ej. tiene el pelo muy enredado…"
             value={input}
-            disabled={pending || limitReached}
+            disabled={limitReached}
+            enterKeyHint="send"
+            autoComplete="off"
+            autoCorrect="on"
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
-                void sendMessage(input);
+                if (!pending) void sendMessage(input);
               }
             }}
           />

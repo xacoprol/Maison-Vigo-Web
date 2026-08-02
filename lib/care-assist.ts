@@ -6,6 +6,13 @@ export const CARE_ASSIST_MAX_USER_MESSAGES = 6;
 export const CARE_ASSIST_MAX_MESSAGE_CHARS = 400;
 export const CARE_ASSIST_MAX_HISTORY = 12;
 
+/** Abre el panel de orientación (detalle opcional: `{ prompt?: string }`). */
+export const CARE_ASSIST_OPEN_EVENT = "mv-care-assist-open";
+
+export type CareAssistOpenDetail = {
+  prompt?: string;
+};
+
 export type CareAssistRole = "user" | "assistant";
 
 export type CareAssistMessage = {
@@ -52,6 +59,18 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
     prompt: "Quiero reservar una cita. ¿Cuál es el siguiente paso?",
   },
 ];
+
+/** Chips compactos para la card del menú (no saturar el panel). */
+export const CARE_ASSIST_MENU_CHIP_IDS = [
+  "grooming",
+  "guarderia",
+  "educacion",
+] as const;
+
+export const CARE_ASSIST_MENU_CHIPS: CareAssistChip[] =
+  CARE_ASSIST_MENU_CHIP_IDS.map(
+    (id) => CARE_ASSIST_CHIPS.find((chip) => chip.id === id)!,
+  );
 
 export const CARE_ASSIST_SERVICE_SLUGS = new Set<string>(
   serviciosList.map((s) => s.slug),

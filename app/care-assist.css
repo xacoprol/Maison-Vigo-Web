@@ -60,7 +60,8 @@
 .care-assist-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 140;
+  /* Por encima del menú (z-index ~260) al abrir desde ahí. */
+  z-index: 270;
   background: rgba(5, 5, 5, 0.52);
   opacity: 0;
   visibility: hidden;
@@ -83,7 +84,7 @@
 .care-assist-panel {
   --care-assist-radius: clamp(18px, 2.4vw, 24px);
   position: fixed;
-  z-index: 141;
+  z-index: 271;
   right: calc(var(--nav-pad-x) + 4px);
   bottom: calc(var(--nav-pad-x) + 4px + 40px + 12px + 62px + 14px);
   width: min(400px, calc(100vw - 2 * (var(--nav-pad-x) + 4px)));
@@ -173,11 +174,14 @@
 .care-assist-messages {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 18px 18px 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   scroll-behavior: smooth;
+  touch-action: pan-y;
 }
 
 .care-assist-bubble {
@@ -255,17 +259,21 @@
 }
 
 .care-assist-action {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid rgba(244, 244, 242, 0.22);
+  background: transparent;
   color: var(--cream);
   text-decoration: none;
+  font-family: var(--ff-sans);
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  cursor: pointer;
   transition:
     color 0.25s ease,
     border-color 0.25s ease,
@@ -353,6 +361,9 @@
   font-size: 16px;
   line-height: 1.45;
   outline: none;
+  touch-action: manipulation;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .care-assist-input::placeholder {

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { CARE_ASSIST_MENU_CHIPS } from "@/lib/care-assist";
 import { bookingUrl } from "@/lib/site-config";
 
 import { CareAssist } from "./care-assist";
@@ -161,6 +162,37 @@ export function SiteShell() {
               >
                 MV CARE
               </Link>
+            </div>
+
+            <div className="mobile-menu-assist">
+              <div className="mobile-menu-assist-copy">
+                <p className="mobile-menu-assist-eyebrow">Orientación</p>
+                <p className="mobile-menu-assist-title">
+                  ¿Qué necesita tu perro?
+                </p>
+                <p className="mobile-menu-assist-lead">
+                  Te oriento al cuidado que mejor encaja.
+                </p>
+              </div>
+              <div className="mobile-menu-assist-chips" role="list">
+                {CARE_ASSIST_MENU_CHIPS.map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    className="mobile-menu-assist-chip js-open-care-assist"
+                    role="listitem"
+                    data-care-prompt={chip.prompt}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="mobile-menu-assist-cta js-open-care-assist"
+              >
+                Abrir orientación
+              </button>
             </div>
           </div>
         </div>
