@@ -1,12 +1,12 @@
 ## 1. Objeto y ámbito
 
-La presente Política de Reservas y Cancelaciones regula la solicitud, confirmación, modificación y cancelación de citas y servicios de peluquería canina y demás prestaciones ofrecidas por **MAISON GROOMING, S.L.** (Maison Vigo), tanto a través del sitio web https://www.maisonvigo.es como del portal de reservas **MV Care** (https://care.maisonvigo.es).
+La presente Política de Reservas y Cancelaciones regula la solicitud, confirmación, modificación y cancelación de citas y servicios de peluquería canina y demás prestaciones ofrecidas por **MAISON GROOMING, SLU** (Maison Vigo), tanto a través del sitio web https://www.maisonvigo.es como del portal de reservas **MV Care** (https://care.maisonvigo.es).
 
 Se aplica a servicios presenciales en el centro de Vigo y, en su caso, a servicios a domicilio o de acompañamiento cuando se contraten expresamente.
 
 ## 2. Datos del prestador
 
-- **Prestador:** MAISON GROOMING, S.L.
+- **Prestador:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
 - **Domicilio del centro:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
@@ -66,7 +66,7 @@ Si se hubiera abonado señal o prepago, el importe no devuelto se imputará al c
 
 ### 6.4. No presentación
 
-Si el cliente no se presenta a la cita sin cancelación previa dentro del plazo establecido, MAISON GROOMING, S.L. podrá:
+Si el cliente no se presenta a la cita sin cancelación previa dentro del plazo establecido, MAISON GROOMING, SLU podrá:
 
 - Considerar el servicio como no prestado de forma imputable al cliente
 - Aplicar el cargo íntegro previsto para la reserva
@@ -76,7 +76,7 @@ Se recomienda avisar con la mayor antelación posible ante cualquier imprevisto.
 
 ## 7. Cancelación o modificación por Maison Vigo
 
-MAISON GROOMING, S.L. podrá cancelar o reprogramar una cita por causas justificadas: enfermedad del personal, avería relevante, riesgo para la seguridad, condiciones sanitarias del animal, incumplimiento de requisitos previos o fuerza mayor.
+MAISON GROOMING, SLU podrá cancelar o reprogramar una cita por causas justificadas: enfermedad del personal, avería relevante, riesgo para la seguridad, condiciones sanitarias del animal, incumplimiento de requisitos previos o fuerza mayor.
 
 En tal caso, se ofrecerá nueva fecha o la devolución de importes abonados por servicios no prestados.
 
@@ -87,7 +87,7 @@ En tal caso, se ofrecerá nueva fecha o la devolución de importes abonados por 
 Si el cliente llega con retraso:
 
 - Hasta **15 minutos**: se procurará realizar el servicio completo; si no fuera viable por agenda o bienestar del animal, podrá prestarse un servicio adaptado o reprogramarse con posible aplicación de la política de cancelación tardía.
-- Más de **15 minutos** sin comunicación previa: MAISON GROOMING, S.L. podrá cancelar la cita y aplicar la política de no presentación o cancelación tardía.
+- Más de **15 minutos** sin comunicación previa: MAISON GROOMING, SLU podrá cancelar la cita y aplicar la política de no presentación o cancelación tardía.
 
 ### 8.2. Retraso de Maison Vigo
 
@@ -117,10 +117,10 @@ La empresa podrá requerir informe veterinario, adaptar el protocolo, dividir la
 Por seguridad del personal, de otros clientes, de otros animales y del propio perro:
 
 - El cliente debe informar de cualquier historial de agresividad, mordeduras o reactividad extrema.
-- MAISON GROOMING, S.L. podrá exigir el uso de bozal, presencia del titular durante la sesión, sesiones más cortas, profesional específico o derivación a conductista/veterinario.
+- MAISON GROOMING, SLU podrá exigir el uso de bozal, presencia del titular durante la sesión, sesiones más cortas, profesional específico o derivación a conductista/veterinario.
 - Si durante la sesión el animal presenta riesgo grave y no puede manejarse de forma segura, el servicio podrá interrumpirse. Se facturará el trabajo realizado y el tiempo empleado, comunicándose al titular de inmediato.
 
-MAISON GROOMING, S.L. se reserva el derecho de **denegar o finalizar** la relación de prestación del servicio cuando, de forma reiterada o grave, el animal o el titular impidan un entorno seguro.
+MAISON GROOMING, SLU se reserva el derecho de **denegar o finalizar** la relación de prestación del servicio cuando, de forma reiterada o grave, el animal o el titular impidan un entorno seguro.
 
 ### 9.4. Servicios no recomendados o no realizados
 
@@ -154,4 +154,4 @@ Para conflictos con consumidores, serán competentes los tribunales que correspo
 
 ## 16. Modificaciones
 
-MAISON GROOMING, S.L. podrá actualizar esta política. La versión publicada en https://www.maisonvigo.es/politica-reservas será la aplicable a las reservas posteriores a su publicación.
+MAISON GROOMING, SLU podrá actualizar esta política. La versión publicada en https://www.maisonvigo.es/politica-reservas será la aplicable a las reservas posteriores a su publicación.

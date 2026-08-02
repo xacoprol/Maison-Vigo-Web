@@ -1,6 +1,6 @@
 /** Datos identificativos para textos legales de Maison Vigo. */
 export const legalCompany = {
-  legalName: "MAISON GROOMING, S.L.",
+  legalName: "MAISON GROOMING, SLU",
   tradeName: "Maison Vigo",
   nif: "B88769229",
   address: "Rúa Teixugueiras, 29, Bajo Local 1",

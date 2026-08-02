@@ -1849,8 +1849,9 @@ img.concepto-quote-mark {
   }
 
   .mobile-menu-book {
-    --mobile-menu-book-scale: 0.62;
-    font-size: 13px;
+    --mobile-menu-book-size: 300px;
+    --mobile-menu-book-scale: 0.85;
+    font-size: 14px;
     letter-spacing: 0.19em;
   }
 }

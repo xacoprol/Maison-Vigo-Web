@@ -2,7 +2,7 @@
 
 En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de que el titular de este sitio web es:
 
-- **Titular:** MAISON GROOMING, S.L.
+- **Titular:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
 - **Domicilio social y centro de prestación de servicios:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
@@ -11,7 +11,7 @@ En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios
 - **Correo electrónico de protección de datos:** [[EMAIL:rgpd|maisonvigo.es]]
 - **Sitio web:** https://www.maisonvigo.es
 
-MAISON GROOMING, S.L. desarrolla su actividad principal en el ámbito de la peluquería canina, servicios integrales para mascotas, reserva de citas, venta de productos para animales de compañía (personalizados y no personalizados) y gestión de la relación con clientes a través de su plataforma digital asociada.
+MAISON GROOMING, SLU desarrolla su actividad principal en el ámbito de la peluquería canina, servicios integrales para mascotas, reserva de citas, venta de productos para animales de compañía (personalizados y no personalizados) y gestión de la relación con clientes a través de su plataforma digital asociada.
 
 ## 2. Objeto del sitio web
 
@@ -25,13 +25,13 @@ El usuario se compromete a utilizar el sitio web, sus contenidos y funcionalidad
 
 Queda expresamente prohibido:
 
-- Utilizar el sitio con fines ilícitos o lesivos para MAISON GROOMING, S.L., otros usuarios o terceros.
+- Utilizar el sitio con fines ilícitos o lesivos para MAISON GROOMING, SLU, otros usuarios o terceros.
 - Introducir o difundir virus informáticos o cualesquiera otros sistemas físicos o lógicos que puedan provocar daños.
 - Intentar acceder, utilizar o manipular datos de terceros sin autorización.
 - Reproducir, copiar, distribuir o transformar los contenidos del sitio sin autorización del titular o sin que ello resulte legalmente permitido.
 - Realizar actividades que supongan una carga desproporcionada para la infraestructura del sitio o puedan afectar a su seguridad o disponibilidad.
 
-MAISON GROOMING, S.L. se reserva el derecho de denegar o retirar el acceso al sitio web o a determinadas funcionalidades, en cualquier momento y sin necesidad de preaviso, a usuarios que incumplan estas condiciones.
+MAISON GROOMING, SLU se reserva el derecho de denegar o retirar el acceso al sitio web o a determinadas funcionalidades, en cualquier momento y sin necesidad de preaviso, a usuarios que incumplan estas condiciones.
 
 ## 4. Tecnología y arquitectura del sitio
 
@@ -41,17 +41,17 @@ El formulario de contacto del sitio web puede remitir comunicaciones por correo 
 
 ## 5. Propiedad intelectual e industrial
 
-Todos los contenidos del sitio web —a título enunciativo y no limitativo: textos, fotografías, logotipos, iconos, imágenes, vídeos, diseño gráfico, estructura de navegación, software, bases de datos y código fuente— son titularidad de MAISON GROOMING, S.L. o de terceros que han autorizado su uso, y están protegidos por la legislación española e internacional en materia de propiedad intelectual e industrial.
+Todos los contenidos del sitio web —a título enunciativo y no limitativo: textos, fotografías, logotipos, iconos, imágenes, vídeos, diseño gráfico, estructura de navegación, software, bases de datos y código fuente— son titularidad de MAISON GROOMING, SLU o de terceros que han autorizado su uso, y están protegidos por la legislación española e internacional en materia de propiedad intelectual e industrial.
 
 Queda prohibida la reproducción, distribución, comunicación pública, transformación o cualquier otra forma de explotación no autorizada de dichos contenidos, salvo en los supuestos legalmente permitidos o con consentimiento expreso y por escrito del titular.
 
-Las marcas, nombres comerciales o signos distintivos que aparecen en el sitio web son propiedad de MAISON GROOMING, S.L. o de terceros, sin que su mera aparición implique autorización para su uso sin el consentimiento del titular.
+Las marcas, nombres comerciales o signos distintivos que aparecen en el sitio web son propiedad de MAISON GROOMING, SLU o de terceros, sin que su mera aparición implique autorización para su uso sin el consentimiento del titular.
 
 ## 6. Responsabilidad
 
-MAISON GROOMING, S.L. no garantiza la ausencia de interrupciones o errores en el acceso al sitio web ni que su contenido se encuentre actualizado en todo momento, si bien desarrollará sus mejores esfuerzos para evitarlos, corregirlos o mantenerlo actualizado.
+MAISON GROOMING, SLU no garantiza la ausencia de interrupciones o errores en el acceso al sitio web ni que su contenido se encuentre actualizado en todo momento, si bien desarrollará sus mejores esfuerzos para evitarlos, corregirlos o mantenerlo actualizado.
 
-MAISON GROOMING, S.L. no será responsable de los daños y perjuicios de cualquier naturaleza que pudieran derivarse de:
+MAISON GROOMING, SLU no será responsable de los daños y perjuicios de cualquier naturaleza que pudieran derivarse de:
 
 - La falta de disponibilidad, continuidad o calidad del funcionamiento del sitio web.
 - La existencia de virus o programas maliciosos en los contenidos.
@@ -62,7 +62,7 @@ En la medida en que el usuario facilite datos a través de formularios, reservas
 
 ## 7. Enlaces
 
-El sitio web puede contener enlaces a páginas de terceros. MAISON GROOMING, S.L. no asume responsabilidad alguna por los contenidos, informaciones o servicios que pudieran aparecer en dichos sitios, que tendrán exclusivamente carácter informativo y no implican relación, aprobación o supervisión por parte de MAISON GROOMING, S.L.
+El sitio web puede contener enlaces a páginas de terceros. MAISON GROOMING, SLU no asume responsabilidad alguna por los contenidos, informaciones o servicios que pudieran aparecer en dichos sitios, que tendrán exclusivamente carácter informativo y no implican relación, aprobación o supervisión por parte de MAISON GROOMING, SLU
 
 ## 8. Protección de datos personales
 
@@ -82,7 +82,7 @@ Las reservas de servicios de peluquería canina y demás prestaciones se regirá
 
 ## 11. Medidas de seguridad y prevención del fraude
 
-MAISON GROOMING, S.L. adopta medidas técnicas y organizativas razonables para proteger la información y las transacciones realizadas a través del sitio web y del portal de cliente, incluyendo protocolos de comunicación segura, controles de acceso y procedimientos de verificación en operaciones de pago y reserva.
+MAISON GROOMING, SLU adopta medidas técnicas y organizativas razonables para proteger la información y las transacciones realizadas a través del sitio web y del portal de cliente, incluyendo protocolos de comunicación segura, controles de acceso y procedimientos de verificación en operaciones de pago y reserva.
 
 La empresa se reserva el derecho de rechazar, cancelar o bloquear operaciones que presenten indicios razonables de fraude, suplantación, uso no autorizado de medios de pago o incumplimiento de estas condiciones, comunicándolo al usuario cuando sea posible.
 
@@ -96,6 +96,6 @@ Si el usuario tiene la condición de consumidor o usuario conforme a la normativ
 
 ## 13. Hojas de reclamaciones y resolución de litigios
 
-De conformidad con la normativa de consumo, MAISON GROOMING, S.L. dispone de hojas oficiales de reclamaciones a disposición de los consumidores y usuarios, que pueden solicitar en el centro de prestación de servicios sito en Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), o a través de [[EMAIL:care|maisonvigo.es]].
+De conformidad con la normativa de consumo, MAISON GROOMING, SLU dispone de hojas oficiales de reclamaciones a disposición de los consumidores y usuarios, que pueden solicitar en el centro de prestación de servicios sito en Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), o a través de [[EMAIL:care|maisonvigo.es]].
 
 Asimismo, informamos de que la Comisión Europea facilita una plataforma de resolución de litigios en línea, disponible en: https://ec.europa.eu/consumers/odr

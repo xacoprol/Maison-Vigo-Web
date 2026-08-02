@@ -1,6 +1,6 @@
 ## 1. Identificación del vendedor
 
-- **Vendedor:** MAISON GROOMING, S.L.
+- **Vendedor:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
 - **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
@@ -10,7 +10,7 @@
 
 ## 2. Ámbito de aplicación
 
-Las presentes Condiciones Generales de Compra regulan la compra de productos para mascotas ofrecidos por MAISON GROOMING, S.L. a través de su sitio web y plataforma online, en el ámbito territorial de **España (península e islas, salvo indicación contraria en el proceso de compra)**.
+Las presentes Condiciones Generales de Compra regulan la compra de productos para mascotas ofrecidos por MAISON GROOMING, SLU a través de su sitio web y plataforma online, en el ámbito territorial de **España (península e islas, salvo indicación contraria en el proceso de compra)**.
 
 El usuario declara ser mayor de edad y tener capacidad legal para contratar. Si actúa en representación de un tercero, garantiza contar con facultades suficientes.
 
@@ -20,7 +20,7 @@ La contratación implica la aceptación íntegra de estas condiciones, de la Pol
 
 Los productos ofrecidos pueden ser **estándar** o **personalizados** (a medida del animal, rutina de cuidado, grabados, composiciones específicas u otros encargos especiales indicados en la ficha o presupuesto).
 
-Las fotografías, descripciones y características tienen carácter orientativo. MAISON GROOMING, S.L. procura que la información sea exacta, pudiendo actualizarla sin previo aviso.
+Las fotografías, descripciones y características tienen carácter orientativo. MAISON GROOMING, SLU procura que la información sea exacta, pudiendo actualizarla sin previo aviso.
 
 La disponibilidad mostrada en la tienda online no garantiza el stock hasta la confirmación del pedido. En caso de indisponibilidad tras la compra, se ofrecerá alternativa, aplazamiento o reembolso íntegro.
 
@@ -35,7 +35,7 @@ El proceso de compra incluye, a título general:
 5. Selección del método de pago
 6. Confirmación del pedido
 
-La compra se perfecciona con la confirmación del pedido por MAISON GROOMING, S.L., que se comunicará por correo electrónico o en el área de cliente.
+La compra se perfecciona con la confirmación del pedido por MAISON GROOMING, SLU, que se comunicará por correo electrónico o en el área de cliente.
 
 ## 5. Precios, impuestos y facturación
 
@@ -43,7 +43,7 @@ Los precios se muestran en euros (€) e **incluyen el Impuesto sobre el Valor A
 
 Los gastos de envío, si los hubiera, se indicarán antes de finalizar la compra.
 
-MAISON GROOMING, S.L. emitirá la factura correspondiente conforme a la normativa fiscal vigente.
+MAISON GROOMING, SLU emitirá la factura correspondiente conforme a la normativa fiscal vigente.
 
 ## 6. Medios de pago
 
@@ -52,13 +52,13 @@ Se aceptan, según disponibilidad en el proceso de compra:
 - **Tarjeta bancaria** (débito/crédito) a través de pasarela de pago segura
 - **Bizum**
 
-MAISON GROOMING, S.L. no almacena los datos completos de la tarjeta. El cobro se realiza en el momento de confirmar el pedido o según las condiciones indicadas para productos bajo pedido.
+MAISON GROOMING, SLU no almacena los datos completos de la tarjeta. El cobro se realiza en el momento de confirmar el pedido o según las condiciones indicadas para productos bajo pedido.
 
 En caso de impago, error en la transacción o sospecha razonable de fraude, el pedido podrá ser cancelado.
 
 ## 7. Medidas antifraude
 
-MAISON GROOMING, S.L. podrá realizar verificaciones adicionales en operaciones de riesgo elevado, solicitar documentación acreditativa o rechazar pedidos con indicios de uso fraudulento de medios de pago, suplantación de identidad o datos inconsistentes.
+MAISON GROOMING, SLU podrá realizar verificaciones adicionales en operaciones de riesgo elevado, solicitar documentación acreditativa o rechazar pedidos con indicios de uso fraudulento de medios de pago, suplantación de identidad o datos inconsistentes.
 
 El cliente será informado cuando sea posible y podrá contactar en [[EMAIL:care|maisonvigo.es]] para aclarar la incidencia.
 
@@ -72,7 +72,7 @@ Los envíos se realizan a través de **CTT Express** u otro operador logístico 
 
 Los plazos indicados en la tienda son orientativos y computan desde la confirmación del pago y la disponibilidad del producto. No incluyen fines de semana ni festivos nacionales o locales, salvo indicación contraria.
 
-Los retrasos derivados de causas de fuerza mayor, condiciones meteorológicas adversas, huelgas o incidencias logísticas no serán imputables a MAISON GROOMING, S.L., sin perjuicio de las acciones que razonablemente pueda adoptar para minimizar el impacto.
+Los retrasos derivados de causas de fuerza mayor, condiciones meteorológicas adversas, huelgas o incidencias logísticas no serán imputables a MAISON GROOMING, SLU, sin perjuicio de las acciones que razonablemente pueda adoptar para minimizar el impacto.
 
 ### 8.3. Entrega y riesgo
 
@@ -88,17 +88,17 @@ Para ejercer el desistimiento, notifique su decisión de forma inequívoca a [[E
 
 ### 9.2. Efectos del desistimiento
 
-En caso de desistimiento, MAISON GROOMING, S.L. reembolsará todos los pagos recibidos, incluidos los gastos de entrega estándar (no los gastos adicionales por modalidad de envío distinta a la ofertada), en un plazo máximo de **14 días** desde la comunicación del desistimiento, mediante el mismo medio de pago utilizado, salvo acuerdo distinto.
+En caso de desistimiento, MAISON GROOMING, SLU reembolsará todos los pagos recibidos, incluidos los gastos de entrega estándar (no los gastos adicionales por modalidad de envío distinta a la ofertada), en un plazo máximo de **14 días** desde la comunicación del desistimiento, mediante el mismo medio de pago utilizado, salvo acuerdo distinto.
 
 El cliente deberá devolver los productos sin demora indebida y, en todo caso, en un plazo máximo de **14 días** desde la comunicación del desistimiento, a la dirección que se le indique.
 
 ### 9.3. Estado del producto devuelto
 
-Los productos deberán devolverse en su embalaje original, sin uso indebido, con etiquetas y accesorios, en condiciones que permitan su comercialización. MAISON GROOMING, S.L. podrá reducir el reembolso por depreciación si el producto hubiera sido manipulado más allá de lo necesario para comprobar su naturaleza, características o funcionamiento.
+Los productos deberán devolverse en su embalaje original, sin uso indebido, con etiquetas y accesorios, en condiciones que permitan su comercialización. MAISON GROOMING, SLU podrá reducir el reembolso por depreciación si el producto hubiera sido manipulado más allá de lo necesario para comprobar su naturaleza, características o funcionamiento.
 
 ### 9.4. Gastos de devolución
 
-Salvo que MAISON GROOMING, S.L. ofrezca recogida gratuita, **los gastos directos de devolución correrán a cargo del cliente**.
+Salvo que MAISON GROOMING, SLU ofrezca recogida gratuita, **los gastos directos de devolución correrán a cargo del cliente**.
 
 ## 10. Exclusión del derecho de desistimiento en productos personalizados
 
@@ -122,7 +122,7 @@ Independientemente del desistimiento, si el producto resultara defectuoso, no co
 
 Los productos están sujetos a la **garantía legal de conformidad** de **3 años** para consumidores, conforme a la legislación vigente en materia de consumo.
 
-Durante este plazo, MAISON GROOMING, S.L. responderá por falta de conformidad que exista en el momento de la entrega, salvo prueba en contrario en productos de segunda mano o cuando la normativa permita presunciones distintas.
+Durante este plazo, MAISON GROOMING, SLU responderá por falta de conformidad que exista en el momento de la entrega, salvo prueba en contrario en productos de segunda mano o cuando la normativa permita presunciones distintas.
 
 La garantía comercial del fabricante, si existe, se añadirá sin perjuicio de los derechos legales del consumidor.
 
@@ -134,17 +134,17 @@ Para consultas, incidencias o reclamaciones:
 - **Teléfono:** 644 577 798
 - **Dirección:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra)
 
-MAISON GROOMING, S.L. dispone de **hojas oficiales de reclamaciones** a disposición de consumidores y usuarios.
+MAISON GROOMING, SLU dispone de **hojas oficiales de reclamaciones** a disposición de consumidores y usuarios.
 
 El consumidor puede acudir a las Juntas Arbitrales de Consumo u otras vías de resolución alternativa de conflictos, así como a la plataforma europea ODR: https://ec.europa.eu/consumers/odr
 
 ## 14. Limitación de responsabilidad
 
-MAISON GROOMING, S.L. no será responsable de los daños derivados de un uso inadecuado de los productos, de su aplicación sin seguir las instrucciones del fabricante o de las recomendaciones profesionales facilitadas en el salón, sin perjuicio de los derechos irrenunciables del consumidor.
+MAISON GROOMING, SLU no será responsable de los daños derivados de un uso inadecuado de los productos, de su aplicación sin seguir las instrucciones del fabricante o de las recomendaciones profesionales facilitadas en el salón, sin perjuicio de los derechos irrenunciables del consumidor.
 
 ## 15. Propiedad intelectual
 
-Los contenidos de la tienda online (textos, imágenes, marcas, diseño) son titularidad de MAISON GROOMING, S.L. o de terceros autorizados. Queda prohibida su reproducción no autorizada.
+Los contenidos de la tienda online (textos, imágenes, marcas, diseño) son titularidad de MAISON GROOMING, SLU o de terceros autorizados. Queda prohibida su reproducción no autorizada.
 
 ## 16. Protección de datos
 
@@ -158,4 +158,4 @@ Para controversias con consumidores, serán competentes los tribunales del domic
 
 ## 18. Modificaciones
 
-MAISON GROOMING, S.L. podrá modificar estas Condiciones Generales de Compra. La versión aplicable será la vigente en el momento de formalizar cada pedido.
+MAISON GROOMING, SLU podrá modificar estas Condiciones Generales de Compra. La versión aplicable será la vigente en el momento de formalizar cada pedido.

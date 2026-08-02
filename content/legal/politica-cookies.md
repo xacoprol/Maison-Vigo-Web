@@ -6,7 +6,7 @@ También pueden utilizarse tecnologías similares, como píxeles de seguimiento,
 
 ## 2. Responsable
 
-- **Responsable:** MAISON GROOMING, S.L. (Maison Vigo)
+- **Responsable:** MAISON GROOMING, SLU (Maison Vigo)
 - **NIF:** B88769229
 - **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
 - **Correo:** [[EMAIL:rgpd|maisonvigo.es]]
@@ -15,7 +15,7 @@ También pueden utilizarse tecnologías similares, como píxeles de seguimiento,
 
 ### 3.1. Según la entidad que las gestione
 
-- **Cookies propias:** enviadas al dispositivo desde https://www.maisonvigo.es o dominios asociados gestionados por MAISON GROOMING, S.L.
+- **Cookies propias:** enviadas al dispositivo desde https://www.maisonvigo.es o dominios asociados gestionados por MAISON GROOMING, SLU
 - **Cookies de terceros:** enviadas desde equipos o dominios gestionados por Google, Meta u otros proveedores.
 
 ### 3.2. Según su finalidad
@@ -53,7 +53,7 @@ También pueden utilizarse tecnologías similares, como píxeles de seguimiento,
 
 **Más información:** https://policies.google.com/technologies/cookies
 
-MAISON GROOMING, S.L. puede configurar Google Analytics con funciones de minimización de datos, anonimización de IP o retención limitada conforme a buenas prácticas de privacidad.
+MAISON GROOMING, SLU puede configurar Google Analytics con funciones de minimización de datos, anonimización de IP o retención limitada conforme a buenas prácticas de privacidad.
 
 ### 4.3. Meta Pixel (tercero)
 
@@ -102,7 +102,7 @@ El uso de Google Analytics y Meta Pixel puede implicar transferencias de datos a
 
 ## 8. Actualización de la Política de Cookies
 
-MAISON GROOMING, S.L. podrá actualizar esta política cuando incorpore nuevas cookies o modifique las existentes. Se recomienda revisarla periódicamente.
+MAISON GROOMING, SLU podrá actualizar esta política cuando incorpore nuevas cookies o modifique las existentes. Se recomienda revisarla periódicamente.
 
 ## 9. Más información
 

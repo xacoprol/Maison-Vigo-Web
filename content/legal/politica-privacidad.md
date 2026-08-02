@@ -1,6 +1,6 @@
 ## 1. Responsable del tratamiento
 
-- **Responsable:** MAISON GROOMING, S.L. (nombre comercial: Maison Vigo)
+- **Responsable:** MAISON GROOMING, SLU (nombre comercial: Maison Vigo)
 - **NIF:** B88769229
 - **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
 - **Correo de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
@@ -9,7 +9,7 @@
 
 ## 2. Delegado de Protección de Datos
 
-MAISON GROOMING, S.L. no está obligada a designar Delegado de Protección de Datos conforme al artículo 37 del RGPD. Para cualquier cuestión relativa a protección de datos, puede contactar en [[EMAIL:rgpd|maisonvigo.es]].
+MAISON GROOMING, SLU no está obligada a designar Delegado de Protección de Datos conforme al artículo 37 del RGPD. Para cualquier cuestión relativa a protección de datos, puede contactar en [[EMAIL:rgpd|maisonvigo.es]].
 
 ## 3. Ámbito de aplicación
 
@@ -69,7 +69,7 @@ Tratamos los datos personales conforme a los principios de licitud, lealtad, tra
 
 ### 5.5. Compra online de productos
 
-**Datos tratados:** datos de identificación, contacto, dirección de entrega y facturación, historial de pedidos, datos de pago (gestionados por proveedor de pagos; MAISON GROOMING, S.L. no almacena el número completo de tarjeta).
+**Datos tratados:** datos de identificación, contacto, dirección de entrega y facturación, historial de pedidos, datos de pago (gestionados por proveedor de pagos; MAISON GROOMING, SLU no almacena el número completo de tarjeta).
 
 **Finalidad:** tramitar pedidos, realizar entregas, gestionar devoluciones, facturación y atención postventa.
 
@@ -138,7 +138,7 @@ No se cederán datos a terceros con fines propios salvo obligación legal o cons
 
 ## 9. Transferencias internacionales
 
-Cuando algún proveedor trate datos fuera del Espacio Económico Europeo, MAISON GROOMING, S.L. exigirá las garantías adecuadas previstas en el RGPD (cláusulas contractuales tipo, decisiones de adecuación u otras medidas reconocidas).
+Cuando algún proveedor trate datos fuera del Espacio Económico Europeo, MAISON GROOMING, SLU exigirá las garantías adecuadas previstas en el RGPD (cláusulas contractuales tipo, decisiones de adecuación u otras medidas reconocidas).
 
 ## 10. Derechos de las personas interesadas
 
@@ -174,4 +174,4 @@ No adoptamos decisiones basadas únicamente en el tratamiento automatizado que p
 
 ## 15. Modificaciones
 
-MAISON GROOMING, S.L. podrá modificar esta Política de Privacidad para adaptarla a cambios normativos o de actividad. Se publicará la versión actualizada en el sitio web con indicación de la fecha de revisión.
+MAISON GROOMING, SLU podrá modificar esta Política de Privacidad para adaptarla a cambios normativos o de actividad. Se publicará la versión actualizada en el sitio web con indicación de la fecha de revisión.
