@@ -456,6 +456,12 @@
       rotate(var(--servicio-servicios-float-tilt));
   }
 
+  .servicio-servicios__trigger-title {
+    font-size: clamp(15px, 4.1vw, 18px);
+    line-height: 1.4;
+    letter-spacing: 0.035em;
+  }
+
   .servicio-servicios__panel-inner {
     margin-left: 0;
     width: 100%;
