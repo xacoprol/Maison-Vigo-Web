@@ -252,6 +252,10 @@
 .servicio__scroll-cta {
   position: absolute;
   left: var(--nav-pad-x);
+  /**
+   * Anclado al borde inferior del primer viewport (el hero mide 100svh +
+   * franja negra; `bottom` suma esa franja para quedar visible al cargar).
+   */
   bottom: calc(
     var(--servicio-hero-extra-black) + clamp(22px, 4vw, 48px)
   );
@@ -263,6 +267,11 @@
   color: var(--cream);
   text-decoration: none;
   border-radius: 999px;
+  pointer-events: auto;
+  /* Desaparece al bajar (usa --servicio-parallax de ServicioEffects). */
+  opacity: max(0, calc(1 - var(--servicio-parallax, 0) * 2.35));
+  transform: translate3d(0, calc(var(--servicio-parallax, 0) * -56px), 0);
+  will-change: opacity, transform;
 }
 
 .servicio__scroll-cta-inner {
@@ -508,9 +517,25 @@
 
 @media (max-width: 900px) {
   .servicio__hero-body {
-    left: 50%;
-    width: 50%;
-    padding: 0 var(--nav-pad-x) 0 clamp(8px, 2vw, 14px);
+    --servicio-body-inset-x: clamp(28px, 7vw, 42px);
+    left: var(--servicio-body-inset-x);
+    width: calc(100% - 2 * var(--servicio-body-inset-x));
+    max-width: none;
+    padding: 0;
+  }
+
+  /**
+   * Indicador de scroll: visible en la primera pantalla, abajo a la izquierda.
+   * Un poco más arriba que el borde inferior del viewport.
+   */
+  .servicio__scroll-cta {
+    left: var(--nav-pad-x, 42px);
+    right: auto;
+    bottom: auto;
+    top: calc(
+      100svh - clamp(78px, 18vw, 104px) - env(safe-area-inset-bottom, 0px)
+    );
+    z-index: 5;
   }
 
   .servicio__body-copy {
@@ -518,6 +543,7 @@
   }
 
   .servicio__body-text {
+    max-width: none;
     font-size: clamp(11px, 3.05vw, 14px);
     line-height: 1.48;
     letter-spacing: 0.034em;
@@ -537,6 +563,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .servicio__scroll-cta {
+    opacity: 1;
+    transform: none;
+  }
+
   .servicio__scroll-cta-arrow,
   .servicio__scroll-cta-ring-path {
     transition: none;

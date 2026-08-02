@@ -565,13 +565,6 @@ export function SiteEffects() {
       onOpenReservaClick(event);
     };
 
-    const onMobileNavRestore = () => {
-      if (isMobileSiteNav()) navbar?.classList.remove("nav-hidden");
-    };
-
-    onMobileNavRestore();
-    window.addEventListener("resize", onMobileNavRestore);
-
     openReservaPanel?.addEventListener("click", onOpenReservaClick);
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
     document.addEventListener("click", onOpenReservaDelegated);
@@ -633,7 +626,6 @@ export function SiteEffects() {
       document.removeEventListener("click", onOpenReservaDelegated);
       closeReservaPanel?.removeEventListener("click", onCloseReservaClick);
       window.removeEventListener("keydown", onEsc);
-      window.removeEventListener("resize", onMobileNavRestore);
       window.removeEventListener("hashchange", onHashChange);
       document.removeEventListener("click", onHashLinkClick, true);
       revealObserver.disconnect();

@@ -106,7 +106,7 @@ export default async function ServicioPage({
         <a
           href="#servicio-body"
           className="servicio__scroll-cta"
-          aria-label="Bajar al texto del servicio"
+          aria-label="Desplázate hacia abajo"
         >
           <span className="servicio__scroll-cta-inner">
             <svg

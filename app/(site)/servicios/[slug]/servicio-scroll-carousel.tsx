@@ -265,7 +265,9 @@ function transitionSlideshowSlides(
     to,
     at,
   );
+  /* Entrante encima del saliente; si ambos quedan en el mismo z-index, en móvil no se ve el cambio. */
   tl.set(slideEls[to], { zIndex: 4 }, at - trans);
+  tl.set(slideEls[from], { zIndex: 3 }, at - trans);
   tl.fromTo(
     clips[to],
     { clipPath: "inset(100% 0% 0% 0%)" },
@@ -288,28 +290,70 @@ function transitionSlideshowSlides(
     { opacity: 1, duration: trans * 0.65, ease: "power1.out" },
     at - trans * 0.35,
   );
+  /* Cierra el saliente y deja solo la diapo activa lista para el siguiente wipe. */
+  tl.set(slideEls[to], { zIndex: 3 }, at);
+  tl.set(slideEls[from], { zIndex: 1 }, at);
+  tl.set(clips[from], { clipPath: "inset(100% 0% 0% 0%)" }, at);
+  tl.set(images[from], { scale: 1.15 }, at);
 }
 
 function setInitialSlideshowState(
   gsap: NonNullable<typeof window.gsap>,
   elements: SlideshowElements,
+  activeSlide = 0,
 ) {
   const { captions, clips, images, slideEls } = elements;
 
   gsap.set(captions, { opacity: 0 });
-  gsap.set(captions[0], { opacity: 1 });
+  if (captions[activeSlide]) gsap.set(captions[activeSlide], { opacity: 1 });
+
   gsap.set(clips, { clipPath: "inset(100% 0% 0% 0%)" });
-  gsap.set(clips[0], { clipPath: "inset(0% 0% 0% 0%)" });
   gsap.set(images, { scale: 1.15, transformOrigin: "center center" });
-  gsap.set(images[0], { scale: 1 });
   gsap.set(slideEls, { zIndex: 1 });
-  gsap.set(slideEls[0], { zIndex: 3 });
+
+  if (clips[activeSlide]) {
+    gsap.set(clips[activeSlide], { clipPath: "inset(0% 0% 0% 0%)" });
+    gsap.set(images[activeSlide], { scale: 1 });
+    gsap.set(slideEls[activeSlide], { zIndex: 3 });
+  }
+
   lockHeadlineSlide(
     gsap,
     elements.headlineLine1,
     elements.headlineLine2,
-    0,
+    activeSlide,
   );
+}
+
+/** Estado visual de media antes de un wipe móvil (evita z-index/clips residuales). */
+function prepareMobileMediaFrom(
+  gsap: NonNullable<typeof window.gsap>,
+  elements: SlideshowElements,
+  from: number,
+) {
+  const { clips, images, slideEls } = elements;
+  gsap.set(clips, { clipPath: "inset(100% 0% 0% 0%)" });
+  gsap.set(images, { scale: 1.15, transformOrigin: "center center" });
+  gsap.set(slideEls, { zIndex: 1 });
+  if (!clips[from]) return;
+  gsap.set(clips[from], { clipPath: "inset(0% 0% 0% 0%)" });
+  gsap.set(images[from], { scale: 1 });
+  gsap.set(slideEls[from], { zIndex: 3 });
+}
+
+function settleMobileMediaTo(
+  gsap: NonNullable<typeof window.gsap>,
+  elements: SlideshowElements,
+  to: number,
+) {
+  const { clips, images, slideEls } = elements;
+  gsap.set(clips, { clipPath: "inset(100% 0% 0% 0%)" });
+  gsap.set(images, { scale: 1.15, transformOrigin: "center center" });
+  gsap.set(slideEls, { zIndex: 1 });
+  if (!clips[to]) return;
+  gsap.set(clips[to], { clipPath: "inset(0% 0% 0% 0%)" });
+  gsap.set(images[to], { scale: 1 });
+  gsap.set(slideEls[to], { zIndex: 3 });
 }
 
 function loadScript(src: string): Promise<void> {
@@ -412,16 +456,10 @@ export function ServicioScrollCarousel({
         if (!wrapRef.current) return;
 
         const elements = getSlideshowElements(root);
-        setInitialSlideshowState(gsap, elements);
+        setInitialSlideshowState(gsap, elements, initialIndex);
         syncCaptionStackHeight(root);
         syncHeadlineRowHeights(root);
         syncMobileSlideClasses(initialIndex);
-        lockHeadlineSlide(
-          gsap,
-          elements.headlineLine1,
-          elements.headlineLine2,
-          initialIndex,
-        );
         root
           .querySelector(".servicio-slideshow__headline")
           ?.classList.add("servicio-slideshow__headline--ready");
@@ -446,17 +484,7 @@ export function ServicioScrollCarousel({
         try {
           const { gsap } = await loadGsap();
           const elements = getSlideshowElements(root);
-          setInitialSlideshowState(gsap, elements);
-          lockHeadlineSlide(
-            gsap,
-            elements.headlineLine1,
-            elements.headlineLine2,
-            to,
-          );
-          gsap.set(elements.captions[to], { opacity: 1 });
-          gsap.set(elements.clips[to], { clipPath: "inset(0% 0% 0% 0%)" });
-          gsap.set(elements.images[to], { scale: 1 });
-          gsap.set(elements.slideEls[to], { zIndex: 3 });
+          setInitialSlideshowState(gsap, elements, to);
         } catch {
           /* estado visual ya sincronizado con clases */
         }
@@ -471,12 +499,14 @@ export function ServicioScrollCarousel({
 
         mobileAnimatingRef.current = true;
         const elements = getSlideshowElements(root);
+        prepareMobileMediaFrom(gsap, elements, from);
 
         const tl = gsap.timeline({
           defaults: { ease: "power1.inOut" },
           onComplete: () => {
             mobileAnimatingRef.current = false;
             mobileTimelineRef.current = null;
+            settleMobileMediaTo(gsap, elements, to);
             syncMobileSlideClasses(to);
             lockHeadlineSlide(
               gsap,
@@ -908,7 +938,11 @@ export function ServicioScrollCarousel({
               {slides.map((slide, index) => (
                 <p
                   key={`caption-${index}`}
-                  className={`servicio-slideshow__caption servicio-slideshow__caption--${index}`}
+                  className={
+                    "servicio-slideshow__caption" +
+                    ` servicio-slideshow__caption--${index}` +
+                    (index === activeStep ? " is-active" : "")
+                  }
                 >
                   {slide.caption}
                 </p>
