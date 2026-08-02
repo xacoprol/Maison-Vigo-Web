@@ -17,6 +17,7 @@ import {
   type CareAssistMessage,
 } from "@/lib/care-assist";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { bookingUrl } from "@/lib/site-config";
 
 import "./care-assist.css";
 
@@ -252,8 +253,10 @@ export function CareAssist() {
                   ) : null}
                   {message.suggestBooking ? (
                     <a
-                      href="/#contacto"
-                      className="care-assist-action care-assist-action--gold js-open-reserva-panel"
+                      href={bookingUrl}
+                      className="care-assist-action care-assist-action--gold"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={() => setOpen(false)}
                     >
                       Reservar cita

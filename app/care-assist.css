@@ -1,10 +1,12 @@
 .care-assist-fab {
+  --care-assist-fab-h: 40px;
   position: fixed;
   right: calc(var(--nav-pad-x) + 4px);
-  bottom: calc(var(--nav-pad-x) + 4px + 62px + 14px);
-  z-index: 122;
+  /* Debajo de WhatsApp (más cerca del borde inferior). */
+  bottom: calc(var(--nav-pad-x) + 4px);
+  z-index: 120;
   min-width: 62px;
-  height: 40px;
+  height: var(--care-assist-fab-h);
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid rgba(212, 175, 122, 0.55);
@@ -18,12 +20,15 @@
   cursor: pointer;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
   transition:
     background 0.3s ease,
     border-color 0.3s ease,
     color 0.3s ease,
-    transform 0.3s ease;
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .care-assist-fab:hover,
@@ -32,6 +37,9 @@
   border-color: var(--gold-lt);
   color: var(--gold-lt);
   transform: translateY(-1px);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 
 .care-assist-fab:focus-visible {
@@ -44,11 +52,16 @@
   line-height: 1;
 }
 
+/* WhatsApp sube para dejar hueco al FAB Orientar. */
+.whatsapp-fab {
+  bottom: calc(var(--nav-pad-x) + 4px + 40px + 12px);
+}
+
 .care-assist-backdrop {
   position: fixed;
   inset: 0;
   z-index: 140;
-  background: rgba(5, 5, 5, 0.55);
+  background: rgba(5, 5, 5, 0.52);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -63,29 +76,44 @@
   pointer-events: auto;
 }
 
+/**
+ * Tarjeta flotante (no cajón a pantalla completa): redondeada,
+ * como el resto de CTAs/círculos del sitio.
+ */
 .care-assist-panel {
+  --care-assist-radius: clamp(18px, 2.4vw, 24px);
   position: fixed;
   z-index: 141;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(420px, 100vw);
+  right: calc(var(--nav-pad-x) + 4px);
+  bottom: calc(var(--nav-pad-x) + 4px + 40px + 12px + 62px + 14px);
+  width: min(400px, calc(100vw - 2 * (var(--nav-pad-x) + 4px)));
+  height: min(640px, calc(100svh - 160px));
+  max-height: calc(100svh - 140px);
   display: flex;
   flex-direction: column;
-  background: #121212;
+  overflow: hidden;
+  background: rgba(14, 14, 14, 0.96);
   color: var(--cream);
-  border-left: 1px solid rgba(187, 149, 93, 0.28);
-  box-shadow: -24px 0 64px rgba(0, 0, 0, 0.45);
-  transform: translateX(104%);
+  border: 1px solid rgba(187, 149, 93, 0.38);
+  border-radius: var(--care-assist-radius);
+  box-shadow:
+    0 28px 72px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transform: translateY(18px) scale(0.97);
+  opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition:
-    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0.48s;
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    visibility 0.45s;
 }
 
 .care-assist-panel.is-open {
-  transform: translateX(0);
+  transform: translateY(0) scale(1);
+  opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
@@ -94,8 +122,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 28px 24px 18px;
+  gap: 14px;
+  padding: 22px 20px 16px;
   border-bottom: 1px solid rgba(244, 244, 242, 0.08);
 }
 
@@ -122,36 +150,40 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  margin: -6px -8px 0 0;
-  border: 0;
-  background: transparent;
+  margin: -2px -4px 0 0;
+  border-radius: 999px;
+  border: 1px solid rgba(187, 149, 93, 0.4);
+  background: rgba(187, 149, 93, 0.14);
   color: var(--cream);
   display: grid;
   place-items: center;
   cursor: pointer;
-  opacity: 0.72;
-  transition: opacity 0.25s ease, color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
 }
 
 .care-assist-close:hover {
-  opacity: 1;
-  color: var(--gold-lt);
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
 }
 
 .care-assist-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding: 18px 18px 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   scroll-behavior: smooth;
 }
 
 .care-assist-bubble {
   max-width: 92%;
-  padding: 12px 14px;
-  border-radius: 2px;
+  padding: 12px 15px;
+  border-radius: 18px;
   font-family: var(--ff-sans);
   font-size: 13px;
   line-height: 1.55;
@@ -164,15 +196,17 @@
 
 .care-assist-bubble--assistant {
   align-self: flex-start;
-  background: rgba(244, 244, 242, 0.06);
-  border: 1px solid rgba(244, 244, 242, 0.08);
+  border-bottom-left-radius: 6px;
+  background: rgba(244, 244, 242, 0.07);
+  border: 1px solid rgba(244, 244, 242, 0.1);
   color: rgba(244, 244, 242, 0.92);
 }
 
 .care-assist-bubble--user {
   align-self: flex-end;
-  background: rgba(187, 149, 93, 0.16);
-  border: 1px solid rgba(212, 175, 122, 0.28);
+  border-bottom-right-radius: 6px;
+  background: rgba(187, 149, 93, 0.18);
+  border: 1px solid rgba(212, 175, 122, 0.32);
   color: var(--cream);
 }
 
@@ -224,7 +258,8 @@
   display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 0 12px;
+  padding: 0 14px;
+  border-radius: 999px;
   border: 1px solid rgba(244, 244, 242, 0.22);
   color: var(--cream);
   text-decoration: none;
@@ -240,6 +275,7 @@
 .care-assist-action:hover {
   border-color: var(--gold-lt);
   color: var(--gold-lt);
+  background: rgba(212, 175, 122, 0.08);
 }
 
 .care-assist-action--gold {
@@ -251,18 +287,19 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 0 24px 14px;
+  padding: 6px 18px 12px;
 }
 
 .care-assist-chip {
   appearance: none;
+  border-radius: 999px;
   border: 1px solid rgba(244, 244, 242, 0.16);
-  background: transparent;
+  background: rgba(244, 244, 242, 0.03);
   color: rgba(244, 244, 242, 0.78);
   font-family: var(--ff-sans);
   font-size: 11px;
   letter-spacing: 0.04em;
-  padding: 8px 12px;
+  padding: 8px 14px;
   cursor: pointer;
   transition:
     color 0.25s ease,
@@ -273,7 +310,7 @@
 .care-assist-chip:hover:not(:disabled) {
   color: var(--gold-lt);
   border-color: rgba(212, 175, 122, 0.5);
-  background: rgba(212, 175, 122, 0.06);
+  background: rgba(212, 175, 122, 0.08);
 }
 
 .care-assist-chip:disabled {
@@ -282,7 +319,7 @@
 }
 
 .care-assist-limit {
-  margin: 0 24px 12px;
+  margin: 0 18px 10px;
   font-size: 12px;
   line-height: 1.5;
   color: rgba(244, 244, 242, 0.55);
@@ -293,35 +330,32 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: end;
-  padding: 0 24px 20px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(244, 244, 242, 0.08);
-  padding-top: 14px;
+  margin: 0 14px 14px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(244, 244, 242, 0.1);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 .care-assist-input {
   width: 100%;
   resize: none;
   box-sizing: border-box;
-  min-height: 52px;
+  min-height: 44px;
   max-height: 96px;
-  padding: 12px 14px;
-  border: 1px solid rgba(244, 244, 242, 0.14);
-  background: rgba(0, 0, 0, 0.28);
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   color: var(--cream);
   font-family: var(--ff-sans);
   font-size: 14px;
   line-height: 1.45;
   outline: none;
-  transition: border-color 0.25s ease;
 }
 
 .care-assist-input::placeholder {
   color: rgba(244, 244, 242, 0.35);
-}
-
-.care-assist-input:focus {
-  border-color: rgba(212, 175, 122, 0.55);
 }
 
 .care-assist-input:disabled {
@@ -330,10 +364,11 @@
 
 .care-assist-send {
   appearance: none;
-  height: 44px;
+  height: 40px;
   padding: 0 16px;
+  border-radius: 999px;
   border: 1px solid var(--gold-lt);
-  background: transparent;
+  background: rgba(212, 175, 122, 0.12);
   color: var(--gold-lt);
   font-family: var(--ff-sans);
   font-size: 10px;
@@ -342,11 +377,14 @@
   cursor: pointer;
   transition:
     background 0.25s ease,
-    color 0.25s ease;
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .care-assist-send:hover:not(:disabled) {
-  background: rgba(212, 175, 122, 0.12);
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
 }
 
 .care-assist-send:disabled {
@@ -355,7 +393,7 @@
 }
 
 .care-assist-error {
-  margin: 0 24px 16px;
+  margin: 0 18px 14px;
   font-size: 11px;
   color: rgba(244, 180, 160, 0.9);
 }
@@ -373,6 +411,7 @@
 }
 
 body.care-assist-open .whatsapp-fab,
+body.care-assist-open .care-assist-fab,
 body.menu-open .care-assist-fab,
 body.reserva-open .care-assist-fab {
   opacity: 0;
@@ -381,11 +420,16 @@ body.reserva-open .care-assist-fab {
 }
 
 @media (max-width: 900px) {
+  .whatsapp-fab {
+    bottom: calc(14px + 36px + 12px + env(safe-area-inset-bottom, 0px));
+  }
+
   .care-assist-fab {
+    --care-assist-fab-h: 36px;
     right: max(10px, env(safe-area-inset-right, 0px));
-    bottom: calc(14px + 50px + 12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     min-width: 0;
-    height: 36px;
+    height: var(--care-assist-fab-h);
     padding: 0 12px;
     font-size: 10px;
     letter-spacing: 0.14em;
@@ -399,7 +443,8 @@ body.reserva-open .care-assist-fab {
       visibility 0.55s,
       background 0.3s ease,
       border-color 0.3s ease,
-      color 0.3s ease;
+      color 0.3s ease,
+      box-shadow 0.3s ease;
   }
 
   .care-assist-fab.care-assist-fab--visible {
@@ -414,29 +459,61 @@ body.reserva-open .care-assist-fab {
     transform: translateY(-1px);
   }
 
+  /* Bottom sheet redondeado arriba. */
   .care-assist-panel {
+    --care-assist-radius: 22px;
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
     width: 100vw;
+    height: min(82svh, 720px);
+    max-height: calc(100svh - 48px);
+    border-radius: var(--care-assist-radius) var(--care-assist-radius) 0 0;
     border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    transform: translateY(108%);
+    opacity: 1;
+  }
+
+  .care-assist-panel.is-open {
+    transform: translateY(0);
   }
 
   .care-assist-header {
-    padding: 22px 20px 16px;
-    padding-top: calc(18px + env(safe-area-inset-top, 0px));
+    padding: 18px 18px 14px;
+    padding-top: 16px;
+  }
+
+  .care-assist-header::before {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 0 auto 14px;
+    border-radius: 999px;
+    background: rgba(244, 244, 242, 0.22);
+    grid-column: 1 / -1;
+  }
+
+  .care-assist-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
   }
 
   .care-assist-messages {
-    padding: 16px 20px;
+    padding: 14px 16px 6px;
   }
 
   .care-assist-chips,
   .care-assist-limit {
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .care-assist-form {
-    padding-left: 20px;
-    padding-right: 20px;
+    margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }
 
