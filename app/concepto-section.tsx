@@ -1,15 +1,5 @@
-import { WaveText } from "./wave-text";
-
-type ConceptoSectionProps = {
-  ctaHref?: string;
-  ctaLabel?: string;
-};
-
 /** Bloque editorial `#concepto` de la home (Cuidado Perfeccionado). */
-export function ConceptoSection({
-  ctaHref = "/#contacto",
-  ctaLabel = "CONÓCENOS",
-}: ConceptoSectionProps) {
+export function ConceptoSection() {
   return (
     <section id="concepto">
       <div
@@ -79,28 +69,6 @@ export function ConceptoSection({
           </p>
           <footer>Maison Vigo</footer>
         </blockquote>
-
-        <a
-          href={ctaHref}
-          className="concepto-circle-cta mob-link--wave"
-          data-parallax="cta"
-        >
-          <svg
-            className="concepto-circle-cta-ring"
-            viewBox="0 0 100 100"
-            aria-hidden={true}
-          >
-            <circle
-              className="concepto-circle-cta-ring-path"
-              cx="50"
-              cy="50"
-              r="49.5"
-            />
-          </svg>
-          <span className="concepto-circle-cta-label">
-            <WaveText text={ctaLabel} />
-          </span>
-        </a>
       </div>
     </section>
   );
