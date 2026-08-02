@@ -27,8 +27,8 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   },
   {
     id: "bienestar",
-    label: "Piel o bienestar",
-    prompt: "Tiene la piel sensible o necesita un seguimiento de bienestar. ¿Qué me recomendáis?",
+    label: "Piel o manto",
+    prompt: "Tiene la piel sensible o el manto necesita un seguimiento cutáneo. ¿Qué me recomendáis?",
   },
   {
     id: "guarderia",
@@ -42,8 +42,9 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   },
   {
     id: "educacion",
-    label: "Educación",
-    prompt: "Necesitamos ayuda con convivencia, hábitos o educación. ¿Qué ofrecéis?",
+    label: "Conducta o nervios",
+    prompt:
+      "Mi perro está nervioso o tenemos dudas de conducta y convivencia. ¿Qué servicio encaja?",
   },
   {
     id: "reserva",
@@ -94,6 +95,13 @@ export function buildCareAssistSystemPrompt(): string {
     "- Si el usuario quiere reservar, indica que puede hacerlo desde «Reservar cita» en la web (portal de reservas).",
     `- URL de reserva (referencia): ${bookingUrl}`,
     "- También pueden contactar por WhatsApp o teléfono del pie de página.",
+    "",
+    "Enrutado de servicios (prioridad clara):",
+    "- Educación (educacion): conductas, comportamiento, nervios, ansiedad, miedos, reactividad, ladridos, tirones de correa, hábitos, convivencia, cachorros con educación, equilibrio emocional vinculado a conducta. NUNCA uses Bienestar para esto.",
+    "- Bienestar (bienestar): piel, picores, manto con seguimiento cutáneo, ozonoterapia, planes cutáneos, recomendaciones de cosmética/casa para la piel. NO es el servicio de conducta.",
+    "- Grooming (grooming): baño, corte, estética, nudos, mantenimiento del pelo sin foco en conducta.",
+    "- Guardería Familiar (guarderia-familiar): estancia de día, MV Home, socialización supervisada en guardería.",
+    "- Acompañamiento (acompanamiento): bodas, eventos, momentos en los que no pueden estar con el perro.",
     "",
     "Formato de respuesta: SOLO un JSON válido, sin markdown ni texto fuera del JSON:",
     '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false}',

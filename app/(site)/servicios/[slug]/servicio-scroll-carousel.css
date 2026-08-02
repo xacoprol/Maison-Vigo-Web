@@ -387,8 +387,8 @@
     left: auto;
     right: auto;
     width: 100%;
-    height: 56vw;
-    min-height: 240px;
+    height: 68vw;
+    min-height: 280px;
   }
 
   .servicio-slideshow-wrap:not(.servicio-slideshow-wrap--mobile-all)
@@ -400,8 +400,8 @@
   .servicio-slideshow-wrap:not(.servicio-slideshow-wrap--mobile-all)
     .servicio-slideshow__media-slide {
     position: relative;
-    height: 56vw;
-    min-height: 240px;
+    height: 68vw;
+    min-height: 280px;
     margin-bottom: 0;
   }
 
@@ -474,10 +474,11 @@
     order: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
     column-gap: clamp(12px, 3vw, 24px);
-    padding-top: clamp(24px, 4vw, 36px);
+    padding-top: clamp(48px, 10vw, 72px);
     padding-bottom: 0;
+    overflow: visible;
   }
 
   .servicio-slideshow-wrap--mobile-all .servicio-slideshow__steps {
@@ -498,7 +499,7 @@
     align-items: center;
     gap: 6px;
     justify-self: end;
-    align-self: center;
+    align-self: start;
   }
 
   .servicio-slideshow-wrap--mobile-all .servicio-slideshow__step + .servicio-slideshow__step {
@@ -523,18 +524,22 @@
     grid-column: 1;
     grid-row: 1;
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    min-height: 4.5em;
+    min-height: 0;
     margin: 0 0 24px;
     padding-right: clamp(8px, 2vw, 16px);
+    overflow: visible;
   }
 
   .servicio-slideshow-wrap--mobile-all .servicio-slideshow__caption {
     display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    grid-area: 1 / 1;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
     margin: 0;
     padding: 0;
     max-width: none;
@@ -543,6 +548,9 @@
     letter-spacing: 0.034em;
     opacity: 0;
     pointer-events: none;
+    /* Todas ocupan la misma celda: la fila crece con el caption más largo. */
+    height: auto;
+    overflow: visible;
   }
 
   .servicio-slideshow-wrap--mobile-all .servicio-slideshow__caption.is-active {
@@ -557,8 +565,8 @@
     left: auto;
     right: auto;
     width: 100%;
-    height: 56vw;
-    min-height: 240px;
+    height: 68vw;
+    min-height: 280px;
     flex-shrink: 0;
   }
 

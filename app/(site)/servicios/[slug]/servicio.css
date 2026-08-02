@@ -532,20 +532,29 @@
 }
 
 @media (max-width: 900px) {
+  .servicio__hero {
+    /* Más aire bajo el lead; el body vive en la franja negra y sube al scroll. */
+    --servicio-lead-body-gap: 260px;
+  }
+
   .servicio__hero-body {
     --servicio-body-inset-x: clamp(28px, 7vw, 42px);
     left: var(--servicio-body-inset-x);
     width: calc(100% - 2 * var(--servicio-body-inset-x));
     max-width: none;
     padding: 0;
-    /* Sin parallax: se mueve solo con el scroll del documento (evita el bote). */
-    transform: none;
-    will-change: auto;
+    /* Sube con el scroll (más que en desktop) para no quedar pegado al slideshow. */
+    transform: translate3d(
+      0,
+      calc(var(--servicio-parallax) * min(-28vh, -200px)),
+      0
+    );
+    will-change: transform;
   }
 
   .servicio__body-copy {
-    transform: none;
-    will-change: auto;
+    transform: translate3d(0, var(--servicio-body-y), 0);
+    will-change: transform;
     font-size: clamp(11px, 3.05vw, 14px);
   }
 

@@ -61,11 +61,12 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
 
       const progress = getServicioBodyScrollRevealProgress(copy, hero);
       const scrolled = Math.max(0, -hero.getBoundingClientRect().top);
+      const mobile = isMobileLayout();
 
       return {
         opacity: servicioBodyOpacityFromProgress(progress),
-        /* En móvil el parallax extra provoca un “bote”; solo fade. */
-        parallaxPx: isMobileLayout() ? 0 : -scrolled * 0.05,
+        /* Móvil: sube con el scroll (factor mayor) para no quedarse pegado abajo. */
+        parallaxPx: mobile ? -scrolled * 0.42 : -scrolled * 0.05,
       };
     };
 
@@ -74,6 +75,7 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
       const targetY = targetParallaxRef.current;
       let currentO = currentOpacityRef.current;
       let currentY = currentParallaxRef.current;
+      const mobile = isMobileLayout();
 
       if (Math.abs(targetO - currentO) < 0.002) {
         currentO = targetO;
@@ -81,7 +83,10 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
         currentO += (targetO - currentO) * 0.22;
       }
 
-      if (Math.abs(targetY - currentY) < 0.2) {
+      if (mobile) {
+        /* Sin lerp lento: evita el “bote” al alcanzar el target. */
+        currentY = targetY;
+      } else if (Math.abs(targetY - currentY) < 0.2) {
         currentY = targetY;
       } else {
         currentY += (targetY - currentY) * 0.028;
@@ -93,7 +98,7 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
 
       if (
         Math.abs(targetO - currentO) > 0.002 ||
-        Math.abs(targetY - currentY) > 0.35
+        (!mobile && Math.abs(targetY - currentY) > 0.35)
       ) {
         rafId = requestAnimationFrame(tick);
       } else {

@@ -121,6 +121,12 @@ function syncCaptionStackHeight(root: HTMLElement) {
   );
   if (!stack) return;
 
+  /* En móvil el stack es grid superpuesto: el alto lo marca el caption más largo. */
+  if (root.classList.contains("servicio-slideshow-wrap--mobile-all")) {
+    stack.style.minHeight = "";
+    return;
+  }
+
   let maxH = 0;
   stack.querySelectorAll<HTMLElement>(".servicio-slideshow__caption").forEach(
     (caption) => {

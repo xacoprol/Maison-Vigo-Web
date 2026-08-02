@@ -428,6 +428,34 @@
 }
 
 @media (max-width: 900px) {
+  .servicio-servicios__title-zone {
+    margin-bottom: clamp(72px, 16vw, 120px);
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .servicio-servicios__title {
+    /* «SERVICIOS» en una línea sin desbordar el viewport. */
+    font-size: clamp(34px, 10.2vw, 56px);
+    max-width: 100%;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .servicio-servicios__title-anchor {
+    max-width: 100%;
+  }
+
+  .servicio-servicios__float {
+    width: clamp(120px, 36vw, 200px);
+    transform: translate3d(
+        calc(-50% - clamp(20px, 5vw, 40px)),
+        calc(-50% + var(--servicio-servicios-float-y)),
+        0
+      )
+      rotate(var(--servicio-servicios-float-tilt));
+  }
+
   .servicio-servicios__panel-inner {
     margin-left: 0;
     width: 100%;
