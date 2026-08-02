@@ -42,7 +42,7 @@ const BIENESTAR_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "El bienestar empieza antes de que aparezcan los problemas.",
     headline1: "Cuidar también",
     headline2: "es prevenir",
-    image: "/cuidado.webp",
+    image: "/assets/images/diagnostico.webp",
     imageAlt: "Cuidado preventivo de bienestar en Maison Vigo.",
   },
   {
@@ -70,7 +70,7 @@ const EDUCACION_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "no solo desde la corrección inmediata.",
     headline1: "Comprender antes",
     headline2: "que corregir",
-    image: "/educacion.webp",
+    image: "/assets/images/educacion-1.webp",
     imageAlt: "Educación canina en Maison Vigo.",
   },
   {
@@ -78,7 +78,7 @@ const EDUCACION_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Cada perro tiene su propio ritmo, su historia y su forma de relacionarse con el entorno.",
     headline1: "Cada historia",
     headline2: "tiene su ritmo",
-    image: "/assets/images/la-bienvenida.webp",
+    image: "/assets/images/educacion-2.webp",
     imageAlt: "Acompañamiento educativo adaptado a cada perro.",
   },
   {
@@ -86,7 +86,7 @@ const EDUCACION_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Construimos herramientas para una convivencia más tranquila, segura y consciente desde la confianza.",
     headline1: "Convivencia desde",
     headline2: "la confianza",
-    image: "/assets/images/el-espacio.webp",
+    image: "/assets/images/educacion-3.webp",
     imageAlt: "Convivencia y confianza en Maison Vigo.",
   },
 ];

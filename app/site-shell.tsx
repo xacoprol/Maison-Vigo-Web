@@ -154,7 +154,7 @@ export function SiteShell() {
               <Link
                 href="/mvcare"
                 className="mob-link mob-link--primary"
-                data-menu-image="foto3"
+                data-menu-image="mvcare"
               >
                 MV CARE
               </Link>
@@ -192,6 +192,17 @@ export function SiteShell() {
               <div className="mobile-menu-media-layer" data-menu-image="foto3">
                 <Image
                   src="/foto3.jpg"
+                  alt=""
+                  fill
+                  className="mobile-menu-media-img"
+                  sizes="(max-width: 900px) 100vw, 40vw"
+                  quality={70}
+                  loading="eager"
+                />
+              </div>
+              <div className="mobile-menu-media-layer" data-menu-image="mvcare">
+                <Image
+                  src="/assets/images/mvcare-1.webp"
                   alt=""
                   fill
                   className="mobile-menu-media-img"
