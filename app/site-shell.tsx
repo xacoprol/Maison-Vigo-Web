@@ -180,7 +180,7 @@ export function SiteShell() {
               </div>
               <div className="mobile-menu-media-layer" data-menu-image="foto2">
                 <Image
-                  src="/foto2.jpg"
+                  src="/assets/images/cuidado-integral.webp"
                   alt=""
                   fill
                   className="mobile-menu-media-img"
@@ -265,7 +265,7 @@ export function SiteShell() {
           <div className="reserva-panel-media-frame">
             <div className="reserva-panel-media-layer is-active">
               <Image
-                src="/foto2.jpg"
+                src="/assets/images/cuidado-integral.webp"
                 alt=""
                 fill
                 className="reserva-panel-media-img"
