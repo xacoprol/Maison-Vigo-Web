@@ -426,6 +426,22 @@
 
 /** Portátil (901px–1600px). */
 @media (min-width: 901px) and (max-width: 1600px) {
+  .servicio__hero {
+    --servicio-lead-body-gap: 220px;
+  }
+
+  .servicio__hero-title {
+    /* Más compacto para que «Acompañamiento» entre en una sola línea. */
+    font-size: clamp(44px, 6.1vw, 100px);
+    overflow-wrap: normal;
+    hyphens: manual;
+  }
+
+  .servicio__hero-body {
+    left: 44%;
+    width: 56%;
+  }
+
   .servicio__body-copy {
     font-size: clamp(15px, 1.22vw, 19px);
   }
