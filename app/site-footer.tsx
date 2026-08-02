@@ -43,7 +43,7 @@ export function SiteFooter() {
         >
           <span className="contact-label">Contacto</span>
           <div className="contact-info">
-            <a className="contact-line" href="tel:+34986242669">
+            <a className="contact-line" href="tel:+34986233321">
               <svg
                 className="contact-icon"
                 viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ export function SiteFooter() {
               >
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />
               </svg>
-              <span className="contact-text">986 24 26 69</span>
+              <span className="contact-text">986 23 33 21</span>
             </a>
             <a
               className="contact-line"

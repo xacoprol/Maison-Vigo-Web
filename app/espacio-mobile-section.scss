@@ -1,6 +1,8 @@
 .espacio-mobile {
   --espacio-mobile-pad-x: clamp(40px, 11vw, 64px);
   --espacio-mobile-text-offset: clamp(72px, 22vw, 128px);
+  /** Menor que el sangrado del cuerpo: títulos largos (Grooming) no se cortan. */
+  --espacio-mobile-title-offset: clamp(16px, 4.5vw, 36px);
   --espacio-mobile-cream: var(--cream, #f4f4f2);
   --espacio-mobile-gold: var(--gold-lt, #d4af7a);
   position: relative;
@@ -71,10 +73,10 @@
   position: absolute;
   z-index: 2;
   left: var(--espacio-mobile-pad-x);
-  right: var(--espacio-mobile-pad-x);
+  right: clamp(12px, 3vw, 24px);
   bottom: 0;
   margin: 0;
-  max-width: 12ch;
+  max-width: none;
   font-family: var(--ff-serif);
   font-size: clamp(40px, 12.5vw, 78px);
   font-weight: 400;
@@ -89,7 +91,7 @@
 
 .espacio-mobile__title .espacio__title-word--cream {
   display: block;
-  margin-left: var(--espacio-mobile-text-offset);
+  margin-left: var(--espacio-mobile-title-offset);
   color: var(--espacio-mobile-cream);
 }
 
