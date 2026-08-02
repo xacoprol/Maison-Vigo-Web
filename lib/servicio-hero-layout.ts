@@ -11,10 +11,20 @@ export function layoutServicioHeroOnce() {
   const gap =
     Number.parseFloat(styles.getPropertyValue("--servicio-lead-body-gap")) ||
     350;
+  const lift =
+    Number.parseFloat(styles.getPropertyValue("--servicio-hero-lift")) || 0;
 
-  const heroRect = hero.getBoundingClientRect();
-  const leadRect = leadWrap.getBoundingClientRect();
-  const topPx = Math.round(leadRect.bottom - heroRect.top + gap);
+  /**
+   * `offset*` ignora transforms (parallax). Así no salta `--servicio-body-top`
+   * si iOS dispara resize al ocultar la barra o si el lead ya está desplazado.
+   */
+  let leadBottom = leadWrap.offsetTop + leadWrap.offsetHeight;
+  const offsetParent = leadWrap.offsetParent;
+  if (offsetParent instanceof HTMLElement && offsetParent !== hero) {
+    leadBottom += offsetParent.offsetTop;
+  }
+
+  const topPx = Math.round(leadBottom + gap - lift);
   hero.style.setProperty("--servicio-body-top", `${topPx}px`);
 
   return true;

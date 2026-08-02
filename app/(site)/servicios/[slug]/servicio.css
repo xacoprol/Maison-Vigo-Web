@@ -522,6 +522,15 @@
     width: calc(100% - 2 * var(--servicio-body-inset-x));
     max-width: none;
     padding: 0;
+    /* Sin parallax: se mueve solo con el scroll del documento (evita el bote). */
+    transform: none;
+    will-change: auto;
+  }
+
+  .servicio__body-copy {
+    transform: none;
+    will-change: auto;
+    font-size: clamp(11px, 3.05vw, 14px);
   }
 
   /**
@@ -536,10 +545,6 @@
       100svh - clamp(78px, 18vw, 104px) - env(safe-area-inset-bottom, 0px)
     );
     z-index: 5;
-  }
-
-  .servicio__body-copy {
-    font-size: clamp(11px, 3.05vw, 14px);
   }
 
   .servicio__body-text {

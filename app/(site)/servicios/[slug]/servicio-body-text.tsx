@@ -44,6 +44,9 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
     const currentParallaxRef = { current: 0 };
     let rafId = 0;
 
+    const mobileMq = window.matchMedia("(max-width: 900px)");
+    const isMobileLayout = () => mobileMq.matches;
+
     const applyState = (opacity: number, parallaxPx: number) => {
       const o = opacity.toFixed(4);
       const visible = opacity >= 0.008;
@@ -61,7 +64,8 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
 
       return {
         opacity: servicioBodyOpacityFromProgress(progress),
-        parallaxPx: -scrolled * 0.05,
+        /* En móvil el parallax extra provoca un “bote”; solo fade. */
+        parallaxPx: isMobileLayout() ? 0 : -scrolled * 0.05,
       };
     };
 
