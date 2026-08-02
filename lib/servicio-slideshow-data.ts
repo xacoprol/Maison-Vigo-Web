@@ -97,7 +97,7 @@ const GUARDERIA_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Un entorno familiar, tranquilo y supervisado donde pueden sentirse seguros y acompañados.",
     headline1: "Como",
     headline2: "en casa",
-    image: "/guarderia.webp",
+    image: "/assets/images/guarderia-1.webp",
     imageAlt: "Guardería familiar Maison Vigo.",
   },
   {
@@ -105,7 +105,7 @@ const GUARDERIA_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Grupos reducidos que permiten un cuidado más cercano, calmado y personalizado.",
     headline1: "Grupos",
     headline2: "reducidos",
-    image: "/assets/images/el-espacio.webp",
+    image: "/assets/images/guarderia-2.webp",
     imageAlt: "Grupos reducidos en MV Home.",
   },
   {
@@ -113,7 +113,7 @@ const GUARDERIA_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Rutinas, descanso y atención adaptada al ritmo y las necesidades de cada perro.",
     headline1: "Atención",
     headline2: "individualizada",
-    image: "/assets/images/ritual-de-bano.webp",
+    image: "/assets/images/guarderia-3.webp",
     imageAlt: "Atención individualizada en guardería de día.",
   },
 ];
@@ -124,7 +124,7 @@ const ACOMPANAMIENTO_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Estamos presentes en bodas, eventos y momentos especiales con el mismo cuidado y calma de siempre.",
     headline1: "Presencia en",
     headline2: "momentos importantes",
-    image: "/acompanamiento.webp",
+    image: "/assets/images/acompanamiento-1.webp",
     imageAlt: "Acompañamiento en eventos Maison Vigo.",
   },
   {
@@ -132,7 +132,7 @@ const ACOMPANAMIENTO_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Para que puedas vivir esos días con tranquilidad, sabiendo que están en buenas manos.",
     headline1: "Cuidado sin",
     headline2: "preocupaciones",
-    image: "/assets/images/continuidad.webp",
+    image: "/assets/images/acompanamiento-2.webp",
     imageAlt: "Cuidado y tranquilidad en acompañamiento.",
   },
   {
@@ -140,7 +140,7 @@ const ACOMPANAMIENTO_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
       "Una forma de seguir cuidando desde la cercanía, la confianza y la continuidad del vínculo.",
     headline1: "Un vínculo que",
     headline2: "también participa",
-    image: "/assets/images/primer-contacto.webp",
+    image: "/assets/images/acompanamiento-3.webp",
     imageAlt: "Vínculo y acompañamiento personalizado Maison Vigo.",
   },
 ];
