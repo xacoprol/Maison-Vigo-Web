@@ -33,7 +33,7 @@ export function SiteFooter() {
               <span className="contact-text">
                 Rúa das Teixugueiras 29, Portal 5, Bajo.
                 <br />
-                36212, Vigo
+                36212, Vigo - Pontevedra
               </span>
             </span>
           </div>
