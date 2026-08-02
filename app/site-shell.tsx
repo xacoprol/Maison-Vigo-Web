@@ -116,7 +116,7 @@ export function SiteShell() {
         </Link>
         <div className="nav-end">
           <a
-            href="#"
+            href="/#contacto"
             className="nav-cta mob-link--wave js-open-reserva-panel"
             id="openReservaPanel"
             aria-label="Reserva una cita"
@@ -225,7 +225,7 @@ export function SiteShell() {
           </svg>
         </button>
         <a
-          href="#"
+          href="/#contacto"
           className="mobile-menu-book mob-link--wave js-open-reserva-panel"
           id="openReservaPanelFromMenu"
           aria-label="Reserva una cita"

@@ -337,10 +337,6 @@ export function SiteEffects() {
     const onReservaOverlayClick = (event: MouseEvent) => {
       if (event.target === reservaPanel) closeReservaPanelFn();
     };
-    const onOpenReservaClick = (event: Event) => {
-      event.preventDefault();
-      openReservaPanelFn();
-    };
     const onCloseMenuClick = (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -441,6 +437,58 @@ export function SiteEffects() {
       } else {
         scheduleScrollToHomeSection(sectionId);
       }
+    };
+
+    /**
+     * Móvil: un clic lleva a `#contacto` en la página actual (footer).
+     * Escritorio: abre el panel de reserva embebido.
+     */
+    const onOpenReservaClick = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isMobileSiteNav()) {
+        const contact = document.getElementById("contacto");
+        if (contact) {
+          const wasMenuOpen = mobileMenu?.classList.contains("open") ?? false;
+          if (wasMenuOpen) closeMenuFn();
+
+          const targetUrl = buildSectionUrl(
+            "contacto",
+            window.location.pathname,
+          );
+          history.replaceState(history.state, "", targetUrl);
+
+          const scroll = () => {
+            const lenisInstance = window.__mvLenis ?? lenis;
+            if (lenisInstance) {
+              lenisInstance.resize();
+              lenisInstance.scrollTo(contact, {
+                duration: 1.25,
+                easing: lenisEase,
+                force: true,
+                programmatic: true,
+              });
+              return;
+            }
+            contact.scrollIntoView({
+              behavior: prefersReducedMotion ? "auto" : "smooth",
+            });
+          };
+
+          if (wasMenuOpen) {
+            window.setTimeout(scroll, 0);
+          } else {
+            requestAnimationFrame(scroll);
+          }
+          return;
+        }
+
+        navigateToHomeSection("contacto", event as MouseEvent);
+        return;
+      }
+
+      openReservaPanelFn();
     };
 
     /**
