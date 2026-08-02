@@ -61,7 +61,10 @@ export default function Home() {
             playsInline
             preload="auto"
           >
-            <source src="/maison-vigo.mp4" type="video/mp4" />
+            <source
+              src="/assets/videos/maison-vigo.webm"
+              type="video/webm"
+            />
           </video>
           <div className="hero-video-overlay" />
         </div>
