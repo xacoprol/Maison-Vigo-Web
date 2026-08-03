@@ -194,6 +194,28 @@ export function SiteFooter() {
             </svg>
             <span className="footer-social-handle">@maisonvigo</span>
           </a>
+          <a
+            className="footer-social-link"
+            href="https://www.tiktok.com/@maison.vigo"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok de Maison Vigo"
+          >
+            <svg
+              className="footer-social-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden={true}
+            >
+              <path d="M14.5 3.5v10.2a3.8 3.8 0 1 1-2.6-3.6" />
+              <path d="M14.5 7.2c1.4 1.3 3.2 2.1 5.2 2.2V6.2c-1.9-.2-3.6-1.1-5.2-2.7" />
+            </svg>
+            <span className="footer-social-handle">@maison.vigo</span>
+          </a>
         </div>
         <ul className="footer-legal" aria-label="Avisos legales">
           <li>
