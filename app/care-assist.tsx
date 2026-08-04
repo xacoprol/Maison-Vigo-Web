@@ -329,14 +329,6 @@ export function CareAssist() {
             </svg>
           )}
         </button>
-        <a
-          href="https://wa.me/34644577798"
-          className="care-assist-wa"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Hablar por WhatsApp
-        </a>
       </div>
 
       <div
@@ -503,6 +495,16 @@ export function CareAssist() {
             Enviar
           </button>
         </form>
+
+        <a
+          href="https://wa.me/34644577798"
+          className="care-assist-wa"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => setOpen(false)}
+        >
+          Hablar por WhatsApp
+        </a>
 
         {error ? (
           <p className="care-assist-error" role="status">
