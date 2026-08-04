@@ -53,38 +53,6 @@
   display: block;
 }
 
-.care-assist-wa {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 0 14px 14px;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--gold-lt);
-  background: rgba(212, 175, 122, 0.12);
-  color: var(--gold-lt);
-  font-family: var(--ff-sans);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
-}
-
-.care-assist-wa:hover,
-.care-assist-wa:focus-visible {
-  background: rgba(212, 175, 122, 0.22);
-  border-color: var(--gold-lt);
-  color: var(--cream);
-  outline: none;
-}
-
 .care-assist-backdrop {
   position: fixed;
   inset: 0;
@@ -370,8 +338,20 @@
   cursor: default;
 }
 
+a.care-assist-chip--wa {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+a.care-assist-chip--wa:hover {
+  color: var(--gold-lt);
+  border-color: rgba(212, 175, 122, 0.5);
+  background: rgba(212, 175, 122, 0.08);
+}
+
 .care-assist-limit {
-  margin: 0 18px 10px;
+  margin: 0 0 8px;
   font-size: 12px;
   line-height: 1.5;
   color: rgba(244, 244, 242, 0.55);
@@ -382,7 +362,7 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: end;
-  margin: 0 14px 10px;
+  margin: 0 14px 14px;
   padding: 12px;
   border-radius: 18px;
   border: 1px solid rgba(244, 244, 242, 0.1);
@@ -448,7 +428,7 @@
 }
 
 .care-assist-send:disabled {
-  opacity: 0.4;
+  opacity: 0.92;
   cursor: default;
 }
 
@@ -505,12 +485,8 @@ body.reserva-open .care-assist-dock {
     height: 22px;
   }
 
-  .care-assist-wa {
-    margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  }
-
   .care-assist-form {
-    margin: 0 12px 10px;
+    margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Bottom sheet redondeado arriba. */

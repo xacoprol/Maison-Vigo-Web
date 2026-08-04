@@ -96,7 +96,10 @@ export function CareAssist() {
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     if (coarse) return;
 
-    const t = window.setTimeout(() => inputRef.current?.focus(), 240);
+    const t = window.setTimeout(
+      () => inputRef.current?.focus({ preventScroll: true }),
+      240,
+    );
     return () => window.clearTimeout(t);
   }, [open, scrollToBottom]);
 
@@ -131,11 +134,22 @@ export function CareAssist() {
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
+    const lockedScrollY = window.scrollY;
+    const lockedScrollX = window.scrollX;
 
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.classList.add("care-assist-open");
     html.classList.add("care-assist-open");
+
+    const restorePageScroll = () => {
+      if (
+        window.scrollY !== lockedScrollY ||
+        window.scrollX !== lockedScrollX
+      ) {
+        window.scrollTo(lockedScrollX, lockedScrollY);
+      }
+    };
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -161,6 +175,7 @@ export function CareAssist() {
       if (!vv) {
         panel.style.removeProperty("--care-assist-kb-inset");
         panel.style.removeProperty("--care-assist-vv-h");
+        restorePageScroll();
         return;
       }
 
@@ -174,10 +189,8 @@ export function CareAssist() {
         `${Math.round(vv.height)}px`,
       );
 
-      /* iOS a veces desplaza el layout al enfocar; lo devolvemos. */
-      if (window.scrollY !== 0 || window.scrollX !== 0) {
-        window.scrollTo(0, 0);
-      }
+      /* iOS a veces desplaza el documento al enfocar; restauramos la posición. */
+      restorePageScroll();
     };
 
     syncKeyboardLayout();
@@ -438,7 +451,7 @@ export function CareAssist() {
                     const coarse = window.matchMedia("(pointer: coarse)").matches;
                     if (!coarse) {
                       window.requestAnimationFrame(() =>
-                        inputRef.current?.focus(),
+                        inputRef.current?.focus({ preventScroll: true }),
                       );
                     }
                   }}
@@ -446,13 +459,36 @@ export function CareAssist() {
                   {chip.label}
                 </button>
               ))}
+              <a
+                href="https://wa.me/34644577798"
+                className="care-assist-chip care-assist-chip--wa"
+                role="listitem"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+              >
+                Hablar por WhatsApp
+              </a>
             </div>
           </div>
         ) : (
-          <p className="care-assist-limit">
-            Hemos llegado al final de esta orientación. Reserva cita o
-            escríbenos si quieres seguir.
-          </p>
+          <div className="care-assist-chips-block">
+            <p className="care-assist-limit">
+              Hemos llegado al final de esta orientación. Reserva cita o
+              escríbenos si quieres seguir.
+            </p>
+            <div className="care-assist-chips">
+              <a
+                href="https://wa.me/34644577798"
+                className="care-assist-chip care-assist-chip--wa"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+              >
+                Hablar por WhatsApp
+              </a>
+            </div>
+          </div>
         )}
 
         <form className="care-assist-form" onSubmit={onSubmit}>
@@ -473,11 +509,13 @@ export function CareAssist() {
             autoCorrect="on"
             onChange={(event) => setInput(event.target.value)}
             onFocus={() => {
-              /* Evita el scrollIntoView agresivo de iOS al abrir el teclado. */
+              /* Evita el scrollIntoView agresivo sin mandar la página arriba. */
               const y = window.scrollY;
+              const x = window.scrollX;
               window.requestAnimationFrame(() => {
-                window.scrollTo(0, y);
-                window.setTimeout(() => window.scrollTo(0, 0), 50);
+                if (window.scrollY !== y || window.scrollX !== x) {
+                  window.scrollTo(x, y);
+                }
               });
             }}
             onKeyDown={(event) => {
@@ -495,16 +533,6 @@ export function CareAssist() {
             Enviar
           </button>
         </form>
-
-        <a
-          href="https://wa.me/34644577798"
-          className="care-assist-wa"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => setOpen(false)}
-        >
-          Hablar por WhatsApp
-        </a>
 
         {error ? (
           <p className="care-assist-error" role="status">

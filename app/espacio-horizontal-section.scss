@@ -372,7 +372,7 @@
 
 .espacio__panel--three {
   --espacio-three-img-size: min(58vw, 780px, 76vh);
-  --espacio-three-img-left: clamp(12vw, 18vw, 26vw);
+  --espacio-three-img-left: clamp(16px, 2.5vw, 40px);
 
   .espacio__panel-grid {
     padding-bottom: 0;
