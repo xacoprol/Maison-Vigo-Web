@@ -62,8 +62,8 @@
   min-height: 40px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(212, 175, 122, 0.45);
-  background: rgba(212, 175, 122, 0.08);
+  border: 1px solid var(--gold-lt);
+  background: rgba(212, 175, 122, 0.12);
   color: var(--gold-lt);
   font-family: var(--ff-sans);
   font-size: 10px;
@@ -79,7 +79,7 @@
 
 .care-assist-wa:hover,
 .care-assist-wa:focus-visible {
-  background: rgba(212, 175, 122, 0.16);
+  background: rgba(212, 175, 122, 0.22);
   border-color: var(--gold-lt);
   color: var(--cream);
   outline: none;
@@ -427,8 +427,8 @@
   height: 40px;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid var(--gold-lt);
-  background: rgba(212, 175, 122, 0.12);
+  border: 1px solid rgba(212, 175, 122, 0.45);
+  background: rgba(212, 175, 122, 0.08);
   color: var(--gold-lt);
   font-family: var(--ff-sans);
   font-size: 10px;
@@ -442,7 +442,8 @@
 }
 
 .care-assist-send:hover:not(:disabled) {
-  background: rgba(212, 175, 122, 0.22);
+  background: rgba(212, 175, 122, 0.16);
+  border-color: var(--gold-lt);
   color: var(--cream);
 }
 
