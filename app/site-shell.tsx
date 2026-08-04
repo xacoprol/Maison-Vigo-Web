@@ -9,14 +9,12 @@ import { WaveText } from "./wave-text";
 
 /**
  * UI persistente que se monta en el `RootLayout`: navbar, menú móvil,
- * panel de reserva, banner de cookies, FAB de WhatsApp y orientación IA.
+ * panel de reserva, banner de cookies y orientación IA (+ WhatsApp).
  * Los handlers interactivos viven en `<SiteEffects />`.
  */
 export function SiteShell() {
   return (
     <>
-      <CareAssist />
-
       <div
         className="cookie-banner cookie-banner--awaiting cookie-banner--hidden"
         id="cookieBanner"
@@ -50,26 +48,7 @@ export function SiteShell() {
         </div>
       </div>
 
-      <a
-        href="https://wa.me/34644577798"
-        className="whatsapp-fab"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Abrir chat de WhatsApp"
-      >
-        <svg
-          className="whatsapp-fab-icon"
-          viewBox="0 0 32 32"
-          width="24"
-          height="24"
-          aria-hidden={true}
-        >
-          <path
-            fill="currentColor"
-            d="M16.01 3.2c-7.06 0-12.79 5.72-12.79 12.78 0 2.25.59 4.45 1.7 6.39L3 29l6.83-1.78a12.74 12.74 0 0 0 6.18 1.58h.01c7.05 0 12.78-5.72 12.78-12.78S23.07 3.2 16.01 3.2Zm0 23.44h-.01a10.6 10.6 0 0 1-5.4-1.48l-.38-.23-4.06 1.06 1.08-3.96-.25-.4a10.6 10.6 0 0 1-1.64-5.6c0-5.87 4.78-10.64 10.66-10.64 2.84 0 5.52 1.1 7.53 3.11a10.56 10.56 0 0 1 3.11 7.53c0 5.88-4.78 10.64-10.64 10.64Zm5.83-7.97c-.32-.16-1.89-.93-2.18-1.04-.29-.11-.5-.16-.71.16-.2.32-.79 1.04-.97 1.25-.18.21-.36.24-.68.08-.32-.16-1.33-.49-2.53-1.56-.93-.83-1.56-1.86-1.75-2.18-.18-.32-.02-.5.14-.66.14-.14.32-.36.47-.54.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.54-.71-.55h-.61c-.21 0-.56.08-.86.4-.29.32-1.12 1.09-1.12 2.66 0 1.57 1.15 3.09 1.31 3.3.16.21 2.26 3.45 5.47 4.83.76.33 1.36.53 1.83.68.77.24 1.47.21 2.02.13.62-.09 1.89-.77 2.16-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z"
-          />
-        </svg>
-      </a>
+      <CareAssist />
 
       <nav id="navbar">
         <div className="nav-start">

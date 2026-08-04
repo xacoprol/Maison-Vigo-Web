@@ -83,8 +83,9 @@ export function SiteEffects() {
     const cookieBanner = document.getElementById("cookieBanner");
     const cookieAccept = document.getElementById("cookieAccept");
     const cookieReject = document.getElementById("cookieReject");
-    const whatsappFab = document.querySelector<HTMLElement>(".whatsapp-fab");
-    const careAssistFab = document.querySelector<HTMLElement>(".care-assist-fab");
+    const careAssistDock = document.querySelector<HTMLElement>(
+      ".care-assist-dock",
+    );
     const mobileMedia = window.matchMedia("(max-width: 900px)");
     const cookieConsentName = "mv_cookie_consent";
     const cookieConsentMaxAgeSec = 60 * 60 * 24 * 180;
@@ -137,19 +138,12 @@ export function SiteEffects() {
 
     const onScroll = (scrollY: number) => {
       navbar.classList.toggle("scrolled", scrollY > 40);
-      if (whatsappFab) {
+      if (careAssistDock) {
         if (!mobileMedia.matches) {
-          whatsappFab.classList.add("whatsapp-fab--visible");
+          careAssistDock.classList.add("care-assist-dock--visible");
         } else {
-          whatsappFab.classList.toggle("whatsapp-fab--visible", scrollY > 380);
-        }
-      }
-      if (careAssistFab) {
-        if (!mobileMedia.matches) {
-          careAssistFab.classList.add("care-assist-fab--visible");
-        } else {
-          careAssistFab.classList.toggle(
-            "care-assist-fab--visible",
+          careAssistDock.classList.toggle(
+            "care-assist-dock--visible",
             scrollY > 380,
           );
         }
