@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import { PagoKoClient } from "./pago-ko-client";
 
-import "../tienda/tienda.css";
+import "../../tienda/tienda.css";
 
 export const metadata: Metadata = {
   title: "Pago no completado",
