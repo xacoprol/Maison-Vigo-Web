@@ -154,7 +154,13 @@ export class EspacioHorizontalScroll {
       "--espacio-panel-count",
       String(espacioPanelCount),
     );
+    this.espacioRoot.style.removeProperty("--espacio-scroll-units");
 
+    /**
+     * El último panel (Grooming Room) lleva la foto a `left: 0`.
+     * El pin dura exactamente el recorrido hasta alinear esa foto con el
+     * borde izquierdo del viewport; ahí progress=1 y se desbloquea el vertical.
+     */
     this.espacioMeasure = {
       espacioStart: espacioScrollY + espacioRect.top,
       espacioDistance: Math.max(
@@ -177,8 +183,22 @@ export class EspacioHorizontalScroll {
       this.espacioCurrentProgress = this.espacioTargetProgress;
       this.espacioCurrentTitleProgress = this.espacioTargetTitleProgress;
     } else {
-      this.espacioCurrentProgress +=
-        (this.espacioTargetProgress - this.espacioCurrentProgress) * 0.09;
+      /**
+       * El translate horizontal sigue el scroll de cerca. Si el lerp se atrasa
+       * al final, el sticky suelta el vertical con la foto del Grooming Room
+       * aún sin tocar el borde izquierdo (p. ej. left=118).
+       */
+      const espacioProgressDelta =
+        this.espacioTargetProgress - this.espacioCurrentProgress;
+      if (
+        this.espacioTargetProgress >= 1 ||
+        this.espacioTargetProgress <= 0 ||
+        Math.abs(espacioProgressDelta) > 0.08
+      ) {
+        this.espacioCurrentProgress = this.espacioTargetProgress;
+      } else {
+        this.espacioCurrentProgress += espacioProgressDelta * 0.22;
+      }
       this.espacioCurrentTitleProgress +=
         (this.espacioTargetTitleProgress - this.espacioCurrentTitleProgress) *
         0.035;
@@ -196,14 +216,18 @@ export class EspacioHorizontalScroll {
     ) {
       this.espacioCurrentTitleProgress = this.espacioTargetTitleProgress;
     }
+    /**
+     * Translate ligado al scroll real (target), no al lerp: así el vertical
+     * solo se suelta cuando la foto del Grooming Room toca el borde izquierdo.
+     */
     const espacioX =
-      -this.espacioCurrentProgress * this.espacioMeasure.espacioMaxTranslate;
+      -this.espacioTargetProgress * this.espacioMeasure.espacioMaxTranslate;
     const espacioPanelTravel =
-      this.espacioCurrentProgress * Math.max(this.espacioPanels.length - 1, 1);
+      this.espacioTargetProgress * Math.max(this.espacioPanels.length - 1, 1);
 
     this.espacioRoot.style.setProperty(
       "--espacio-progress",
-      this.espacioCurrentProgress.toFixed(4),
+      this.espacioTargetProgress.toFixed(4),
     );
     this.espacioRoot.style.setProperty(
       "--espacio-title-progress",
