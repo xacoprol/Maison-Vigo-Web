@@ -26,6 +26,8 @@ export type ServiceId = (typeof ORDER_MOBILE)[number];
 
 export const MOBILE_MQ = "(max-width: 900px)";
 export const NARROW_MQ = "(max-width: 680px)";
+/** En portátil/escritorio medio los orbes son más pequeños: apilar rótulos largos. */
+export const STACK_LABELS_MQ = "(max-width: 1400px)";
 
 /** ~2.05 celdas visibles (tamaño anterior), sin solape entre orbes. */
 export const MOBILE_SLIDES_PER_VIEW = 2.05;
@@ -68,14 +70,14 @@ function subscribeMediaQuery(
 }
 
 export function ServiceOrbLabel({ label }: { label: ServiceId }) {
-  const narrow = useSyncExternalStore(
-    (cb) => subscribeMediaQuery(NARROW_MQ, cb),
-    () => window.matchMedia(NARROW_MQ).matches,
+  const stackLabels = useSyncExternalStore(
+    (cb) => subscribeMediaQuery(STACK_LABELS_MQ, cb),
+    () => window.matchMedia(STACK_LABELS_MQ).matches,
     () => false,
   );
 
   const lines =
-    narrow && LABEL_LINES[label] ? LABEL_LINES[label]! : [label];
+    stackLabels && LABEL_LINES[label] ? LABEL_LINES[label]! : [label];
 
   if (lines.length === 1) {
     return (

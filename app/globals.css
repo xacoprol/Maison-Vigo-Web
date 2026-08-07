@@ -1836,7 +1836,13 @@ img.concepto-quote-mark {
   }
 
   .servicios-carousel__label {
-    font-size: clamp(10px, 1.65vw, 17px);
+    font-size: clamp(9px, 1.35vw, 14px);
+    letter-spacing: 0.08em;
+    max-width: 96%;
+  }
+
+  .servicios-carousel__orb-text {
+    padding: clamp(12px, 2.2vw, 24px);
   }
 
   .servicios-carousel__subtitle {
@@ -2147,7 +2153,24 @@ img.concepto-quote-mark {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   line-height: 1.35;
-  max-width: 90%;
+  max-width: 94%;
+  /* El wave usa overflow en cada carácter; el rótulo no debe recortar la palabra. */
+  overflow: visible;
+}
+
+.servicios-carousel__label--stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+}
+
+.servicios-carousel__label-line {
+  display: block;
+}
+
+.servicios-carousel__label-line .mob-wave-text {
+  justify-content: center;
 }
 
 /** Escritorio ancho (≥1601px): rótulos del carrusel más legibles. */
@@ -3762,21 +3785,6 @@ a.contact-line:focus-visible .contact-text {
     letter-spacing: 0.08em;
     line-height: 1.28;
     max-width: 94%;
-  }
-
-  .servicios-carousel__label--stacked {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2em;
-  }
-
-  .servicios-carousel__label-line {
-    display: block;
-  }
-
-  .servicios-carousel__label-line .mob-wave-text {
-    justify-content: center;
   }
 
   .servicios-carousel__orb-text {
