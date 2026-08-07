@@ -114,6 +114,10 @@ export function SiteEffects() {
           if (espacioMobile?.classList.contains("is-dragging")) {
             return true;
           }
+          const tiendaEditorial = node.closest(".tienda-editorial");
+          if (tiendaEditorial?.classList.contains("is-dragging")) {
+            return true;
+          }
           const serviciosCarousel = node.closest(".servicios-carousel");
           return serviciosCarousel?.classList.contains("is-dragging") ?? false;
         },

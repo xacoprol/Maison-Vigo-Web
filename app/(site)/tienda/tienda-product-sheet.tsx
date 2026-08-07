@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { createPortal } from "react-dom";
 
@@ -71,15 +72,118 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
   const [formNotice, setFormNotice] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const photoPreviewUrlsRef = useRef<Record<string, string>>({});
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    lastY: number;
+    lastTs: number;
+    dy: number;
+    velocity: number;
+    active: boolean;
+  } | null>(null);
 
   useEffect(() => {
     setPortalReady(true);
   }, []);
 
   useEffect(() => {
+    if (!visible) {
+      const panel = panelRef.current;
+      if (panel) {
+        panel.style.transform = "";
+        panel.style.transition = "";
+        panel.classList.remove("tienda-sheet__panel--dragging");
+      }
+      dragRef.current = null;
+    }
+  }, [visible]);
+
+  const onHandlePointerDown = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    if (event.button !== 0) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      lastY: event.clientY,
+      lastTs: performance.now(),
+      dy: 0,
+      velocity: 0,
+      active: true,
+    };
+    panel.classList.add("tienda-sheet__panel--dragging");
+    panel.style.transition = "none";
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const onHandlePointerMove = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    const drag = dragRef.current;
+    const panel = panelRef.current;
+    if (!drag?.active || drag.pointerId !== event.pointerId || !panel) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - drag.lastTs);
+    drag.velocity = (event.clientY - drag.lastY) / dt;
+    drag.lastY = event.clientY;
+    drag.lastTs = now;
+    const dy = Math.max(0, event.clientY - drag.startY);
+    drag.dy = dy;
+    panel.style.transform = `translate3d(0, ${dy}px, 0)`;
+    const backdrop = panel.parentElement?.querySelector(
+      ".tienda-sheet__backdrop",
+    );
+    if (backdrop instanceof HTMLElement) {
+      backdrop.style.opacity = String(Math.max(0.25, 1 - dy / 420));
+    }
+  };
+
+  const endHandleDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    const panel = panelRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+
+    const shouldClose = drag.dy > 110 || (drag.dy > 48 && drag.velocity > 0.45);
+
+    const backdrop = panel?.parentElement?.querySelector(
+      ".tienda-sheet__backdrop",
+    );
+    if (backdrop instanceof HTMLElement) {
+      backdrop.style.opacity = "";
+    }
+
+    if (!panel) {
+      if (shouldClose) onClose();
+      return;
+    }
+
+    panel.classList.remove("tienda-sheet__panel--dragging");
+    panel.style.transition = "";
+
+    if (shouldClose) {
+      panel.style.transform = "translate3d(0, 104%, 0)";
+      onClose();
+      return;
+    }
+
+    panel.style.transform = "translate3d(0, 0, 0)";
+    window.setTimeout(() => {
+      if (panelRef.current === panel) panel.style.transform = "";
+    }, EXIT_MS);
+  };
+
+  useEffect(() => {
     if (open && product) {
       setActiveProduct(product);
       setMounted(true);
+      setVisible(false);
       const hasVariants = product.variants.length > 0;
       setVariantKey(
         hasVariants
@@ -103,8 +207,14 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       setFieldErrors({});
       setFormNotice(null);
       setAdded(false);
-      const frame = window.requestAnimationFrame(() => setVisible(true));
-      return () => window.cancelAnimationFrame(frame);
+      let frame2 = 0;
+      const frame1 = window.requestAnimationFrame(() => {
+        frame2 = window.requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        window.cancelAnimationFrame(frame1);
+        if (frame2) window.cancelAnimationFrame(frame2);
+      };
     }
 
     setVisible(false);
@@ -461,12 +571,31 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         className="tienda-sheet__panel"
       >
         <header className="tienda-sheet__header">
+          <div
+            className="tienda-sheet__grabber"
+            role="button"
+            tabIndex={0}
+            aria-label="Arrastra hacia abajo para cerrar"
+            onPointerDown={onHandlePointerDown}
+            onPointerMove={onHandlePointerMove}
+            onPointerUp={endHandleDrag}
+            onPointerCancel={endHandleDrag}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClose();
+              }
+            }}
+          >
+            <span className="tienda-sheet__grabber-bar" aria-hidden={true} />
+          </div>
           <button
             type="button"
             className="tienda-sheet__close"

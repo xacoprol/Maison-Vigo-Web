@@ -12,7 +12,10 @@ function TiendaHero({
 }) {
   return (
     <header className="tienda-hero">
-      <h1 className="tienda-title">The Selection</h1>
+      <h1 className="tienda-title tienda-title--selection">
+        <span className="tienda-title__the">The</span>
+        <span className="tienda-title__selection">Selection</span>
+      </h1>
       {lead ? <p className="tienda-lead">{lead}</p> : null}
     </header>
   );

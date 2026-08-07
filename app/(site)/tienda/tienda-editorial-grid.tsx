@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import type { WebStoreProduct } from "@/lib/web-store/types";
 import {
@@ -78,7 +84,7 @@ export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
         <ul ref={col1Ref} className="tienda-editorial__col tienda-editorial__col--1">
           {col1.map((product) => (
             <EditorialCard
-              key={product.id}
+              key={`desk-${product.id}`}
               product={product}
               onSelect={onSelectProduct}
             />
@@ -87,14 +93,247 @@ export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
         <ul ref={col2Ref} className="tienda-editorial__col tienda-editorial__col--2">
           {col2.map((product) => (
             <EditorialCard
-              key={product.id}
+              key={`desk-${product.id}`}
               product={product}
               onSelect={onSelectProduct}
             />
           ))}
         </ul>
       </div>
+
+      <EditorialMobileCarousel
+        products={products}
+        onSelectProduct={onSelectProduct}
+      />
     </div>
+  );
+}
+
+function EditorialMobileCarousel({
+  products,
+  onSelectProduct,
+}: {
+  products: WebStoreProduct[];
+  onSelectProduct: (product: WebStoreProduct) => void;
+}) {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLUListElement>(null);
+  const dragMovedRef = useRef(false);
+  const lenisPausedRef = useRef(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  const pauseLenis = useCallback(() => {
+    if (lenisPausedRef.current) return;
+    window.__mvLenis?.stop();
+    lenisPausedRef.current = true;
+  }, []);
+
+  const resumeLenis = useCallback(() => {
+    if (!lenisPausedRef.current) return;
+    window.__mvLenis?.start();
+    lenisPausedRef.current = false;
+  }, []);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const overflow = scrollWidth > clientWidth + 2;
+    setHasOverflow(overflow);
+    setCanScrollLeft(overflow && scrollLeft > 4);
+    setCanScrollRight(overflow && scrollLeft < scrollWidth - clientWidth - 4);
+  }, []);
+
+  useLayoutEffect(() => {
+    updateScrollState();
+    const id = requestAnimationFrame(updateScrollState);
+    return () => cancelAnimationFrame(id);
+  }, [products.length, updateScrollState]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    const ro = new ResizeObserver(updateScrollState);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      ro.disconnect();
+    };
+  }, [updateScrollState]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    const shell = shellRef.current;
+    if (!el || !shell) return;
+
+    let startX = 0;
+    let startY = 0;
+    let horizontal = false;
+
+    const setDragging = (on: boolean) => {
+      shell.closest(".tienda-editorial")?.classList.toggle("is-dragging", on);
+      el.classList.toggle("is-dragging", on);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0]!;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      horizontal = false;
+      dragMovedRef.current = false;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0]!;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (!horizontal) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        if (Math.abs(dy) >= Math.abs(dx)) return;
+        horizontal = true;
+        dragMovedRef.current = true;
+        setDragging(true);
+        pauseLenis();
+      }
+    };
+
+    const onTouchEnd = () => {
+      setDragging(false);
+      resumeLenis();
+      horizontal = false;
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    el.addEventListener("touchend", onTouchEnd);
+    el.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+      setDragging(false);
+      resumeLenis();
+    };
+  }, [pauseLenis, resumeLenis, products.length]);
+
+  const scrollByColumn = (direction: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const columns = Array.from(el.children).filter(
+      (node, index): node is HTMLElement =>
+        node instanceof HTMLElement && index % 2 === 0,
+    );
+    if (!columns.length) {
+      el.scrollBy({
+        left: direction * Math.max(el.clientWidth * 0.5, 120),
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    const scrollLeft = el.scrollLeft;
+    let currentIndex = 0;
+    for (let i = 0; i < columns.length; i++) {
+      if (columns[i]!.offsetLeft <= scrollLeft + 8) currentIndex = i;
+    }
+    const targetIndex = Math.max(
+      0,
+      Math.min(columns.length - 1, currentIndex + direction),
+    );
+    columns[targetIndex]!.scrollIntoView({
+      behavior: "smooth",
+      inline: "start",
+      block: "nearest",
+    });
+  };
+
+  const selectProduct = (product: WebStoreProduct) => {
+    if (dragMovedRef.current) {
+      dragMovedRef.current = false;
+      return;
+    }
+    onSelectProduct(product);
+  };
+
+  return (
+    <div ref={shellRef} className="tienda-editorial__carousel-shell">
+      {hasOverflow ? (
+        <div className="tienda-editorial__carousel-nav" aria-hidden={false}>
+          <CarouselArrow
+            direction="prev"
+            disabled={!canScrollLeft}
+            onClick={() => scrollByColumn(-1)}
+          />
+          <CarouselArrow
+            direction="next"
+            disabled={!canScrollRight}
+            onClick={() => scrollByColumn(1)}
+          />
+        </div>
+      ) : null}
+
+      <ul
+        ref={scrollerRef}
+        className="tienda-editorial__carousel"
+        aria-label="Productos"
+      >
+        {products.map((product) => (
+          <EditorialCard
+            key={`mob-${product.id}`}
+            product={product}
+            onSelect={selectProduct}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CarouselArrow({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "prev" | "next";
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const src =
+    direction === "prev"
+      ? "/assets/images/iconos/arrow-left.svg"
+      : "/assets/images/iconos/arrow-right.svg";
+  const label =
+    direction === "prev" ? "Productos anteriores" : "Productos siguientes";
+
+  return (
+    <button
+      type="button"
+      className={
+        "tienda-editorial__carousel-arrow" +
+        (direction === "prev"
+          ? " tienda-editorial__carousel-arrow--prev"
+          : " tienda-editorial__carousel-arrow--next")
+      }
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        width={14}
+        height={14}
+        className="tienda-editorial__carousel-arrow-icon"
+      />
+    </button>
   );
 }
 
