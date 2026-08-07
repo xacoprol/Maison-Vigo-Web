@@ -16,7 +16,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/mantenimiento"],
+      disallow: [
+        "/api/",
+        "/mantenimiento",
+        "/tienda/carrito",
+        "/tienda/checkout",
+        "/tienda/pedido-ok",
+        "/pedido/",
+      ],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };
