@@ -372,7 +372,8 @@
 
 .espacio__panel--three {
   --espacio-three-img-size: min(58vw, 780px, 76vh);
-  --espacio-three-img-left: clamp(16px, 2.5vw, 40px);
+  /* Portátil: aire a la izquierda. Escritorio ancho lo aprieta abajo. */
+  --espacio-three-img-left: clamp(56px, 9vw, 140px);
 
   .espacio__panel-grid {
     padding-bottom: 0;
@@ -532,23 +533,30 @@
 
   .espacio__panel--two .espacio__body {
     top: clamp(148px, 18.5vh, 228px);
-    right: clamp(168px, 28vw, 360px);
-    text-indent: clamp(80px, 13vw, 196px);
-    transform: translate3d(clamp(104px, 16.5vw, 272px), 0, 0);
+    right: clamp(200px, 32vw, 400px);
+    width: min(34vw, 380px);
+    max-width: min(34vw, 380px);
+    text-indent: clamp(64px, 10vw, 140px);
+    transform: translate3d(clamp(72px, 10vw, 160px), 0, 0);
+  }
+
+  .espacio__panel--three {
+    --espacio-three-img-size: min(50vw, 560px, 64vh);
+    --espacio-three-img-left: clamp(72px, 11vw, 160px);
   }
 
   .espacio__panel--three .espacio__body {
     top: calc(
-      100% - var(--espacio-three-img-size) / 2 + clamp(64px, 8.5vh, 112px)
+      100% - var(--espacio-three-img-size) / 2 + clamp(48px, 6.5vh, 96px)
     );
     left: calc(
       var(--espacio-three-img-left) + var(--espacio-three-img-size) +
-        clamp(84px, 9.5vw, 188px)
+        clamp(48px, 6vw, 120px)
     );
-    right: clamp(96px, 12vw, 156px);
-    width: min(36vw, 460px);
-    max-width: min(36vw, 460px);
-    transform: translate3d(clamp(-48px, -5.5vw, -16px), -50%, 0);
+    right: clamp(48px, 7vw, 120px);
+    width: min(32vw, 380px);
+    max-width: min(32vw, 380px);
+    transform: translate3d(0, -50%, 0);
   }
 
   /**
@@ -569,23 +577,42 @@
 /** Portátil estrecho (901px–1200px). */
 @media (min-width: 901px) and (max-width: 1200px) {
   .espacio__panel--two .espacio__image-frame {
-    left: clamp(148px, 22vw, 300px);
+    left: clamp(100px, 14vw, 180px);
   }
 
+  /* Cuerpo sobre la zona derecha de la foto, sin invadir The Selection. */
   .espacio__panel--two .espacio__body {
-    right: clamp(40px, 6vw, 120px);
-    transform: translate3d(clamp(196px, 24vw, 420px), 0, 0);
+    top: clamp(120px, 16vh, 180px);
+    left: auto;
+    right: clamp(56px, 8vw, 120px);
+    width: min(40vw, 320px);
+    max-width: min(40vw, 320px);
+    text-indent: clamp(36px, 5vw, 72px);
+    transform: translate3d(clamp(72px, 9vw, 140px), 0, 0);
+  }
+
+  .espacio__panel--three {
+    --espacio-three-img-size: min(44vw, 440px, 56vh);
+    --espacio-three-img-left: clamp(100px, 14vw, 180px);
   }
 
   .espacio__panel--three .espacio__body {
     z-index: 6;
     left: calc(
-      var(--espacio-three-img-left) + var(--espacio-three-img-size) -
-        clamp(72px, 8vw, 148px)
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) +
+        clamp(24px, 3.5vw, 56px)
     );
-    right: auto;
-    max-width: min(40vw, 500px);
-    transform: translate3d(clamp(-128px, -13vw, -64px), -50%, 0);
+    right: clamp(32px, 5vw, 72px);
+    width: auto;
+    max-width: min(34vw, 320px);
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+/** Escritorio grande: The Selection casi al borde, como pediste. */
+@media (min-width: 1601px) {
+  .espacio__panel--three {
+    --espacio-three-img-left: clamp(16px, 2.5vw, 40px);
   }
 }
 
