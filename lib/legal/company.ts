@@ -3,7 +3,7 @@ export const legalCompany = {
   legalName: "MAISON GROOMING, SLU",
   tradeName: "Maison Vigo",
   nif: "B88769229",
-  address: "Rúa Teixugueiras, 29, Bajo Local 1",
+  address: "Rúa das Teixugueiras 29, Portal 5, Bajo",
   postalCode: "36212",
   city: "Vigo",
   province: "Pontevedra",

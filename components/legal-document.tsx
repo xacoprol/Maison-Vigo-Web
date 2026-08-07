@@ -12,10 +12,7 @@ const EMAIL_TOKEN = /\[\[EMAIL:([^|\]]+)\|([^\]]+)\]\]/g;
 
 /** Sustituye tokens por enlaces internos; un solo bloque Markdown evita saltos de línea. */
 function preprocessLegalMarkdown(markdown: string) {
-  return markdown.replace(
-    EMAIL_TOKEN,
-    "[$1@$2](email:$1|$2)",
-  );
+  return markdown.replace(EMAIL_TOKEN, "[$1@$2](email:$1|$2)");
 }
 
 const markdownComponents: Components = {
@@ -35,6 +32,34 @@ const markdownComponents: Components = {
     );
   },
 };
+
+export function LegalDocumentBody({
+  title,
+  markdown,
+  headingLevel = 1,
+}: {
+  title: string;
+  markdown: string;
+  headingLevel?: 1 | 2;
+}) {
+  const HeadingTag = headingLevel === 2 ? "h2" : "h1";
+  return (
+    <article className="legal-document">
+      <header className="legal-document__header">
+        <p className="legal-document__brand">Maison Vigo</p>
+        <HeadingTag className="legal-document__title">{title}</HeadingTag>
+        <p className="legal-document__updated">
+          Última actualización: 2 de junio de 2026
+        </p>
+      </header>
+      <div className="legal-document__body">
+        <Markdown components={markdownComponents}>
+          {preprocessLegalMarkdown(markdown)}
+        </Markdown>
+      </div>
+    </article>
+  );
+}
 
 type LegalDocumentProps = {
   title: string;
@@ -66,20 +91,7 @@ export function LegalDocument({ title, markdown }: LegalDocumentProps) {
           </span>
           Volver
         </button>
-        <article className="legal-document">
-          <header className="legal-document__header">
-            <p className="legal-document__brand">Maison Vigo</p>
-            <h1 className="legal-document__title">{title}</h1>
-            <p className="legal-document__updated">
-              Última actualización: 2 de junio de 2026
-            </p>
-          </header>
-          <div className="legal-document__body">
-            <Markdown components={markdownComponents}>
-              {preprocessLegalMarkdown(markdown)}
-            </Markdown>
-          </div>
-        </article>
+        <LegalDocumentBody title={title} markdown={markdown} />
       </div>
     </main>
   );

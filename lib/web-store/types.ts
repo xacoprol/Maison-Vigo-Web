@@ -17,10 +17,29 @@ export type WebStorePersonalizationField = {
   maxLength?: number | null;
 };
 
+export type WebStorePersonalizationPhotoField = {
+  label: string;
+  required?: boolean;
+  extraPriceCents?: number | null;
+};
+
+export type WebStorePersonalizationQuantityTextGroup = {
+  label: string;
+  minQuantity: number;
+  maxQuantity: number;
+  extraPriceCentsPerUnit: number;
+  firstUnitIncludedInPrice: boolean;
+  textLabelTemplate: string;
+  textPlaceholder: string | null;
+  maxLength: number | null;
+  required: boolean;
+};
+
 export type WebStorePersonalization = {
   enabled?: boolean;
   textFields?: WebStorePersonalizationField[];
-  photoFields?: { label: string; required?: boolean; extraPriceCents?: number | null }[];
+  photoFields?: WebStorePersonalizationPhotoField[];
+  quantityTextGroups?: WebStorePersonalizationQuantityTextGroup[];
   requireAtLeastOneTextOrPhoto?: boolean;
   textAndPhotoExtraPriceCents?: number | null;
 } | null;
@@ -37,6 +56,10 @@ export type WebStoreProduct = {
   salePriceCents: number;
   stockQuantity: number | null;
   productStockQuantity: number | null;
+  linkedStockProductId?: string | null;
+  linkedStockProductStock?: number | null;
+  linkedStockQuantityTextGroupIndex?: number | null;
+  linkedStockUnitsPerSale?: number;
   variationAxes: { name: string; values: string[] }[];
   variants: WebStoreVariant[];
   personalization: WebStorePersonalization;
@@ -66,6 +89,12 @@ export type WebStoreConfig = {
 
 export type WebStoreCartCustomization = {
   texts?: { label: string; value: string }[];
+  photos?: { label: string; url: string }[];
+  quantityTextGroups?: {
+    label: string;
+    quantity: number;
+    texts: { label: string; value: string }[];
+  }[];
 } | null;
 
 export type WebStoreCartLine = {
@@ -75,7 +104,10 @@ export type WebStoreCartLine = {
   name: string;
   optionLabel: string | null;
   imageUrl: string | null;
+  /** Precio unitario final (base + personalización). */
   salePriceCents: number;
+  /** Suplemento de personalización incluido en salePriceCents. */
+  personalizationExtraCents?: number;
   quantity: number;
   variantKey: string | null;
   customization: WebStoreCartCustomization;

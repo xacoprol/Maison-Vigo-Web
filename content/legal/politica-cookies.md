@@ -8,7 +8,7 @@ También pueden utilizarse tecnologías similares, como píxeles de seguimiento,
 
 - **Responsable:** MAISON GROOMING, SLU (Maison Vigo)
 - **NIF:** B88769229
-- **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
+- **Domicilio:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Correo:** [[EMAIL:rgpd|maisonvigo.es]]
 
 ## 3. Tipos de cookies utilizadas

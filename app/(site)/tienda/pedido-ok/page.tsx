@@ -12,11 +12,18 @@ import {
   fulfillmentMethodLabel,
 } from "@/lib/web-store/utils";
 
+import { useWebStoreCart } from "../web-store-cart";
+
 function PedidoOkInner() {
   const search = useSearchParams();
   const storeOrderRef = (search.get("storeOrderRef") ?? "").trim();
+  const { clear } = useWebStoreCart();
   const [order, setOrder] = useState<WebStoreOrderLookup | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
+
+  useEffect(() => {
+    clear();
+  }, [clear]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,8 +96,8 @@ function PedidoOkInner() {
       <p className="tienda-eyebrow">The Selection</p>
       <h1 className="tienda-title">Pago recibido</h1>
       <p className="tienda-lead">
-        Gracias. Si el banco confirma el cobro, prepararemos tu pedido. Te
-        escribiremos si hace falta algún detalle.
+        Gracias. Hemos recibido tu pago y prepararemos el pedido. Te
+        confirmaremos por WhatsApp si hace falta algún detalle.
       </p>
       {storeOrderRef ? (
         <div className="tienda-summary">

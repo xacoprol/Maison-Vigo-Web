@@ -3,6 +3,10 @@
 import { useEffect, useRef } from "react";
 
 import type { WebStoreProduct } from "@/lib/web-store/types";
+import {
+  minPersonalizationExtraCents,
+  productHasPricedPersonalization,
+} from "@/lib/web-store/personalization";
 import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
 const DESKTOP_MIN = 900;
@@ -104,6 +108,9 @@ function EditorialCard({
   const primary = webStoreFileUrl(product.photos[0]?.url);
   const secondary = webStoreFileUrl(product.photos[1]?.url);
   const hasHoverSwap = Boolean(primary && secondary && secondary !== primary);
+  const priced = productHasPricedPersonalization(product.personalization);
+  const fromCents =
+    product.salePriceCents + minPersonalizationExtraCents(product.personalization);
 
   return (
     <li className="tienda-editorial__card">
@@ -136,7 +143,8 @@ function EditorialCard({
         <span className="tienda-editorial__copy">
           <span className="tienda-editorial__name">{product.name}</span>
           <span className="tienda-editorial__price">
-            {formatEuroFromCents(product.salePriceCents)}
+            {priced ? "Desde " : ""}
+            {formatEuroFromCents(fromCents)}
           </span>
         </span>
       </button>

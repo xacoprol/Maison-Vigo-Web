@@ -33,7 +33,10 @@ export function TiendaCartFab() {
   const pathname = usePathname() || "";
   const { count, hydrated } = useWebStoreCart();
   const onCartPage = pathname.startsWith("/tienda/carrito");
-  const visible = hydrated && count > 0 && !onCartPage;
+  const onCheckoutPage = pathname.startsWith("/tienda/checkout");
+  const onPedidoOk = pathname.startsWith("/tienda/pedido-ok");
+  const visible =
+    hydrated && count > 0 && !onCartPage && !onCheckoutPage && !onPedidoOk;
 
   useEffect(() => {
     document.body.classList.toggle("tienda-cart-fab-visible", visible);

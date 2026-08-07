@@ -10,6 +10,10 @@ import {
   type ReactNode,
 } from "react";
 
+import {
+  hasCustomizationContent,
+  personalizationExtraCentsFromCustomization,
+} from "@/lib/web-store/personalization";
 import type { WebStoreCartLine, WebStoreProduct } from "@/lib/web-store/types";
 import {
   WEB_STORE_CART_KEY,
@@ -62,14 +66,13 @@ function lineIdFor(
   variantKey: string | null,
   customization: WebStoreCartLine["customization"],
 ): string {
-  const personalized = Boolean(customization?.texts?.length);
-  if (personalized) {
+  if (hasCustomizationContent(customization)) {
     return `${productId}::${variantKey ?? "_"}::${crypto.randomUUID()}`;
   }
   return `${productId}::${variantKey ?? "_"}`;
 }
 
-function resolveUnitPrice(
+function resolveBaseUnitPrice(
   product: WebStoreProduct,
   variantKey: string | null,
 ): number {
@@ -118,7 +121,12 @@ export function WebStoreCartProvider({ children }: { children: ReactNode }) {
     const qty = Math.max(1, Math.min(99, options.quantity ?? 1));
     const customization = options.customization ?? null;
     const id = lineIdFor(product.id, variantKey, customization);
-    const salePriceCents = resolveUnitPrice(product, variantKey);
+    const baseCents = resolveBaseUnitPrice(product, variantKey);
+    const extraCents = personalizationExtraCentsFromCustomization(
+      product.personalization,
+      customization,
+    );
+    const salePriceCents = baseCents + extraCents;
     const stockQuantity = resolveStock(product, variantKey);
     const optionLabel =
       options.optionLabel ??
@@ -132,7 +140,7 @@ export function WebStoreCartProvider({ children }: { children: ReactNode }) {
     const imageUrl = webStoreFileUrl(product.photos[0]?.url) || null;
 
     setLines((prev) => {
-      if (!customization?.texts?.length) {
+      if (!hasCustomizationContent(customization)) {
         const existing = prev.find((l) => l.lineId === id);
         if (existing) {
           const nextQty = Math.min(99, existing.quantity + qty);
@@ -149,6 +157,7 @@ export function WebStoreCartProvider({ children }: { children: ReactNode }) {
         optionLabel,
         imageUrl,
         salePriceCents,
+        personalizationExtraCents: extraCents > 0 ? extraCents : 0,
         quantity: qty,
         variantKey,
         customization,

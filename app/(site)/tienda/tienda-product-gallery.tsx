@@ -86,7 +86,14 @@ export function TiendaProductGallery({ photos, alt }: Props) {
             disabled={index <= 0}
             onClick={() => goTo(index - 1)}
           >
-            ‹
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/images/iconos/arrow-left.svg"
+              alt=""
+              width={18}
+              height={18}
+              className="tienda-sheet__gallery-nav-icon"
+            />
           </button>
           <button
             type="button"
@@ -95,7 +102,14 @@ export function TiendaProductGallery({ photos, alt }: Props) {
             disabled={index >= urls.length - 1}
             onClick={() => goTo(index + 1)}
           >
-            ›
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/images/iconos/arrow-right.svg"
+              alt=""
+              width={18}
+              height={18}
+              className="tienda-sheet__gallery-nav-icon"
+            />
           </button>
           <div className="tienda-sheet__gallery-dots" role="tablist" aria-label="Fotos">
             {urls.map((_, i) => (

@@ -5,7 +5,7 @@ En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios
 - **Titular:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
-- **Domicilio social y centro de prestación de servicios:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
+- **Domicilio social y centro de prestación de servicios:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Teléfono:** 644 577 798
 - **Correo electrónico de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
 - **Correo electrónico de protección de datos:** [[EMAIL:rgpd|maisonvigo.es]]
@@ -96,6 +96,6 @@ Si el usuario tiene la condición de consumidor o usuario conforme a la normativ
 
 ## 13. Hojas de reclamaciones y resolución de litigios
 
-De conformidad con la normativa de consumo, MAISON GROOMING, SLU dispone de hojas oficiales de reclamaciones a disposición de los consumidores y usuarios, que pueden solicitar en el centro de prestación de servicios sito en Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), o a través de [[EMAIL:care|maisonvigo.es]].
+De conformidad con la normativa de consumo, MAISON GROOMING, SLU dispone de hojas oficiales de reclamaciones a disposición de los consumidores y usuarios, que pueden solicitar en el centro de prestación de servicios sito en Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), o a través de [[EMAIL:care|maisonvigo.es]].
 
 Asimismo, informamos de que la Comisión Europea facilita una plataforma de resolución de litigios en línea, disponible en: https://ec.europa.eu/consumers/odr

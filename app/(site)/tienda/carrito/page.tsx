@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { formatEuroFromCents } from "@/lib/web-store/utils";
+import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
 import { useWebStoreCart } from "../web-store-cart";
 
@@ -20,12 +20,12 @@ export default function TiendaCarritoPage() {
       <h1 className="tienda-title">Carrito</h1>
 
       {lines.length === 0 ? (
-        <p className="tienda-status">
-          Tu carrito está vacío.{" "}
-          <Link href="/tienda" className="tienda-link">
-            Volver al catálogo
+        <div className="tienda-empty">
+          <p className="tienda-status">Tu carrito está vacío.</p>
+          <Link href="/tienda" className="tienda-btn tienda-btn--solid">
+            Ver The Selection
           </Link>
-        </p>
+        </div>
       ) : (
         <>
           <div className="tienda-cart-list">
@@ -42,9 +42,13 @@ export default function TiendaCarritoPage() {
                   {line.optionLabel ? (
                     <p className="tienda-cart-row__opt">{line.optionLabel}</p>
                   ) : null}
-                  {line.customization?.texts?.length ? (
+                  {line.customization?.texts?.some((t) => t.value) ||
+                  line.customization?.photos?.some((p) => p.url) ||
+                  line.customization?.quantityTextGroups?.some(
+                    (g) => g.quantity > 0,
+                  ) ? (
                     <ul className="tienda-cart-row__custom">
-                      {line.customization.texts.map((text, index) =>
+                      {line.customization.texts?.map((text, index) =>
                         text.value ? (
                           <li key={`${text.label}-${index}`}>
                             <span className="tienda-cart-row__custom-label">
@@ -54,11 +58,63 @@ export default function TiendaCarritoPage() {
                           </li>
                         ) : null,
                       )}
+                      {line.customization.photos?.map((photo, index) =>
+                        photo.url ? (
+                          <li
+                            key={`photo-${photo.label}-${index}`}
+                            className="tienda-cart-row__custom-photo"
+                          >
+                            <span className="tienda-cart-row__custom-label">
+                              {photo.label}:
+                            </span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={webStoreFileUrl(photo.url)}
+                              alt=""
+                            />
+                          </li>
+                        ) : null,
+                      )}
+                      {line.customization.quantityTextGroups?.map((group, gi) =>
+                        group.quantity > 0 ? (
+                          <li key={`qty-${group.label}-${gi}`}>
+                            <span className="tienda-cart-row__custom-label">
+                              {group.label}:
+                            </span>{" "}
+                            {group.quantity}
+                            {group.texts?.some((t) => t.value) ? (
+                              <ul className="tienda-cart-row__custom-nested">
+                                {group.texts.map((text, ti) =>
+                                  text.value ? (
+                                    <li key={`${text.label}-${ti}`}>
+                                      {text.label}: {text.value}
+                                    </li>
+                                  ) : null,
+                                )}
+                              </ul>
+                            ) : null}
+                          </li>
+                        ) : null,
+                      )}
                     </ul>
                   ) : null}
                   <p className="tienda-card__price">
-                    {formatEuroFromCents(line.salePriceCents)}
+                    {formatEuroFromCents(line.salePriceCents * line.quantity)}
                   </p>
+                  {(line.personalizationExtraCents ?? 0) > 0 ? (
+                    <p className="tienda-cart-row__unit">
+                      {formatEuroFromCents(
+                        line.salePriceCents - (line.personalizationExtraCents ?? 0),
+                      )}{" "}
+                      + {formatEuroFromCents(line.personalizationExtraCents ?? 0)}{" "}
+                      pers.
+                      {line.quantity > 1 ? " / ud." : ""}
+                    </p>
+                  ) : line.quantity > 1 ? (
+                    <p className="tienda-cart-row__unit">
+                      {formatEuroFromCents(line.salePriceCents)} / ud.
+                    </p>
+                  ) : null}
                 </div>
                 <div className="tienda-cart-row__side">
                   <div className="tienda-qty">
@@ -95,6 +151,10 @@ export default function TiendaCarritoPage() {
               <span>Subtotal</span>
               <strong>{formatEuroFromCents(subtotalCents)}</strong>
             </div>
+            <p className="tienda-summary__hint">
+              Recogida gratis en Maison Vigo. El envío a domicilio se calcula en
+              el siguiente paso.
+            </p>
           </div>
 
           <div className="tienda-nav-links tienda-actions">
@@ -102,7 +162,7 @@ export default function TiendaCarritoPage() {
               Seguir comprando
             </Link>
             <Link href="/tienda/checkout" className="tienda-btn tienda-btn--solid">
-              Ir al checkout
+              Finalizar pedido
             </Link>
           </div>
         </>

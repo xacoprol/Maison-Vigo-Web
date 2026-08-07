@@ -9,7 +9,7 @@ Se aplica a servicios presenciales en el centro de Vigo y, en su caso, a servici
 - **Prestador:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
-- **Domicilio del centro:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
+- **Domicilio del centro:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Teléfono:** 644 577 798
 - **Correo:** [[EMAIL:care|maisonvigo.es]]
 

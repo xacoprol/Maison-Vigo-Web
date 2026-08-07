@@ -73,6 +73,61 @@ export function fetchWebStoreConfig(): Promise<WebStoreConfig> {
   return webStoreFetch<WebStoreConfig>("/config");
 }
 
+/** Sube foto de grabado (multipart `photo`). Devuelve URL relativa Care `/files/…`. */
+export async function postWebStoreCustomizationPhoto(
+  file: File,
+): Promise<{ url: string }> {
+  const root = webStoreApiRoot();
+  if (!root) {
+    throw new WebStoreRequestError(
+      503,
+      "api_not_configured",
+      "Falta NEXT_PUBLIC_CARE_API_BASE_URL.",
+    );
+  }
+  const fd = new FormData();
+  fd.append("photo", file);
+  const res = await fetch(`${root}/customization-photo`, {
+    method: "POST",
+    body: fd,
+    cache: "no-store",
+  });
+  const data = await parseJson(res);
+  if (!res.ok) {
+    const err = (data ?? {}) as WebStoreApiError;
+    throw new WebStoreRequestError(
+      res.status,
+      err.error || "request_failed",
+      err.message || "No se pudo subir la foto.",
+    );
+  }
+  const url = String((data as { url?: unknown } | null)?.url ?? "").trim();
+  if (!url) {
+    throw new WebStoreRequestError(502, "invalid_response", "Respuesta de subida inválida.");
+  }
+  return { url };
+}
+
+/** Sugerencia(s) de texto de grabado. Si el API no está, el cliente usa fallback local. */
+export async function postWebStorePersonalizationTextDraft(body: {
+  productName: string;
+  fieldLabel: string;
+  maxLength?: number | null;
+  petName?: string | null;
+  otherTexts?: string[];
+  currentValue?: string | null;
+  salt?: number | null;
+}): Promise<{ text: string; texts?: string[]; source: "openai" | "fallback" }> {
+  return webStoreFetch<{
+    text: string;
+    texts?: string[];
+    source: "openai" | "fallback";
+  }>("/personalization-text-draft", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export type WebStoreCheckoutBody = {
   lines: Array<{
     productId: string;
@@ -83,12 +138,20 @@ export type WebStoreCheckoutBody = {
     variantKey: string | null;
     optionLabel?: string | null;
     imageUrl?: string | null;
-    customization: { texts?: { label: string; value: string }[] } | null;
+    customization: {
+      texts?: { label: string; value: string }[];
+      photos?: { label: string; url: string }[];
+      quantityTextGroups?: {
+        label: string;
+        quantity: number;
+        texts: { label: string; value: string }[];
+      }[];
+    } | null;
   }>;
   fulfillmentMethod: "pickup" | "shipping" | "local_delivery";
   firstName: string;
   lastName?: string | null;
-  email: string;
+  email?: string | null;
   phone: string;
   addressLine?: string | null;
   postalCode?: string | null;

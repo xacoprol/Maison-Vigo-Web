@@ -3,7 +3,7 @@
 - **Vendedor:** MAISON GROOMING, SLU
 - **Nombre comercial:** Maison Vigo
 - **NIF:** B88769229
-- **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
+- **Domicilio:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Teléfono:** 644 577 798
 - **Correo de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
 - **Sitio web de venta:** https://www.maisonvigo.es y portal MV Care (https://care.maisonvigo.es)
@@ -132,7 +132,7 @@ Para consultas, incidencias o reclamaciones:
 
 - **Correo:** [[EMAIL:care|maisonvigo.es]]
 - **Teléfono:** 644 577 798
-- **Dirección:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra)
+- **Dirección:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra)
 
 MAISON GROOMING, SLU dispone de **hojas oficiales de reclamaciones** a disposición de consumidores y usuarios.
 

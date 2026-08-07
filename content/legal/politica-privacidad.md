@@ -2,7 +2,7 @@
 
 - **Responsable:** MAISON GROOMING, SLU (nombre comercial: Maison Vigo)
 - **NIF:** B88769229
-- **Domicilio:** Rúa Teixugueiras, 29, Bajo Local 1, 36212 Vigo (Pontevedra), España
+- **Domicilio:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Correo de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
 - **Correo de protección de datos:** [[EMAIL:rgpd|maisonvigo.es]]
 - **Teléfono:** 644 577 798
