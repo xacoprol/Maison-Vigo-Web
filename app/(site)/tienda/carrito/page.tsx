@@ -16,7 +16,7 @@ export default function TiendaCarritoPage() {
 
   return (
     <>
-      <p className="tienda-eyebrow">Pedido</p>
+      <p className="tienda-eyebrow">The Selection</p>
       <h1 className="tienda-title">Carrito</h1>
 
       {lines.length === 0 ? (
@@ -41,6 +41,20 @@ export default function TiendaCarritoPage() {
                   <h2 className="tienda-cart-row__name">{line.name}</h2>
                   {line.optionLabel ? (
                     <p className="tienda-cart-row__opt">{line.optionLabel}</p>
+                  ) : null}
+                  {line.customization?.texts?.length ? (
+                    <ul className="tienda-cart-row__custom">
+                      {line.customization.texts.map((text, index) =>
+                        text.value ? (
+                          <li key={`${text.label}-${index}`}>
+                            <span className="tienda-cart-row__custom-label">
+                              {text.label}:
+                            </span>{" "}
+                            {text.value}
+                          </li>
+                        ) : null,
+                      )}
+                    </ul>
                   ) : null}
                   <p className="tienda-card__price">
                     {formatEuroFromCents(line.salePriceCents)}
@@ -83,7 +97,7 @@ export default function TiendaCarritoPage() {
             </div>
           </div>
 
-          <div className="tienda-nav-links">
+          <div className="tienda-nav-links tienda-actions">
             <Link href="/tienda" className="tienda-link">
               Seguir comprando
             </Link>

@@ -72,7 +72,7 @@ function PedidoOkInner() {
   if (status === "missing" && !storeOrderRef) {
     return (
       <>
-        <p className="tienda-eyebrow">Pedido</p>
+        <p className="tienda-eyebrow">The Selection</p>
         <h1 className="tienda-title">Gracias</h1>
         <p className="tienda-status">
           No hemos encontrado la referencia del pedido.{" "}
@@ -86,7 +86,7 @@ function PedidoOkInner() {
 
   return (
     <>
-      <p className="tienda-eyebrow">Pedido</p>
+      <p className="tienda-eyebrow">The Selection</p>
       <h1 className="tienda-title">Pago recibido</h1>
       <p className="tienda-lead">
         Gracias. Si el banco confirma el cobro, prepararemos tu pedido. Te
@@ -116,7 +116,7 @@ function PedidoOkInner() {
           ) : null}
         </div>
       ) : null}
-      <div className="tienda-nav-links">
+      <div className="tienda-nav-links tienda-actions">
         <Link href="/tienda" className="tienda-btn tienda-btn--solid">
           Seguir en la tienda
         </Link>

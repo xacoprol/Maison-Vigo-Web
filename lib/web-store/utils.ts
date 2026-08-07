@@ -7,7 +7,15 @@ export function careApiBaseUrl(): string {
   return raw.replace(/\/$/, "");
 }
 
+/**
+ * Raíz del API web-store.
+ * En el navegador usamos el proxy same-origin `/api/web-store` (evita CORS).
+ * En servidor llamamos directo a Care.
+ */
 export function webStoreApiRoot(): string {
+  if (typeof window !== "undefined") {
+    return "/api/web-store";
+  }
   const base = careApiBaseUrl();
   if (!base) return "";
   return `${base}/public/web-store`;

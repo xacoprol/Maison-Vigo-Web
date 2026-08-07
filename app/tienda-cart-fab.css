@@ -1,0 +1,84 @@
+/* Carrito flotante — apilado justo encima del FAB de Care Assist. */
+
+.tienda-cart-fab {
+  --tienda-cart-fab-size: 48px;
+  position: fixed;
+  right: calc(var(--nav-pad-x, 42px) + 4px + 7px);
+  bottom: calc(
+    var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) + 12px
+  );
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  width: var(--tienda-cart-fab-size);
+  height: var(--tienda-cart-fab-size);
+  border: 1px solid rgba(244, 244, 242, 0.22);
+  border-radius: 999px;
+  background: rgba(11, 11, 11, 0.88);
+  color: var(--cream, #f4f4f2);
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+.tienda-cart-fab:hover {
+  border-color: rgba(187, 149, 93, 0.7);
+  background: rgba(18, 18, 18, 0.94);
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(187, 149, 93, 0.18) inset;
+}
+
+.tienda-cart-fab:focus-visible {
+  outline: 1px solid rgba(187, 149, 93, 0.95);
+  outline-offset: 4px;
+}
+
+.tienda-cart-fab__icon {
+  width: 18px;
+  height: 18px;
+}
+
+.tienda-cart-fab__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--gold, #bb955d);
+  color: #141414;
+  font-family: var(--ff-sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+body.care-assist-open .tienda-cart-fab {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+body.tienda-cart-fab-visible .care-assist-panel {
+  bottom: calc(
+    var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) + 12px +
+      48px + 12px
+  );
+}
