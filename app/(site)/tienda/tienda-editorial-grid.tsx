@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 import type { WebStoreProduct } from "@/lib/web-store/types";
@@ -16,10 +17,28 @@ import {
 import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
 const DESKTOP_MIN = 900;
-const COL1_PARALLAX_VH = 28;
-const COL2_PARALLAX_VH = 44;
-const MOBILE_COL1_PARALLAX_VH = 10;
-const MOBILE_COL2_PARALLAX_VH = 16;
+/** Amplitud de parallax por columna (vh), escritorio — bien perceptible. */
+const DESKTOP_PARALLAX_VH = [36, 58, 82] as const;
+/** Amplitud de parallax por columna (vh), móvil en layout grilla. */
+const MOBILE_PARALLAX_VH = [18, 30] as const;
+
+function subscribeDesktopMq(onChange: () => void) {
+  const mq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function getDesktopColumnCount() {
+  return window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`).matches ? 3 : 2;
+}
+
+function useEditorialColumnCount() {
+  return useSyncExternalStore(
+    subscribeDesktopMq,
+    getDesktopColumnCount,
+    () => 3,
+  );
+}
 
 type Props = {
   products: WebStoreProduct[];
@@ -34,25 +53,27 @@ export function TiendaEditorialGrid({
   layout = "carousel",
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const col1Ref = useRef<HTMLUListElement>(null);
-  const col2Ref = useRef<HTMLUListElement>(null);
+  const colRefs = useRef<(HTMLUListElement | null)[]>([]);
   const asGrid = layout === "grid";
+  const columnCount = useEditorialColumnCount();
 
-  const col1 = products.filter((_, index) => index % 2 === 0);
-  const col2 = products.filter((_, index) => index % 2 === 1);
+  const columns = Array.from({ length: columnCount }, (_, col) =>
+    products.filter((_, index) => index % columnCount === col),
+  );
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    const c1 = col1Ref.current;
-    const c2 = col2Ref.current;
-    if (!wrap || !c1 || !c2) return;
+    const cols = colRefs.current
+      .slice(0, columnCount)
+      .filter((el): el is HTMLUListElement => el != null);
+    if (!wrap || cols.length !== columnCount) return;
 
     const desktopMq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const clear = () => {
-      c1.style.transform = "";
-      c2.style.transform = "";
+      for (const col of cols) col.style.transform = "";
+      wrap.style.marginTop = "";
       wrap.style.marginBottom = "";
     };
 
@@ -71,23 +92,29 @@ export function TiendaEditorialGrid({
         return;
       }
       const desktop = desktopMq.matches;
+      const amplitudes = desktop ? DESKTOP_PARALLAX_VH : MOBILE_PARALLAX_VH;
       const vh = window.innerHeight;
       const rect = wrap.getBoundingClientRect();
       const range = wrap.offsetHeight + vh;
       const progress =
         range > 0 ? Math.min(Math.max((vh - rect.top) / range, 0), 1) : 0;
+      // Recorrido completo (−amp…+amp). Más agresivo y con diferencia clara entre columnas.
       const parallaxY = (sizeVh: number) =>
         ((0.5 - progress) * 2 * sizeVh * vh) / 100;
-      const y1 = parallaxY(
-        desktop ? COL1_PARALLAX_VH : MOBILE_COL1_PARALLAX_VH,
-      );
-      const y2 = parallaxY(
-        desktop ? COL2_PARALLAX_VH : MOBILE_COL2_PARALLAX_VH,
-      );
-      c1.style.transform = `translate3d(0, ${y1}px, 0)`;
-      c2.style.transform = `translate3d(0, ${y2}px, 0)`;
-      // Si las columnas suben, compacta el hueco inferior para no dejar aire muerto.
-      wrap.style.marginBottom = `${Math.min(0, y1, y2)}px`;
+
+      let minY = 0;
+      let maxY = 0;
+      cols.forEach((col, index) => {
+        const sizeVh = amplitudes[Math.min(index, amplitudes.length - 1)] ?? 0;
+        const y = parallaxY(sizeVh);
+        col.style.transform = `translate3d(0, ${y}px, 0)`;
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      });
+      // Compensa el empujón hacia abajo para no abrir un hueco arriba del bloque.
+      wrap.style.marginTop = maxY > 0 ? `${-maxY}px` : "";
+      // Si las columnas suben, compacta el hueco inferior.
+      wrap.style.marginBottom = minY < 0 ? `${minY}px` : "";
     };
 
     const onMqChange = () => {
@@ -111,35 +138,38 @@ export function TiendaEditorialGrid({
       desktopMq.removeEventListener("change", onMqChange);
       clear();
     };
-  }, [asGrid, products.length]);
+  }, [asGrid, columnCount, products.length]);
 
   return (
     <div
       ref={wrapRef}
       className={
         "tienda-editorial" +
-        (asGrid ? " tienda-editorial--grid" : " tienda-editorial--carousel")
+        (asGrid ? " tienda-editorial--grid" : " tienda-editorial--carousel") +
+        ` tienda-editorial--cols-${columnCount}`
       }
     >
       <div className="tienda-editorial__columns">
-        <ul ref={col1Ref} className="tienda-editorial__col tienda-editorial__col--1">
-          {col1.map((product) => (
-            <EditorialCard
-              key={`desk-${product.id}`}
-              product={product}
-              onSelect={onSelectProduct}
-            />
-          ))}
-        </ul>
-        <ul ref={col2Ref} className="tienda-editorial__col tienda-editorial__col--2">
-          {col2.map((product) => (
-            <EditorialCard
-              key={`desk-${product.id}`}
-              product={product}
-              onSelect={onSelectProduct}
-            />
-          ))}
-        </ul>
+        {columns.map((columnProducts, colIndex) => (
+          <ul
+            key={`col-${columnCount}-${colIndex}`}
+            ref={(node) => {
+              colRefs.current[colIndex] = node;
+            }}
+            className={
+              "tienda-editorial__col" +
+              ` tienda-editorial__col--${colIndex + 1}`
+            }
+          >
+            {columnProducts.map((product) => (
+              <EditorialCard
+                key={`desk-${product.id}`}
+                product={product}
+                onSelect={onSelectProduct}
+              />
+            ))}
+          </ul>
+        ))}
       </div>
 
       {asGrid ? null : (
