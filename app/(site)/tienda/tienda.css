@@ -269,6 +269,8 @@
   margin: 0 0 clamp(6px, 1vw, 10px);
   padding-bottom: 0;
   border-bottom: 0;
+  position: relative;
+  z-index: 6;
 }
 
 .tienda-category__title {
@@ -292,6 +294,43 @@
 
 .tienda-category--odd .tienda-category__title {
   text-align: right;
+}
+
+.tienda-category__layout-toggle {
+  display: none;
+  appearance: none;
+  position: relative;
+  z-index: 7;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(187, 149, 93, 0.35);
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.92);
+  color: rgba(212, 175, 122, 0.95);
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.tienda-category__layout-toggle:hover,
+.tienda-category__layout-toggle:focus-visible {
+  color: var(--gold-lt, #d4af7a);
+  border-color: rgba(187, 149, 93, 0.65);
+  background: rgba(18, 18, 18, 0.96);
+  outline: none;
+}
+
+.tienda-category__layout-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .tienda-category__filters {
@@ -336,6 +375,8 @@
 }
 
 .tienda-category__stage {
+  position: relative;
+  z-index: 1;
   transition:
     opacity 0.28s ease,
     transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
@@ -3556,7 +3597,7 @@
   /* Carrito / checkout / pedido: menos aire que el catálogo, sin pegarlo al nav. */
   .tienda-page--compact {
     --tienda-nav-clearance: clamp(128px, 20vw, 160px);
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   }
 
   .tienda-page__inner {
@@ -3631,34 +3672,67 @@
     display: none;
   }
 
+  /* Failsafe: si las columnas llegan al DOM en carrusel móvil, no pueden
+     hinchar la sección (era el “negro” entre categorías). */
+  .tienda-editorial--carousel .tienda-editorial__columns {
+    display: none !important;
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .tienda-editorial--carousel {
+    min-height: 0;
+  }
+
+  .tienda-editorial--carousel .tienda-editorial__carousel .tienda-editorial__link {
+    min-height: 0 !important;
+  }
+
   /* Una sola categoría: grilla editorial de 2 columnas en móvil. */
   .tienda-editorial--grid .tienda-editorial__columns {
     --tienda-editorial-gutter: clamp(12px, 3.2vw, 16px);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Col 1: casi al ras del H2; col 2 mantiene un poco de onda. */
+  .tienda-editorial--grid .tienda-editorial__col--1 {
+    margin-top: 0;
   }
 
   .tienda-editorial--grid .tienda-editorial__col--2 {
-    margin-top: clamp(28px, 5vh, 56px);
+    margin-top: clamp(12px, 2.5vh, 24px);
   }
 
   .tienda-editorial--grid .tienda-editorial__col--3 {
-    margin-top: clamp(12px, 2.5vh, 28px);
+    margin-top: clamp(6px, 1vh, 12px);
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--1 {
-    margin-top: clamp(28px, 5vh, 56px);
+    margin-top: clamp(2px, 0.5vh, 6px);
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--2 {
-    margin-top: clamp(40px, 7vh, 80px);
+    margin-top: clamp(16px, 3vh, 28px);
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--3 {
-    margin-top: clamp(14px, 2.5vh, 28px);
+    margin-top: clamp(6px, 1vh, 12px);
   }
 
   .tienda-editorial--grid .tienda-editorial__link {
@@ -3759,7 +3833,7 @@
     width: 100%;
     max-width: 100%;
     margin: 0;
-    padding: 4px 0 8px;
+    padding: 4px 0 0;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
@@ -3806,13 +3880,52 @@
   }
 
   .tienda-category {
-    margin-bottom: 12px;
+    margin-bottom: 0;
+  }
+
+  /* Acerca cualquier categoría siguiente (2.ª, 3.ª…). */
+  .tienda-category + .tienda-category {
+    margin-top: -52px;
   }
 
   .tienda-category__head {
-    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-bottom: 6px;
+    padding-top: 0;
     padding-bottom: 0;
     border-bottom: 0;
+  }
+
+  .tienda-category__title {
+    order: 1;
+    margin-left: 0;
+    margin-right: auto;
+    text-align: left;
+  }
+
+  .tienda-category__layout-toggle {
+    display: inline-flex;
+    order: 2;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .tienda-category--odd .tienda-category__head {
+    justify-content: space-between;
+  }
+
+  .tienda-category--odd .tienda-category__title {
+    text-align: left;
+  }
+
+  .tienda-category__filters {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: flex-start;
   }
 
   .tienda-editorial__carousel-hint {
@@ -3820,8 +3933,10 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 36px;
-    padding: 4px 0 0;
+    min-height: 0;
+    margin: 0;
+    /* Separación respecto al carrusel; sin hueco negro extra debajo. */
+    padding: 10px 0 0;
   }
 
   .tienda-editorial__carousel-hint-inner {

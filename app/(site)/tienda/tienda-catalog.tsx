@@ -13,6 +13,8 @@ import { TiendaProductSheet } from "./tienda-product-sheet";
 
 const FILTER_FADE_MS = 280;
 
+type ProductLayout = "grid" | "carousel";
+
 type Props = {
   categories: WebStoreCategory[];
 };
@@ -22,11 +24,17 @@ export function TiendaCatalog({ categories }: Props) {
     () => groupCatalogSections(categories),
     [categories],
   );
-  /** Una sola sección visible → grilla editorial también en móvil; varias → carrusel. */
-  const productLayout = sections.length === 1 ? "grid" : "carousel";
+  const defaultLayout: ProductLayout =
+    sections.length === 1 ? "grid" : "carousel";
+  const [productLayout, setProductLayout] =
+    useState<ProductLayout>(defaultLayout);
   const [pickerProduct, setPickerProduct] = useState<WebStoreProduct | null>(
     null,
   );
+
+  useEffect(() => {
+    setProductLayout(sections.length === 1 ? "grid" : "carousel");
+  }, [sections.length]);
 
   return (
     <>
@@ -39,6 +47,7 @@ export function TiendaCatalog({ categories }: Props) {
           allProducts={section.products}
           filters={section.filters}
           productLayout={productLayout}
+          onProductLayoutChange={setProductLayout}
           sectionIndex={sectionIndex}
           onSelectProduct={setPickerProduct}
         />
@@ -53,6 +62,43 @@ export function TiendaCatalog({ categories }: Props) {
   );
 }
 
+function LayoutToggleIcon({ mode }: { mode: ProductLayout }) {
+  if (mode === "carousel") {
+    // Ir a cuadrícula
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="tienda-category__layout-icon"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        aria-hidden={true}
+      >
+        <rect x="3.25" y="3.25" width="7.5" height="7.5" rx="1.25" />
+        <rect x="13.25" y="3.25" width="7.5" height="7.5" rx="1.25" />
+        <rect x="3.25" y="13.25" width="7.5" height="7.5" rx="1.25" />
+        <rect x="13.25" y="13.25" width="7.5" height="7.5" rx="1.25" />
+      </svg>
+    );
+  }
+  // Ir a carrusel: tres tarjetas horizontales
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="tienda-category__layout-icon"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinejoin="round"
+      aria-hidden={true}
+    >
+      <rect x="2.75" y="5.5" width="5.5" height="13" rx="1.4" />
+      <rect x="9.25" y="5.5" width="5.5" height="13" rx="1.4" />
+      <rect x="15.75" y="5.5" width="5.5" height="13" rx="1.4" />
+    </svg>
+  );
+}
+
 function CategorySection({
   sectionId,
   name,
@@ -60,6 +106,7 @@ function CategorySection({
   allProducts,
   filters,
   productLayout,
+  onProductLayoutChange,
   sectionIndex,
   onSelectProduct,
 }: {
@@ -68,7 +115,8 @@ function CategorySection({
   parentName: string | null;
   allProducts: WebStoreProduct[];
   filters: { id: string; name: string; products: WebStoreProduct[] }[];
-  productLayout: "grid" | "carousel";
+  productLayout: ProductLayout;
+  onProductLayoutChange: (layout: ProductLayout) => void;
   sectionIndex: number;
   onSelectProduct: (product: WebStoreProduct) => void;
 }) {
@@ -142,7 +190,6 @@ function CategorySection({
     activeFilterId !== "all"
       ? filters.find((f) => f.id === activeFilterId)
       : undefined;
-  // Padre · Hija; si el filtro es inferido (no subcategoría), no lo metemos en el h2.
   const title = (() => {
     if (!activeFilter) return name;
     const isSubcategory = !activeFilter.id.startsWith("infer:");
@@ -154,6 +201,10 @@ function CategorySection({
   })();
   const isOdd = sectionIndex % 2 === 0;
   const showFilterBar = showFilters && !isOdd;
+  const nextLayout: ProductLayout =
+    productLayout === "carousel" ? "grid" : "carousel";
+  const layoutLabel =
+    productLayout === "carousel" ? "Ver cuadrícula" : "Ver carrusel";
 
   return (
     <section
@@ -166,6 +217,16 @@ function CategorySection({
         <h2 id={`tienda-cat-${sectionId}`} className="tienda-category__title">
           {title}
         </h2>
+
+        <button
+          type="button"
+          className="tienda-category__layout-toggle"
+          aria-label={layoutLabel}
+          title={layoutLabel}
+          onClick={() => onProductLayoutChange(nextLayout)}
+        >
+          <LayoutToggleIcon mode={productLayout} />
+        </button>
 
         {showFilterBar ? (
           <div
@@ -214,7 +275,7 @@ function CategorySection({
         }
       >
         <TiendaEditorialGrid
-          key={stageKey}
+          key={`${stageKey}-${productLayout}`}
           products={displayProducts}
           layout={productLayout}
           sectionIndex={sectionIndex}

@@ -6,6 +6,11 @@ export function setPendingHomeSection(sectionId: string) {
   sessionStorage.setItem(HOME_PENDING_SECTION_KEY, sectionId);
 }
 
+export function peekPendingHomeSection(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(HOME_PENDING_SECTION_KEY);
+}
+
 export function consumePendingHomeSection(): string | null {
   if (typeof window === "undefined") return null;
   const sectionId = sessionStorage.getItem(HOME_PENDING_SECTION_KEY);

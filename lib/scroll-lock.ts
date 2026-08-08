@@ -62,10 +62,11 @@ function applyLockStyles() {
   }
 }
 
-function releaseLockStyles() {
+function releaseLockStyles(options?: { restoreScroll?: boolean }) {
   const html = document.documentElement;
   const body = document.body;
   const navbar = document.getElementById("navbar");
+  const restoreScroll = options?.restoreScroll !== false;
 
   html.classList.remove("mv-scroll-locked");
   html.style.paddingRight = state.prevHtmlPaddingRight;
@@ -77,7 +78,9 @@ function releaseLockStyles() {
   body.style.right = state.prevBodyRight;
   body.style.width = state.prevBodyWidth;
   body.style.overflow = state.prevBodyOverflow;
-  window.scrollTo(0, state.scrollY);
+  if (restoreScroll) {
+    window.scrollTo(0, state.scrollY);
+  }
 }
 
 export function lockScroll() {
@@ -90,12 +93,23 @@ export function unlockScroll() {
   if (typeof window === "undefined") return;
   if (state.count === 0) return;
   state.count -= 1;
-  if (state.count === 0) releaseLockStyles();
+  if (state.count === 0) releaseLockStyles({ restoreScroll: true });
 }
 
 export function resetScrollLock() {
   if (typeof window === "undefined") return;
   if (state.count === 0) return;
   state.count = 0;
-  releaseLockStyles();
+  releaseLockStyles({ restoreScroll: true });
+}
+
+/** Libera bloqueos y deja el scroll arriba (navegación SPA). */
+export function resetScrollLockToTop() {
+  if (typeof window === "undefined") return;
+  if (state.count > 0) {
+    state.count = 0;
+    releaseLockStyles({ restoreScroll: false });
+  }
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  window.__mvLenis?.scrollTo(0, { immediate: true });
 }

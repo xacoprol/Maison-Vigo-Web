@@ -8,6 +8,7 @@ import {
   buildSectionUrl,
   consumePendingHomeSection,
   isHomePathname,
+  peekPendingHomeSection,
   resolveHomeSectionId,
   sanitizeUrlHash,
   sectionIdFromHash,
@@ -17,7 +18,13 @@ import {
   CARE_ASSIST_OPEN_EVENT,
   type CareAssistOpenDetail,
 } from "@/lib/care-assist";
-import { lockScroll, resetScrollLock, unlockScroll } from "@/lib/scroll-lock";
+import {
+  lockScroll,
+  resetScrollLock,
+  resetScrollLockToTop,
+  unlockScroll,
+} from "@/lib/scroll-lock";
+import { scrollPageToTopDeferred } from "@/lib/scroll-page-top";
 import { bookingUrl } from "@/lib/site-config";
 
 /**
@@ -32,6 +39,20 @@ const COOKIE_BANNER_ENABLED = false;
 export function SiteEffects() {
   const router = useRouter();
   const pathname = usePathname();
+
+  // Al cambiar de ruta: no quedarse en el footer / scroll del sheet anterior.
+  useEffect(() => {
+    const homeTarget =
+      isHomePathname(pathname) &&
+      Boolean(
+        sectionIdFromHash(window.location.hash) || peekPendingHomeSection(),
+      );
+
+    resetScrollLockToTop();
+    if (homeTarget) return;
+
+    scrollPageToTopDeferred();
+  }, [pathname]);
 
   useEffect(() => {
     if (!isHomePathname(pathname)) return;

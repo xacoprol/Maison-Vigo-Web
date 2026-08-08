@@ -12,7 +12,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { lockScroll, resetScrollLockToTop, unlockScroll } from "@/lib/scroll-lock";
 import {
   postWebStoreCustomizationPhoto,
   WebStoreRequestError,
@@ -1241,6 +1241,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                     <Link
                       href="/tienda/carrito"
                       className="tienda-btn tienda-btn--solid tienda-sheet__cta"
+                      onClick={() => resetScrollLockToTop()}
                     >
                       Ir al carrito
                     </Link>

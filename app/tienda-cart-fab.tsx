@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { useWebStoreCart } from "./(site)/tienda/web-store-cart";
+import { resetScrollLockToTop } from "@/lib/scroll-lock";
 
 import "./tienda-cart-fab.css";
 
@@ -50,6 +51,7 @@ export function TiendaCartFab() {
       href="/tienda/carrito"
       className="tienda-cart-fab"
       aria-label={`Carrito, ${count} ${count === 1 ? "artículo" : "artículos"}`}
+      onClick={() => resetScrollLockToTop()}
     >
       <IconCart />
       <span className="tienda-cart-fab__badge">

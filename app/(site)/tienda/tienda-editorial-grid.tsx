@@ -40,12 +40,20 @@ function getDesktopColumnCount() {
   return window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`).matches ? 3 : 2;
 }
 
+function getIsDesktop() {
+  return window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`).matches;
+}
+
 function useEditorialColumnCount() {
   return useSyncExternalStore(
     subscribeDesktopMq,
     getDesktopColumnCount,
     () => 3,
   );
+}
+
+function useIsDesktop() {
+  return useSyncExternalStore(subscribeDesktopMq, getIsDesktop, () => true);
 }
 
 type Props = {
@@ -68,12 +76,17 @@ export function TiendaEditorialGrid({
   const asGrid = layout === "grid";
   const staggerFlip = sectionIndex % 2 === 1;
   const columnCount = useEditorialColumnCount();
+  const isDesktop = useIsDesktop();
+  /** En móvil + carrusel no montamos columnas: hinchaban la altura de la sección. */
+  const showColumns = asGrid || isDesktop;
+  const showCarousel = !asGrid && !isDesktop;
 
   const columns = Array.from({ length: columnCount }, (_, col) =>
     products.filter((_, index) => index % columnCount === col),
   );
 
   useEffect(() => {
+    if (!showColumns) return;
     const wrap = wrapRef.current;
     const cols = colRefs.current
       .slice(0, columnCount)
@@ -116,7 +129,6 @@ export function TiendaEditorialGrid({
       const range = wrap.offsetHeight + vh;
       const progress =
         range > 0 ? Math.min(Math.max((vh - rect.top) / range, 0), 1) : 0;
-      // Recorrido completo (−amp…+amp). Más agresivo y con diferencia clara entre columnas.
       const parallaxY = (sizeVh: number) =>
         ((0.5 - progress) * 2 * sizeVh * vh) / 100;
 
@@ -129,15 +141,17 @@ export function TiendaEditorialGrid({
         minY = Math.min(minY, y);
         maxY = Math.max(maxY, y);
       });
-      // Compensa el empujón hacia abajo. En pares, solo parcialmente
-      // para no arrastrar la 1.ª columna encima del título de categoría.
       if (maxY > 0) {
-        const pull = staggerFlip ? maxY * 0.35 : maxY;
+        // En móvil: poco pull para no subir la col 1 sobre el H2.
+        const pull = !desktop
+          ? maxY * 0.5
+          : staggerFlip
+            ? maxY * 0.35
+            : maxY;
         wrap.style.marginTop = `${-pull}px`;
       } else {
         wrap.style.marginTop = "";
       }
-      // Si las columnas suben, compacta el hueco inferior.
       wrap.style.marginBottom = minY < 0 ? `${minY}px` : "";
     };
 
@@ -162,7 +176,7 @@ export function TiendaEditorialGrid({
       desktopMq.removeEventListener("change", onMqChange);
       clear();
     };
-  }, [asGrid, columnCount, products.length, staggerFlip]);
+  }, [asGrid, columnCount, products.length, staggerFlip, showColumns]);
 
   return (
     <div
@@ -174,35 +188,37 @@ export function TiendaEditorialGrid({
         ` tienda-editorial--cols-${columnCount}`
       }
     >
-      <div className="tienda-editorial__columns">
-        {columns.map((columnProducts, colIndex) => (
-          <ul
-            key={`col-${columnCount}-${colIndex}`}
-            ref={(node) => {
-              colRefs.current[colIndex] = node;
-            }}
-            className={
-              "tienda-editorial__col" +
-              ` tienda-editorial__col--${colIndex + 1}`
-            }
-          >
-            {columnProducts.map((product) => (
-              <EditorialCard
-                key={`desk-${product.id}`}
-                product={product}
-                onSelect={onSelectProduct}
-              />
-            ))}
-          </ul>
-        ))}
-      </div>
+      {showColumns ? (
+        <div className="tienda-editorial__columns">
+          {columns.map((columnProducts, colIndex) => (
+            <ul
+              key={`col-${columnCount}-${colIndex}`}
+              ref={(node) => {
+                colRefs.current[colIndex] = node;
+              }}
+              className={
+                "tienda-editorial__col" +
+                ` tienda-editorial__col--${colIndex + 1}`
+              }
+            >
+              {columnProducts.map((product) => (
+                <EditorialCard
+                  key={`desk-${product.id}`}
+                  product={product}
+                  onSelect={onSelectProduct}
+                />
+              ))}
+            </ul>
+          ))}
+        </div>
+      ) : null}
 
-      {asGrid ? null : (
+      {showCarousel ? (
         <EditorialMobileCarousel
           products={products}
           onSelectProduct={onSelectProduct}
         />
-      )}
+      ) : null}
     </div>
   );
 }
