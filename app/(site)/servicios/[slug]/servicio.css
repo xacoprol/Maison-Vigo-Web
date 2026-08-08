@@ -154,6 +154,9 @@
 
 .servicio__hero-inner > .servicio__hero-lead-wrap {
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   transform: translate3d(
     0,
     calc(
@@ -236,6 +239,55 @@
   /* Arranca a 1.8s — solapando un poco con el final del reveal del título. */
   animation: servicioLeadFadeUp 2.4s 1.8s cubic-bezier(0.22, 1, 0.36, 1)
     forwards;
+}
+
+.servicio__hero-cta {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp(18px, 3vw, 28px);
+  min-height: 46px;
+  padding: 0 26px;
+  border: 1px solid rgba(212, 175, 122, 0.7);
+  border-radius: 999px;
+  background: rgba(187, 149, 93, 0.18);
+  color: var(--cream);
+  font-family: var(--ff-sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  will-change: opacity, transform, background, border-color;
+  animation: servicioLeadFadeUp 2.2s 2.35s cubic-bezier(0.22, 1, 0.36, 1)
+    forwards;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.servicio__hero-cta:hover,
+.servicio__hero-cta:focus-visible {
+  background: var(--gold, #bb955d);
+  border-color: var(--gold, #bb955d);
+  color: #fff;
+  outline: none;
+}
+
+.servicio__hero-cta .mob-wave-text {
+  display: inline-flex;
+}
+
+.servicio__hero-cta .mob-wave-char--bottom {
+  color: var(--gold-lt, #d4af7a);
+}
+
+.servicio__hero-cta:hover .mob-wave-char--bottom,
+.servicio__hero-cta:focus-visible .mob-wave-char--bottom {
+  color: #fff;
 }
 
 @keyframes servicioLeadFadeUp {
@@ -637,6 +689,11 @@
     transform: none;
   }
   .servicio__hero-lead {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .servicio__hero-cta {
     animation: none;
     opacity: 1;
     transform: none;

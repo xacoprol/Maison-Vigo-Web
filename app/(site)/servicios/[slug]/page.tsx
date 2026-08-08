@@ -9,6 +9,7 @@ import { ServicioBackNav } from "./servicio-back-nav";
 import { ServicioBodyText } from "./servicio-body-text";
 import { ServicioEffects } from "./servicio-effects";
 import { ServicioHeroBg } from "./servicio-hero-bg";
+import { ServicioAcompanamientoCta } from "./servicio-acompanamiento-cta";
 import { ServicioPageClient } from "./servicio-page-client";
 import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
 import { ServicioServiciosSection } from "./servicio-servicios-section";
@@ -92,6 +93,9 @@ export default async function ServicioPage({
           </div>
           <div className="servicio__hero-lead-wrap">
             <p className="servicio__hero-lead">{servicio.subtitle}</p>
+            {servicio.slug === "acompanamiento" ? (
+              <ServicioAcompanamientoCta />
+            ) : null}
           </div>
         </div>
 

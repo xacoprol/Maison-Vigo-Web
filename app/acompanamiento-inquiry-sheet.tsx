@@ -274,10 +274,10 @@ export function AcompanamientoInquirySheet() {
         </button>
         <div className="acompanamiento-inquiry-sheet__body">
           <p className="acompanamiento-inquiry-sheet__eyebrow">
-            Acompañamiento
+            Presupuesto
           </p>
           <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
-            {done ? "Solicitud enviada" : "Cuéntanos tu evento"}
+            {done ? "Solicitud enviada" : "Pide tu presupuesto"}
           </h2>
           {done ? (
             <div className="acompanamiento-inquiry-sheet__success">
@@ -377,7 +377,7 @@ export function AcompanamientoInquirySheet() {
                 className="acompanamiento-inquiry-sheet__submit"
                 disabled={pending}
               >
-                {pending ? "Enviando…" : "Enviar solicitud"}
+                {pending ? "Enviando…" : "Pedir presupuesto"}
               </button>
             </form>
           )}
