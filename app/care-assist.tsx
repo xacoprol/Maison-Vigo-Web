@@ -230,6 +230,11 @@ export function CareAssist() {
       if (event.key === "Escape") setOpen(false);
     };
 
+    const touchStartY = { current: null as number | null };
+    const onTouchStart = (event: TouchEvent) => {
+      touchStartY.current = event.touches[0]?.clientY ?? null;
+    };
+
     const onTouchMove = (event: TouchEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) {
@@ -241,16 +246,43 @@ export function CareAssist() {
         event.preventDefault();
         return;
       }
-      let node: Element | null =
+
+      const el =
         target instanceof Element ? target : target.parentElement;
-      while (node && node !== panel) {
+      if (!el) {
+        event.preventDefault();
+        return;
+      }
+
+      /* Zonas con scroll propio: no bloquear el gesto. */
+      const scrollRegion = el.closest(
+        ".care-assist-messages, .care-assist-input, .care-assist-grabber",
+      );
+      if (scrollRegion) {
         if (
-          node.classList.contains("care-assist-messages") ||
-          node.classList.contains("care-assist-input") ||
-          node.classList.contains("care-assist-grabber")
+          scrollRegion.classList.contains("care-assist-grabber") ||
+          scrollRegion.classList.contains("care-assist-input")
         ) {
           return;
         }
+        /* Mensajes: solo bloquear el rebote del documento en los bordes. */
+        const startY = touchStartY.current;
+        const dy =
+          startY == null
+            ? 0
+            : event.touches[0]!.clientY - startY;
+        const atTop = scrollRegion.scrollTop <= 0;
+        const atBottom =
+          scrollRegion.scrollTop + scrollRegion.clientHeight >=
+          scrollRegion.scrollHeight - 1;
+        if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      let node: Element | null = el;
+      while (node && node !== panel) {
         const style = window.getComputedStyle(node);
         const oy = style.overflowY;
         if (
@@ -298,10 +330,15 @@ export function CareAssist() {
     vv?.addEventListener("resize", syncKeyboardLayout);
     vv?.addEventListener("scroll", syncKeyboardLayout);
     window.addEventListener("keydown", onKey);
+    document.addEventListener("touchstart", onTouchStart, {
+      passive: true,
+      capture: true,
+    });
     document.addEventListener("touchmove", onTouchMove, { passive: false });
 
     return () => {
       window.removeEventListener("keydown", onKey);
+      document.removeEventListener("touchstart", onTouchStart, true);
       document.removeEventListener("touchmove", onTouchMove);
       vv?.removeEventListener("resize", syncKeyboardLayout);
       vv?.removeEventListener("scroll", syncKeyboardLayout);

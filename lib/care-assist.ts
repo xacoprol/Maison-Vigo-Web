@@ -52,6 +52,12 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
       "Necesito que mi perro se quede en guardería, de día o también alguna noche. ¿Cómo funciona Guardería Familiar?",
   },
   {
+    id: "evento",
+    label: "Boda / Evento",
+    prompt:
+      "Tengo una boda o evento y quiero acompañamiento para mi perro. ¿Cómo funciona?",
+  },
+  {
     id: "tienda",
     label: "The Selection",
     prompt:

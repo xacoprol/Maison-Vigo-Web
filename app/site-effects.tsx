@@ -128,6 +128,9 @@ export function SiteEffects() {
          * bloquear nunca. Móvil: solo pausar Lenis al arrastrar carruseles.
          */
         prevent: (node) => {
+          if (node.closest(".care-assist-panel, .care-assist-messages")) {
+            return true;
+          }
           if (!window.matchMedia("(max-width: 900px)").matches) {
             return false;
           }
