@@ -345,7 +345,7 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
           <span>{formatEuroFromCents(subtotalCents)}</span>
         </div>
         <div className="tienda-checkout__total-row">
-          <span>Envío</span>
+          <span>{fulfillmentMethodLabel(fulfillmentMethod)}</span>
           <span>
             {needsAddress
               ? formatEuroFromCents(shippingCents)

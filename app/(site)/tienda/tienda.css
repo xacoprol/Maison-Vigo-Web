@@ -3552,6 +3552,12 @@
     padding-right: 0;
   }
 
+  /* Carrito / checkout / pedido: menos aire que el catálogo, sin pegarlo al nav. */
+  .tienda-page--compact {
+    --tienda-nav-clearance: clamp(128px, 20vw, 160px);
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
   .tienda-page__inner {
     padding-inline: max(16px, env(safe-area-inset-left))
       max(16px, env(safe-area-inset-right));

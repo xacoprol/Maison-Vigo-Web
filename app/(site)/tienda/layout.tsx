@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import "./tienda.css";
+import TiendaLayoutClient from "./tienda-layout-client";
 
 export const metadata: Metadata = {
   title: "The Selection",
@@ -14,9 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function TiendaLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="tienda-page">
-      <div className="tienda-page__inner">{children}</div>
-    </div>
-  );
+  return <TiendaLayoutClient>{children}</TiendaLayoutClient>;
 }
