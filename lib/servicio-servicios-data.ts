@@ -186,7 +186,7 @@ const ACOMPANAMIENTO_SERVICIOS: ServicioServiciosItem[] = [
   {
     title: "Acompañamientos personalizados",
     desc: [
-      "Servicios a medida para situaciones concretas: viajes, compromisos o momentos en los que no puedes estar con ellos.",
+      "Servicios a medida para bodas, viajes, compromisos o momentos especiales en los que quieres que tu perro esté cuidado y pueda estar con vosotros.",
     ],
   },
 ];

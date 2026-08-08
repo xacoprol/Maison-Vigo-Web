@@ -55,7 +55,7 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
     id: "evento",
     label: "Boda / Evento",
     prompt:
-      "Tengo una boda o evento y quiero acompañamiento para mi perro. ¿Cómo funciona?",
+      "Tengo una boda o evento y quiero que estéis presentes cuidando a mi perro para poder estar con él en ese momento especial. ¿Cómo funciona el acompañamiento?",
   },
   {
     id: "tienda",
@@ -188,7 +188,7 @@ export function buildCareAssistSystemPrompt(
     "- Bienestar (bienestar): piel, picores, manto con seguimiento cutáneo, ozonoterapia, planes cutáneos, recomendaciones de cosmética/casa para la piel. NO es el servicio de conducta.",
     "- Grooming (grooming): baño, corte, estética, nudos, mantenimiento del pelo sin foco en conducta.",
     "- Guardería Familiar (guarderia-familiar): MV Home. Estancias de DÍA y también de NOCHE (pernocta). Los perros pueden quedarse solo de día, solo de noche o combinar. Entorno reducido, tranquilo y supervisado. Si preguntan «¿solo de día?» aclara que también hay noches.",
-    "- Acompañamiento (acompanamiento): bodas, eventos, momentos en los que no pueden estar con el perro.",
+    "- Acompañamiento (acompanamiento): presencia de Maison Vigo en bodas, eventos y momentos especiales cuidando al perro in situ, para que la familia pueda estar con él y vivir ese día juntos con tranquilidad. No es dejar al perro aparte: es cuidado presente para que forme parte del momento. También cubre sesiones fotográficas, traslados y acompañamientos a medida.",
     "",
     "Formato de respuesta: SOLO un JSON válido, sin markdown ni texto fuera del JSON:",
     '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false,"suggestStore":true|false}',

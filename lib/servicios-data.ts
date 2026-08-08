@@ -81,12 +81,12 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     image: "/acompanamiento.webp",
     imageAlt: "Acompañamiento personalizado Maison Vigo.",
     subtitle:
-      "Presencia y cuidado en momentos donde no puedes estar con ellos.",
+      "Presencia y cuidado para que tu perro forme parte de los momentos especiales.",
     body:
-      "Hay momentos que piden algo más que un servicio. Acompañamos con la " +
-      "misma calma y atención de siempre — en bodas, celebraciones o días " +
-      "especiales — para que tu perro esté bien cuidado cuando tú no puedes " +
-      "estar.",
+      "Hay momentos que piden algo más que un servicio. Estamos presentes en " +
+      "bodas, celebraciones y días especiales cuidando a tu perro, para que " +
+      "podáis estar con él y vivir ese momento juntos — con la misma calma y " +
+      "atención de siempre.",
   },
   educacion: {
     slug: "educacion",
