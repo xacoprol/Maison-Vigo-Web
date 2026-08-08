@@ -1682,8 +1682,101 @@
   -webkit-backdrop-filter: blur(8px);
 }
 
+.tienda-sheet__actions-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  animation: tienda-sheet-actions-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tienda-sheet__actions-split .tienda-btn {
+  min-width: 0;
+  width: 100%;
+  padding: 0 12px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
 .tienda-sheet__cta {
   min-width: min(100%, 220px);
+  width: 100%;
+}
+
+.tienda-sheet__cta-secondary {
+  width: 100%;
+  min-width: 0;
+  border-color: rgba(244, 244, 242, 0.22);
+  background: transparent;
+  color: rgba(244, 244, 242, 0.78);
+}
+
+.tienda-sheet__cta-secondary:hover:not(:disabled) {
+  border-color: rgba(212, 175, 122, 0.55);
+  background: rgba(212, 175, 122, 0.08);
+  color: var(--cream, #f4f4f2);
+}
+
+.tienda-sheet__cta--busy,
+.tienda-sheet__cta--done {
+  pointer-events: none;
+}
+
+.tienda-sheet__cta--done {
+  border-color: rgba(212, 175, 122, 0.65);
+  background: rgba(212, 175, 122, 0.22);
+  color: var(--cream, #f4f4f2);
+}
+
+.tienda-sheet__cta-spin {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(244, 244, 242, 0.25);
+  border-top-color: var(--gold-lt, #d4af7a);
+  border-radius: 999px;
+  animation: tienda-sheet-cta-spin 0.7s linear infinite;
+}
+
+.tienda-sheet__cta-check {
+  display: inline-flex;
+  color: var(--gold-lt, #d4af7a);
+  animation: tienda-sheet-check-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tienda-sheet-cta-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tienda-sheet-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tienda-sheet-actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tienda-sheet__cta-spin,
+  .tienda-sheet__cta-check,
+  .tienda-sheet__actions-split {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {

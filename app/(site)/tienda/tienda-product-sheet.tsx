@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useId,
@@ -39,6 +40,8 @@ import { useWebStoreCart } from "./web-store-cart";
 
 const EXIT_MS = 520;
 
+type CartActionPhase = "idle" | "adding" | "added" | "choice";
+
 type Props = {
   product: WebStoreProduct | null;
   open: boolean;
@@ -71,15 +74,30 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNotice, setFormNotice] = useState<string | null>(null);
-  const [added, setAdded] = useState(false);
+  const [cartPhase, setCartPhase] = useState<CartActionPhase>("idle");
+  const cartPhaseTimersRef = useRef<number[]>([]);
   const photoPreviewUrlsRef = useRef<Record<string, string>>({});
   const panelRef = useRef<HTMLDivElement>(null);
   const grabberRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
+  const clearCartPhaseTimers = () => {
+    for (const id of cartPhaseTimersRef.current) window.clearTimeout(id);
+    cartPhaseTimersRef.current = [];
+  };
+
+  const cartLocked = cartPhase !== "idle";
+
   useEffect(() => {
     setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      for (const id of cartPhaseTimersRef.current) window.clearTimeout(id);
+      cartPhaseTimersRef.current = [];
+    };
   }, []);
 
   /* Arrastre nativo (touch + pointer): React PointerEvents fallan a menudo en iOS. */
@@ -245,7 +263,8 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       setQtyTextValues({});
       setFieldErrors({});
       setFormNotice(null);
-      setAdded(false);
+      clearCartPhaseTimers();
+      setCartPhase("idle");
       let frame2 = 0;
       const frame1 = window.requestAnimationFrame(() => {
         frame2 = window.requestAnimationFrame(() => setVisible(true));
@@ -536,7 +555,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
 
   const onAdd = (event?: FormEvent) => {
     event?.preventDefault();
-    if (outOfStock || photoUploading != null || added) return;
+    if (outOfStock || photoUploading != null || cartLocked) return;
     if (hasVariants && !variantKey) {
       setFormNotice("Elige una opción del producto.");
       return;
@@ -597,11 +616,12 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
           }
         : null,
     });
-    setAdded(true);
-    window.setTimeout(() => {
-      onCloseRef.current();
-      setAdded(false);
-    }, 700);
+
+    clearCartPhaseTimers();
+    setCartPhase("adding");
+    const toAdded = window.setTimeout(() => setCartPhase("added"), 520);
+    const toChoice = window.setTimeout(() => setCartPhase("choice"), 1280);
+    cartPhaseTimersRef.current = [toAdded, toChoice];
   };
 
   return createPortal(
@@ -753,7 +773,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                             type="button"
                             id={`sheet-qty-${gi}`}
                             aria-label={`Quitar una ${group.label}`}
-                            disabled={added || quantity <= group.minQuantity}
+                            disabled={cartLocked || quantity <= group.minQuantity}
                             onClick={() => {
                               setQtyGroupQuantities((prev) => ({
                                 ...prev,
@@ -768,7 +788,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                           <button
                             type="button"
                             aria-label={`Añadir una ${group.label}`}
-                            disabled={added || quantity >= maxQuantity}
+                            disabled={cartLocked || quantity >= maxQuantity}
                             onClick={() => {
                               setQtyGroupQuantities((prev) => ({
                                 ...prev,
@@ -831,7 +851,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                                       String(qtyTextValues[key] ?? "").trim(),
                                   )}
                                   petName={sessionPetName}
-                                  disabled={added}
+                                  disabled={cartLocked}
                                   onGenerated={(text) => {
                                     let next = text;
                                     if (
@@ -855,7 +875,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                                 placeholder={
                                   group.textPlaceholder ?? undefined
                                 }
-                                disabled={added}
+                                disabled={cartLocked}
                                 aria-invalid={Boolean(error)}
                                 value={qtyTextValues[key] ?? ""}
                                 onChange={(event) => {
@@ -929,7 +949,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                             String(textValues[field.label] ?? "").trim(),
                         )}
                         petName={sessionPetName}
-                        disabled={added}
+                        disabled={cartLocked}
                         onGenerated={(text) => {
                           let next = text;
                           const max = field.maxLength ?? 120;
@@ -993,7 +1013,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                     ? `+${formatEuroFromCents(field.extraPriceCents)}`
                     : null;
                 const openPicker = () => {
-                  if (uploading || added) return;
+                  if (uploading || cartLocked) return;
                   document.getElementById(fileId)?.click();
                 };
                 return (
@@ -1042,7 +1062,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                               type="button"
                               id={buttonId}
                               className="tienda-photo-field__btn tienda-photo-field__btn--ghost"
-                              disabled={added}
+                              disabled={cartLocked}
                               onClick={openPicker}
                             >
                               Cambiar
@@ -1050,7 +1070,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                             <button
                               type="button"
                               className="tienda-photo-field__btn tienda-photo-field__btn--ghost"
-                              disabled={added}
+                              disabled={cartLocked}
                               onClick={() => clearPhoto(field.label)}
                             >
                               Quitar
@@ -1064,7 +1084,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                         id={buttonId}
                         className="tienda-photo-field__drop"
                         aria-label={`Subir foto para grabar: ${field.label}`}
-                        disabled={uploading || added}
+                        disabled={uploading || cartLocked}
                         onClick={openPicker}
                         onDragOver={(event) => {
                           event.preventDefault();
@@ -1072,7 +1092,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                         }}
                         onDrop={(event) => {
                           event.preventDefault();
-                          if (uploading || added) return;
+                          if (uploading || cartLocked) return;
                           const file = event.dataTransfer.files?.[0];
                           if (file && file.type.startsWith("image/")) {
                             void uploadPhoto(field.label, file);
@@ -1119,7 +1139,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                       type="file"
                       accept="image/*"
                       className="sr-only"
-                      disabled={uploading || added}
+                      disabled={uploading || cartLocked}
                       onChange={(event) => {
                         const file = event.target.files?.[0];
                         if (file) void uploadPhoto(field.label, file);
@@ -1201,15 +1221,67 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                 </p>
               ) : null}
 
-              <div className="tienda-sheet__actions">
-                <button
-                  type="submit"
-                  className="tienda-btn tienda-btn--solid tienda-sheet__cta"
-                  disabled={hardBlock || added}
-                  aria-live="polite"
-                >
-                  {added ? "Añadido ✓" : "Añadir al carrito"}
-                </button>
+              <div className="tienda-sheet__actions" aria-live="polite">
+                {cartPhase === "choice" ? (
+                  <div className="tienda-sheet__actions-split">
+                    <button
+                      type="button"
+                      className="tienda-btn tienda-sheet__cta-secondary"
+                      onClick={onClose}
+                    >
+                      Seguir comprando
+                    </button>
+                    <Link
+                      href="/tienda/carrito"
+                      className="tienda-btn tienda-btn--solid tienda-sheet__cta"
+                    >
+                      Ir al carrito
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    className={
+                      "tienda-btn tienda-btn--solid tienda-sheet__cta" +
+                      (cartPhase === "adding"
+                        ? " tienda-sheet__cta--busy"
+                        : "") +
+                      (cartPhase === "added"
+                        ? " tienda-sheet__cta--done"
+                        : "")
+                    }
+                    disabled={hardBlock || cartLocked}
+                  >
+                    {cartPhase === "adding" ? (
+                      <>
+                        <span className="tienda-sheet__cta-spin" aria-hidden />
+                        Añadiendo…
+                      </>
+                    ) : cartPhase === "added" ? (
+                      <>
+                        <span className="tienda-sheet__cta-check" aria-hidden>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M5 12.5l5 5L19 7"
+                              stroke="currentColor"
+                              strokeWidth="2.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        Añadido
+                      </>
+                    ) : (
+                      "Añadir al carrito"
+                    )}
+                  </button>
+                )}
               </div>
             </form>
           </div>
