@@ -65,10 +65,10 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     subtitle:
       "Un entorno reducido, tranquilo y supervisado donde sentirse seguro y acompañado.",
     body:
-      "MV Home es un espacio de estancias de día pensado para que se sientan " +
-      "seguros y acompañados. Rutinas calmadas, descanso, tiempo al aire " +
-      "libre y una supervisión cercana forman parte de una experiencia cuidada " +
-      "desde el bienestar emocional de cada perro.",
+      "MV Home es un espacio de estancias de día y también de noche, pensado " +
+      "para que se sientan seguros y acompañados. Rutinas calmadas, descanso, " +
+      "tiempo al aire libre y una supervisión cercana forman parte de una " +
+      "experiencia cuidada desde el bienestar emocional de cada perro.",
     bodyLogo: {
       src: "/assets/images/mvhome.svg",
       alt: "MV Home",

@@ -114,7 +114,7 @@ const GUARDERIA_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
     headline1: "Atención",
     headline2: "individualizada",
     image: "/assets/images/guarderia-3.webp",
-    imageAlt: "Atención individualizada en guardería de día.",
+    imageAlt: "Atención individualizada en guardería familiar.",
   },
 ];
 

@@ -1,6 +1,8 @@
 import { bookingUrl, siteConfig } from "@/lib/site-config";
 import { getServicioServiciosItems } from "@/lib/servicio-servicios-data";
 import { serviciosList, type ServicioSlug } from "@/lib/servicios-data";
+import type { WebStoreCatalog } from "@/lib/web-store/types";
+import { formatEuroFromCents } from "@/lib/web-store/utils";
 
 export const CARE_ASSIST_MAX_USER_MESSAGES = 6;
 export const CARE_ASSIST_MAX_MESSAGE_CHARS = 400;
@@ -39,8 +41,9 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   },
   {
     id: "guarderia",
-    label: "Guardería de día",
-    prompt: "Busco una guardería de día tranquila y supervisada. ¿Encaja Guardería Familiar?",
+    label: "Guardería / noches",
+    prompt:
+      "Necesito que mi perro se quede en guardería, de día o también alguna noche. ¿Cómo funciona Guardería Familiar?",
   },
   {
     id: "evento",
@@ -52,6 +55,12 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
     label: "Conducta o nervios",
     prompt:
       "Mi perro está nervioso o tenemos dudas de conducta y convivencia. ¿Qué servicio encaja?",
+  },
+  {
+    id: "tienda",
+    label: "The Selection",
+    prompt:
+      "¿Qué productos tenéis en The Selection? Me interesan joyas, collares o accesorios.",
   },
   {
     id: "reserva",
@@ -86,39 +95,107 @@ function buildServicesCatalog(): string {
     .join("\n\n");
 }
 
-export function buildCareAssistSystemPrompt(): string {
+function productLooksPersonalizable(
+  product: WebStoreCatalog["categories"][number]["products"][number],
+): boolean {
+  const p = product.personalization;
+  if (!p || p.enabled === false) return false;
+  return Boolean(
+    (p.textFields?.length ?? 0) > 0 ||
+      (p.photoFields?.length ?? 0) > 0 ||
+      (p.quantityTextGroups?.length ?? 0) > 0,
+  );
+}
+
+/** Resumen del catálogo público para el system prompt (precios = los publicados ahora). */
+export function formatWebStoreCatalogForAssist(
+  catalog: WebStoreCatalog | null,
+): string {
+  if (!catalog?.categories?.length) {
+    return [
+      "The Selection (/tienda): tienda online de Maison Vigo.",
+      "Ahora mismo no hay productos públicos cargados en el catálogo (o no se pudo consultar).",
+      "Si preguntan por la tienda, orienta a /tienda y no inventes piezas ni precios.",
+    ].join("\n");
+  }
+
+  const blocks: string[] = [
+    "The Selection (/tienda): tienda online pública (joyas, cosmética, accesorios y objetos seleccionados).",
+    "Compra abierta en maisonvigo.es/tienda sin login obligatorio. Carrito y checkout en la misma web.",
+    "Solo habla de productos que figuren abajo. Los precios son los publicados ahora en The Selection.",
+    "Si piden grabado/personalización, indica que algunas piezas lo permiten en la ficha del producto.",
+    "",
+    "Productos publicados:",
+  ];
+
+  for (const category of catalog.categories) {
+    blocks.push(`### ${category.name}`);
+    for (const product of category.products) {
+      const price = formatEuroFromCents(product.salePriceCents);
+      const note = productLooksPersonalizable(product)
+        ? " · personalizable"
+        : "";
+      const desc = product.description
+        ? ` — ${product.description
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 140)}`
+        : "";
+      blocks.push(`- ${product.name}: ${price}${note}${desc}`);
+    }
+  }
+
+  return blocks.join("\n");
+}
+
+export type CareAssistPromptOptions = {
+  storeCatalogText?: string;
+};
+
+export function buildCareAssistSystemPrompt(
+  options: CareAssistPromptOptions = {},
+): string {
+  const storeBlock =
+    options.storeCatalogText?.trim() || formatWebStoreCatalogForAssist(null);
+
   return [
     `Eres la orientación de cuidado de ${siteConfig.shortName} (Vigo).`,
     "Hablas en español de España, con calma, claridad y tono editorial — nunca comercial agresivo.",
-    "Tu trabajo: entender qué necesita el perro/familia y orientar hacia UN servicio (o aclarar si hace falta más info).",
-    "Luego invita a reservar o a escribir por WhatsApp si la duda es operativa.",
+    "Tu trabajo: entender qué necesita el perro/familia y orientar hacia UN servicio, hacia The Selection (tienda), o aclarar si hace falta más info.",
+    "Luego invita a reservar, a visitar /tienda, o a escribir por WhatsApp si la duda es operativa.",
     "",
     "Reglas estrictas:",
-    "- No inventes precios, tarifas, disponibilidad ni huecos de agenda.",
+    "- No inventes precios de servicios/citas, tarifas de salón, disponibilidad ni huecos de agenda.",
+    "- En productos de The Selection solo uses los precios y nombres del catálogo publicado más abajo.",
     "- No des diagnósticos veterinarios ni tratamientos médicos; ante duda de salud, sugiere consultar al veterinario y al equipo en salón.",
     "- No inventes direcciones, horarios ni teléfonos distintos a los del sitio.",
     "- No digas que eres ChatGPT u OpenAI; eres orientación de Maison Vigo.",
     "- Respuestas cortas: 2–4 frases máximo, más una sugerencia clara.",
     "- Si el usuario quiere reservar, indica que puede hacerlo desde «Reservar cita» en la web (portal de reservas).",
     `- URL de reserva (referencia): ${bookingUrl}`,
+    "- Si pregunta por productos, joyas, collares, pulseras, regalos, cosmética para llevar a casa o The Selection: orienta a /tienda (suggestStore: true).",
     "- También pueden contactar por WhatsApp o teléfono del pie de página.",
     "",
     "Enrutado de servicios (prioridad clara):",
     "- Educación (educacion): conductas, comportamiento, nervios, ansiedad, miedos, reactividad, ladridos, tirones de correa, hábitos, convivencia, cachorros con educación, equilibrio emocional vinculado a conducta. NUNCA uses Bienestar para esto.",
     "- Bienestar (bienestar): piel, picores, manto con seguimiento cutáneo, ozonoterapia, planes cutáneos, recomendaciones de cosmética/casa para la piel. NO es el servicio de conducta.",
     "- Grooming (grooming): baño, corte, estética, nudos, mantenimiento del pelo sin foco en conducta.",
-    "- Guardería Familiar (guarderia-familiar): estancia de día, MV Home, socialización supervisada en guardería.",
+    "- Guardería Familiar (guarderia-familiar): MV Home. Estancias de DÍA y también de NOCHE (pernocta). Los perros pueden quedarse solo de día, solo de noche o combinar. Entorno reducido, tranquilo y supervisado. Si preguntan «¿solo de día?» aclara que también hay noches.",
     "- Acompañamiento (acompanamiento): bodas, eventos, momentos en los que no pueden estar con el perro.",
     "",
     "Formato de respuesta: SOLO un JSON válido, sin markdown ni texto fuera del JSON:",
-    '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false}',
-    "serviceSlug: el servicio más adecuado, o null si aún no está claro.",
+    '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false,"suggestStore":true|false}',
+    "serviceSlug: el servicio más adecuado, o null si aún no está claro o la duda es de tienda.",
     "suggestBooking: true si conviene reservar o pedir cita.",
+    "suggestStore: true si conviene abrir The Selection (/tienda).",
     "",
     "Catálogo de servicios:",
     buildServicesCatalog(),
     "",
     "MV Care: espacio digital del cliente (citas, historial, plan). Página: /mvcare. No gestiones cuentas aquí; orienta a esa página o a reservar.",
+    "",
+    storeBlock,
   ].join("\n");
 }
 
@@ -126,6 +203,7 @@ export type CareAssistModelResult = {
   reply: string;
   serviceSlug: ServicioSlug | null;
   suggestBooking: boolean;
+  suggestStore: boolean;
 };
 
 export function parseCareAssistModelContent(
@@ -135,9 +213,11 @@ export function parseCareAssistModelContent(
   const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     return {
-      reply: trimmed.slice(0, 600) || "Cuéntame un poco más qué necesita tu perro.",
+      reply:
+        trimmed.slice(0, 600) || "Cuéntame un poco más qué necesita tu perro.",
       serviceSlug: null,
       suggestBooking: false,
+      suggestStore: false,
     };
   }
 
@@ -146,6 +226,7 @@ export function parseCareAssistModelContent(
       reply?: unknown;
       serviceSlug?: unknown;
       suggestBooking?: unknown;
+      suggestStore?: unknown;
     };
     const reply =
       typeof data.reply === "string" && data.reply.trim()
@@ -155,12 +236,14 @@ export function parseCareAssistModelContent(
       reply,
       serviceSlug: isServicioSlug(data.serviceSlug) ? data.serviceSlug : null,
       suggestBooking: data.suggestBooking === true,
+      suggestStore: data.suggestStore === true,
     };
   } catch {
     return {
       reply: trimmed.slice(0, 600),
       serviceSlug: null,
       suggestBooking: false,
+      suggestStore: false,
     };
   }
 }

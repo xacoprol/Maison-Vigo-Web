@@ -28,6 +28,7 @@ type UiMessage = {
   serviceHref?: string | null;
   serviceTitle?: string | null;
   suggestBooking?: boolean;
+  suggestStore?: boolean;
 };
 
 type AssistApiOk = {
@@ -36,6 +37,8 @@ type AssistApiOk = {
   serviceTitle: string | null;
   serviceHref: string | null;
   suggestBooking: boolean;
+  suggestStore?: boolean;
+  storeHref?: string | null;
 };
 
 type AssistApiErr = { error: string };
@@ -470,6 +473,7 @@ export function CareAssist() {
             serviceHref: data.serviceHref,
             serviceTitle: data.serviceTitle,
             suggestBooking: data.suggestBooking,
+            suggestStore: Boolean(data.suggestStore),
           },
         ]);
       } catch {
@@ -605,7 +609,9 @@ export function CareAssist() {
               className={`care-assist-bubble care-assist-bubble--${message.role}`}
             >
               <p>{message.content}</p>
-              {(message.serviceHref || message.suggestBooking) && (
+              {(message.serviceHref ||
+                message.suggestBooking ||
+                message.suggestStore) && (
                 <div className="care-assist-actions">
                   {message.serviceHref && message.serviceTitle ? (
                     <Link
@@ -614,6 +620,15 @@ export function CareAssist() {
                       onClick={() => setOpen(false)}
                     >
                       Ver {message.serviceTitle}
+                    </Link>
+                  ) : null}
+                  {message.suggestStore ? (
+                    <Link
+                      href="/tienda"
+                      className="care-assist-action"
+                      onClick={() => setOpen(false)}
+                    >
+                      Ver The Selection
                     </Link>
                   ) : null}
                   {message.suggestBooking ? (

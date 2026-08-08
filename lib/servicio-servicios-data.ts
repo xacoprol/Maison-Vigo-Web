@@ -127,6 +127,12 @@ const GUARDERIA_SERVICIOS: ServicioServiciosItem[] = [
     ],
   },
   {
+    title: "Estancia de noche",
+    desc: [
+      "Pernocta en el mismo entorno familiar y supervisado, para cuando necesitan quedarse también de noche.",
+    ],
+  },
+  {
     title: "Adaptación progresiva",
     desc: [
       "Entrada gradual al espacio para que cada perro se familiarice con el entorno, las rutinas y el equipo con seguridad.",

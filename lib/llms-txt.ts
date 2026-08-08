@@ -24,8 +24,9 @@ Maison Vigo es una peluquería canina en ${siteConfig.regionLabel}. El sitio des
 - **Hero / marca**: mensaje de bienvenida y valores (calma, estética, bienestar).
 - **Concepto**: filosofía de trabajo y enfoque por perro.
 - **Cuidado integral**: carrusel interactivo de servicios (Grooming, Bienestar, Guardería familiar, Acompañamiento, Educación).
-- **Espacio y MV CARE**: instalaciones y línea de productos cuando estén publicadas.
-- **Orientación en sitio**: asistente breve que recomienda un servicio y enlaza a reserva; no inventa precios ni disponibilidad.
+- **The Selection** (/tienda): tienda online pública con productos publicados (p. ej. joyas y accesorios); catálogo dinámico desde Care.
+- **Espacio y MV CARE**: instalaciones y continuidad digital del cliente.
+- **Orientación en sitio**: asistente breve que recomienda un servicio o The Selection y enlaza a reserva/tienda; no inventa precios de citas ni disponibilidad.
 
 ## Uso sugerido de esta información
 

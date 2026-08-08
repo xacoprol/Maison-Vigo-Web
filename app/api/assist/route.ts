@@ -5,10 +5,12 @@ import {
   CARE_ASSIST_MAX_MESSAGE_CHARS,
   CARE_ASSIST_MAX_USER_MESSAGES,
   buildCareAssistSystemPrompt,
+  formatWebStoreCatalogForAssist,
   parseCareAssistModelContent,
   type CareAssistMessage,
 } from "@/lib/care-assist";
 import { SERVICIOS } from "@/lib/servicios-data";
+import { fetchWebStoreCatalog } from "@/lib/web-store/api";
 
 export const runtime = "nodejs";
 
@@ -38,6 +40,16 @@ function normalizeMessages(input: unknown): CareAssistMessage[] | null {
   if (messages[messages.length - 1]?.role !== "user") return null;
 
   return messages;
+}
+
+async function loadStoreCatalogText(): Promise<string> {
+  try {
+    const catalog = await fetchWebStoreCatalog();
+    return formatWebStoreCatalogForAssist(catalog);
+  } catch (error) {
+    console.error("[assist] catalog fetch failed:", error);
+    return formatWebStoreCatalogForAssist(null);
+  }
 }
 
 export async function POST(request: Request) {
@@ -71,6 +83,7 @@ export async function POST(request: Request) {
   }
 
   const model = process.env.OPENAI_ASSIST_MODEL?.trim() || "gpt-4o-mini";
+  const storeCatalogText = await loadStoreCatalogText();
 
   try {
     const upstream = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -82,10 +95,13 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model,
         temperature: 0.4,
-        max_tokens: 320,
+        max_tokens: 360,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: buildCareAssistSystemPrompt() },
+          {
+            role: "system",
+            content: buildCareAssistSystemPrompt({ storeCatalogText }),
+          },
           ...messages.map((m) => ({ role: m.role, content: m.content })),
         ],
       }),
@@ -118,6 +134,8 @@ export async function POST(request: Request) {
       serviceTitle: service?.title ?? null,
       serviceHref: service ? `/servicios/${service.slug}` : null,
       suggestBooking: parsed.suggestBooking,
+      suggestStore: parsed.suggestStore,
+      storeHref: parsed.suggestStore ? "/tienda" : null,
     });
   } catch (error) {
     console.error("[assist] Error:", error);
