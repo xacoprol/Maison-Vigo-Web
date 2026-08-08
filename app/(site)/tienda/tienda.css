@@ -2520,7 +2520,7 @@
 
 .tienda-checkout__lines {
   list-style: none;
-  margin: 0;
+  margin: 0 0 4px;
   padding: 0;
   display: grid;
   gap: 14px;
@@ -2774,7 +2774,7 @@
 }
 
 .tienda-checkout__mobile-summary-body {
-  padding: 0 14px 16px;
+  padding: 16px 14px 20px;
   border-top: 1px solid transparent;
   opacity: 0;
   transform: translateY(-8px);
