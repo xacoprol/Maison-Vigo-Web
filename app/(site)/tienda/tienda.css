@@ -1682,15 +1682,6 @@
   -webkit-backdrop-filter: blur(8px);
 }
 
-.tienda-sheet__added {
-  flex: 1 0 100%;
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold-lt, #d4af7a);
-}
-
 .tienda-sheet__cta {
   min-width: min(100%, 220px);
 }

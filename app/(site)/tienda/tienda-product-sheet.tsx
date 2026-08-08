@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   useEffect,
   useId,
@@ -599,6 +598,10 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
         : null,
     });
     setAdded(true);
+    window.setTimeout(() => {
+      onCloseRef.current();
+      setAdded(false);
+    }, 700);
   };
 
   return createPortal(
@@ -1199,37 +1202,14 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
               ) : null}
 
               <div className="tienda-sheet__actions">
-                {added ? (
-                  <>
-                    <p className="tienda-sheet__added" role="status">
-                      Añadido al carrito
-                    </p>
-                    <Link
-                      href="/tienda/checkout"
-                      className="tienda-btn tienda-btn--solid tienda-sheet__cta"
-                    >
-                      Finalizar pedido
-                    </Link>
-                    <button
-                      type="button"
-                      className="tienda-link is-active"
-                      onClick={onClose}
-                    >
-                      Seguir mirando
-                    </button>
-                    <Link href="/tienda/carrito" className="tienda-link">
-                      Ver carrito
-                    </Link>
-                  </>
-                ) : (
-                  <button
-                    type="submit"
-                    className="tienda-btn tienda-btn--solid tienda-sheet__cta"
-                    disabled={hardBlock}
-                  >
-                    Añadir al carrito
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  className="tienda-btn tienda-btn--solid tienda-sheet__cta"
+                  disabled={hardBlock || added}
+                  aria-live="polite"
+                >
+                  {added ? "Añadido ✓" : "Añadir al carrito"}
+                </button>
               </div>
             </form>
           </div>
