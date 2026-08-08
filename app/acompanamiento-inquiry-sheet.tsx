@@ -211,8 +211,8 @@ export function AcompanamientoInquirySheet() {
           phone: phone.trim(),
           email: email.trim() || null,
           eventDate,
-          venue: venue.trim() || null,
-          dogName: dogName.trim() || null,
+          venue: venue.trim(),
+          dogName: dogName.trim(),
           message: message.trim() || null,
         }),
       });
@@ -274,10 +274,10 @@ export function AcompanamientoInquirySheet() {
         </button>
         <div className="acompanamiento-inquiry-sheet__body">
           <p className="acompanamiento-inquiry-sheet__eyebrow">
-            Presupuesto
+            Acompañamiento
           </p>
           <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
-            {done ? "Solicitud enviada" : "Pide tu presupuesto"}
+            {done ? "Solicitud enviada" : "Reserva tu día"}
           </h2>
           {done ? (
             <div className="acompanamiento-inquiry-sheet__success">
@@ -307,66 +307,87 @@ export function AcompanamientoInquirySheet() {
                 aria-hidden={true}
                 className="acompanamiento-inquiry-sheet__hp"
               />
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Tu nombre</span>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <input
+                  id={`${titleId}-name`}
                   required
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
                   autoComplete="name"
+                  placeholder="Tu nombre"
+                  aria-label="Tu nombre"
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Teléfono</span>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <input
+                  id={`${titleId}-phone`}
                   required
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   autoComplete="tel"
+                  placeholder="Teléfono"
+                  aria-label="Teléfono"
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Email (opcional)</span>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <input
+                  id={`${titleId}-email`}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
+                  placeholder="Email (opcional)"
+                  aria-label="Email (opcional)"
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Fecha del evento</span>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field acompanamiento-inquiry-sheet__field--date">
                 <input
+                  id={`${titleId}-date`}
                   required
                   type="date"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
+                  aria-label="Fecha del evento"
+                  data-empty={eventDate ? "false" : "true"}
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Lugar (opcional)</span>
+                {!eventDate ? (
+                  <span className="acompanamiento-inquiry-sheet__date-ph" aria-hidden={true}>
+                    Fecha del evento
+                  </span>
+                ) : null}
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <input
+                  id={`${titleId}-venue`}
+                  required
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
+                  placeholder="Lugar"
+                  aria-label="Lugar"
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Nombre del perro (opcional)</span>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <input
+                  id={`${titleId}-dog`}
+                  required
                   value={dogName}
                   onChange={(e) => setDogName(e.target.value)}
+                  placeholder="Nombre del perro"
+                  aria-label="Nombre del perro"
                 />
-              </label>
-              <label className="acompanamiento-inquiry-sheet__field">
-                <span>Mensaje (opcional)</span>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
                 <textarea
+                  id={`${titleId}-message`}
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   maxLength={2000}
+                  placeholder="Mensaje (opcional)"
+                  aria-label="Mensaje (opcional)"
                 />
-              </label>
+              </div>
               {error ? (
                 <p className="acompanamiento-inquiry-sheet__error" role="alert">
                   {error}
@@ -377,7 +398,7 @@ export function AcompanamientoInquirySheet() {
                 className="acompanamiento-inquiry-sheet__submit"
                 disabled={pending}
               >
-                {pending ? "Enviando…" : "Pedir presupuesto"}
+                {pending ? "Enviando…" : "Enviar"}
               </button>
             </form>
           )}

@@ -764,7 +764,7 @@ export function CareAssist() {
                         }, 180);
                       }}
                     >
-                      Solicitar acompañamiento
+                      Reserva tu día
                     </button>
                   ) : null}
                   {message.suggestBooking ? (

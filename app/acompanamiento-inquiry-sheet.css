@@ -100,42 +100,103 @@
 .acompanamiento-inquiry-sheet__form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .acompanamiento-inquiry-sheet__field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.acompanamiento-inquiry-sheet__field > span {
-  font-family: var(--ff-sans);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(244, 244, 242, 0.48);
-}
-
-.acompanamiento-inquiry-sheet__field input,
-.acompanamiento-inquiry-sheet__field textarea {
+  position: relative;
+  display: grid;
+  min-width: 0;
   width: 100%;
+}
+
+.acompanamiento-inquiry-sheet__field > input,
+.acompanamiento-inquiry-sheet__field > textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  min-height: 52px;
+  padding: 14px 14px;
   border: 1px solid rgba(187, 149, 93, 0.28);
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(244, 244, 242, 0.03);
   color: var(--cream, #f4f4f2);
   font-family: var(--ff-sans);
+  /* ≥16px evita el zoom al enfocar en iOS Safari. */
   font-size: 16px;
   line-height: 1.4;
-  padding: 12px 14px;
   outline: none;
   resize: vertical;
+  transition:
+    border-color 0.28s ease,
+    background 0.28s ease,
+    box-shadow 0.28s ease;
 }
 
-.acompanamiento-inquiry-sheet__field input:focus,
-.acompanamiento-inquiry-sheet__field textarea:focus {
-  border-color: rgba(212, 175, 122, 0.55);
+.acompanamiento-inquiry-sheet__field > textarea {
+  min-height: 96px;
+}
+
+.acompanamiento-inquiry-sheet__field > input::placeholder,
+.acompanamiento-inquiry-sheet__field > textarea::placeholder {
+  color: rgba(244, 244, 242, 0.38);
+  opacity: 1;
+}
+
+.acompanamiento-inquiry-sheet__field > input:hover,
+.acompanamiento-inquiry-sheet__field > textarea:hover {
+  border-color: rgba(187, 149, 93, 0.45);
+  background: rgba(244, 244, 242, 0.05);
+}
+
+.acompanamiento-inquiry-sheet__field > input:focus,
+.acompanamiento-inquiry-sheet__field > textarea:focus {
+  border-color: var(--gold-lt, #d4af7a);
+  background: rgba(187, 149, 93, 0.08);
+  box-shadow: 0 0 0 3px rgba(187, 149, 93, 0.18);
+}
+
+/* Fecha: evita desborde del control nativo + placeholder visual. */
+.acompanamiento-inquiry-sheet__field--date > input[type="date"] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  color-scheme: dark;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.acompanamiento-inquiry-sheet__field--date
+  > input[type="date"][data-empty="true"] {
+  color: transparent;
+}
+
+.acompanamiento-inquiry-sheet__date-ph {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--ff-sans);
+  font-size: 16px;
+  line-height: 1;
+  color: rgba(244, 244, 242, 0.38);
+  pointer-events: none;
+}
+
+.acompanamiento-inquiry-sheet__field--date
+  > input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+.acompanamiento-inquiry-sheet__field--date
+  > input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-width: 0;
 }
 
 .acompanamiento-inquiry-sheet__hp {

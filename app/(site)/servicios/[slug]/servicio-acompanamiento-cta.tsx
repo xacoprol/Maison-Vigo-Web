@@ -15,7 +15,7 @@ export function ServicioAcompanamientoCta() {
         );
       }}
     >
-      <WaveText text="Pedir presupuesto" />
+      <WaveText text="Reserva tu día" />
     </button>
   );
 }
