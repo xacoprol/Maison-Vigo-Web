@@ -4,6 +4,7 @@ import { SiteEffects } from "../site-effects";
 import { SiteFooter } from "../site-footer";
 import { SiteShell } from "../site-shell";
 import { TiendaCartFab } from "../tienda-cart-fab";
+import { TiendaOrderTrackBanner } from "../tienda-order-track-banner";
 import { WebStoreCartProvider } from "./tienda/web-store-cart";
 
 export default function SiteLayout({
@@ -18,6 +19,7 @@ export default function SiteLayout({
       <SiteShell />
       {children}
       <ContactFormSectionGate />
+      <TiendaOrderTrackBanner />
       <SiteFooter />
       <TiendaCartFab />
     </WebStoreCartProvider>
