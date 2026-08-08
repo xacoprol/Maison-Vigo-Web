@@ -134,23 +134,8 @@ export function CareAssist() {
         router.push("/tienda");
         return;
       }
-      if (chip.action === "acompanamiento-inquiry") {
-        setOpen(false);
-        window.setTimeout(() => {
-          document.body.dispatchEvent(
-            new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT),
-          );
-        }, 180);
-        return;
-      }
       if (!chip.prompt) return;
-      setInput(chip.prompt);
-      const coarse = window.matchMedia("(pointer: coarse)").matches;
-      if (!coarse) {
-        window.requestAnimationFrame(() =>
-          inputRef.current?.focus({ preventScroll: true }),
-        );
-      }
+      void sendMessageRef.current(chip.prompt);
     },
     [openOrderTrackModal, router],
   );

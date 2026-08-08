@@ -32,7 +32,7 @@ export type CareAssistChip = {
   id: string;
   label: string;
   prompt?: string;
-  action?: "order-track" | "acompanamiento-inquiry";
+  action?: "order-track";
 };
 
 export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
@@ -57,7 +57,8 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   {
     id: "evento",
     label: "Boda / Evento",
-    action: "acompanamiento-inquiry",
+    prompt:
+      "Tengo una boda o evento y quiero que estéis presentes cuidando a mi perro para poder estar con él en ese momento especial. ¿Cómo funciona el acompañamiento?",
   },
   {
     id: "tienda",

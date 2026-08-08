@@ -14,6 +14,8 @@ import { ACOMPANAMIENTO_INQUIRY_OPEN_EVENT } from "@/lib/care-assist";
 import { careApiBaseUrl } from "@/lib/web-store/utils";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
+import { AcompanamientoDateField } from "./acompanamiento-date-field";
+
 import "./acompanamiento-inquiry-sheet.css";
 
 function inquiryApiUrl(): string {
@@ -36,7 +38,7 @@ export function AcompanamientoInquirySheet() {
   const [contactName, setContactName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [eventDate, setEventDate] = useState("");
+  const [eventDates, setEventDates] = useState<string[]>([]);
   const [venue, setVenue] = useState("");
   const [dogName, setDogName] = useState("");
   const [message, setMessage] = useState("");
@@ -196,6 +198,49 @@ export function AcompanamientoInquirySheet() {
     event.preventDefault();
     if (pending || done) return;
     setError(null);
+
+    const name = contactName.trim();
+    const tel = phone.trim();
+    const mail = email.trim();
+    const place = venue.trim();
+    const dog = dogName.trim();
+    const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name) {
+      setError("Indica tu nombre");
+      return;
+    }
+    if (!tel) {
+      setError("Indica tu teléfono");
+      return;
+    }
+    if (tel.replace(/\D/g, "").length < 7) {
+      setError("Indica un teléfono válido");
+      return;
+    }
+    if (mail && !EMAIL_PATTERN.test(mail)) {
+      setError("Revisa el formato del email");
+      return;
+    }
+    if (!eventDates.length) {
+      setError("Indica al menos una fecha del evento");
+      return;
+    }
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (eventDates.some((d) => d < todayKey)) {
+      setError("La fecha del evento no puede ser anterior a hoy");
+      return;
+    }
+    if (!place) {
+      setError("Indica el lugar");
+      return;
+    }
+    if (!dog) {
+      setError("Indica el nombre del perro");
+      return;
+    }
+
     setPending(true);
     try {
       const form = event.currentTarget;
@@ -207,12 +252,12 @@ export function AcompanamientoInquirySheet() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           website,
-          contactName: contactName.trim(),
-          phone: phone.trim(),
-          email: email.trim() || null,
-          eventDate,
-          venue: venue.trim(),
-          dogName: dogName.trim(),
+          contactName: name,
+          phone: tel,
+          email: mail || null,
+          eventDates: [...eventDates].sort(),
+          venue: place,
+          dogName: dog,
           message: message.trim() || null,
         }),
       });
@@ -223,7 +268,7 @@ export function AcompanamientoInquirySheet() {
       if (!res.ok) {
         setError(
           data.message ||
-            "No se pudo enviar la solicitud. Prueba de nuevo o WhatsApp.",
+            "No se pudo enviar la solicitud. Prueba de nuevo o escríbenos por WhatsApp.",
         );
         return;
       }
@@ -341,22 +386,12 @@ export function AcompanamientoInquirySheet() {
                   aria-label="Email (opcional)"
                 />
               </div>
-              <div className="acompanamiento-inquiry-sheet__field acompanamiento-inquiry-sheet__field--date">
-                <input
-                  id={`${titleId}-date`}
-                  required
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  aria-label="Fecha del evento"
-                  data-empty={eventDate ? "false" : "true"}
-                />
-                {!eventDate ? (
-                  <span className="acompanamiento-inquiry-sheet__date-ph" aria-hidden={true}>
-                    Fecha del evento
-                  </span>
-                ) : null}
-              </div>
+              <AcompanamientoDateField
+                id={`${titleId}-date`}
+                value={eventDates}
+                onChange={setEventDates}
+                required
+              />
               <div className="acompanamiento-inquiry-sheet__field">
                 <input
                   id={`${titleId}-venue`}

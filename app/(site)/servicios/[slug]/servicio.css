@@ -241,53 +241,111 @@
     forwards;
 }
 
-.servicio__hero-cta {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: clamp(18px, 3vw, 28px);
-  min-height: 46px;
-  padding: 0 26px;
-  border: 1px solid rgba(212, 175, 122, 0.7);
-  border-radius: 999px;
-  background: rgba(187, 149, 93, 0.18);
-  color: var(--cream);
-  font-family: var(--ff-sans);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
+.servicio__hero-cta-wrap {
+  position: relative;
+  z-index: 1;
+  /* Como `.mvcare-cta--hero`: el círculo sube hacia el lead. */
+  margin-top: clamp(-52px, -6.5vw, -80px);
   opacity: 0;
   transform: translate3d(0, 18px, 0);
-  will-change: opacity, transform, background, border-color;
+  will-change: opacity, transform;
   animation: servicioLeadFadeUp 2.2s 2.35s cubic-bezier(0.22, 1, 0.36, 1)
     forwards;
+}
+
+@media (max-width: 900px) {
+  .servicio__hero-cta-wrap {
+    margin-top: clamp(-40px, -10vw, -56px);
+  }
+}
+
+.servicio__hero-cta {
+  --servicio-hero-cta-size: clamp(148px, 17vw, 196px);
+  appearance: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--servicio-hero-cta-size);
+  height: var(--servicio-hero-cta-size);
+  box-sizing: border-box;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(187, 149, 93, 0.52);
+  color: rgba(244, 244, 242, 0.96);
+  background: transparent;
+  text-align: center;
+  font-family: var(--ff-sans);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  line-height: 1.45;
+  overflow: visible;
+  cursor: pointer;
   transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease;
+    border-color 0.35s ease,
+    color 0.35s ease,
+    background 0.35s ease;
+}
+
+@media (min-width: 901px) {
+  .servicio__hero-cta {
+    --servicio-hero-cta-size: clamp(200px, 22vw, 240px);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+  }
 }
 
 .servicio__hero-cta:hover,
 .servicio__hero-cta:focus-visible {
-  background: var(--gold, #bb955d);
-  border-color: var(--gold, #bb955d);
-  color: #fff;
+  border-color: rgba(187, 149, 93, 0.52);
+  background: transparent;
+  color: var(--cream);
   outline: none;
+}
+
+.servicio__hero-cta-label {
+  position: relative;
+  z-index: 2;
+  max-width: 72%;
+  padding: 0 0.35em;
+  box-sizing: border-box;
+}
+
+.servicio__hero-cta-ring {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.servicio__hero-cta-ring-path {
+  fill: none;
+  stroke: rgba(212, 175, 122, 0.58);
+  stroke-width: 0.5;
+  stroke-linecap: round;
+  stroke-dasharray: 311;
+  stroke-dashoffset: 311;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.servicio__hero-cta:hover .servicio__hero-cta-ring-path,
+.servicio__hero-cta:focus-visible .servicio__hero-cta-ring-path {
+  stroke-dashoffset: 0;
 }
 
 .servicio__hero-cta .mob-wave-text {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .servicio__hero-cta .mob-wave-char--bottom {
   color: var(--gold-lt, #d4af7a);
-}
-
-.servicio__hero-cta:hover .mob-wave-char--bottom,
-.servicio__hero-cta:focus-visible .mob-wave-char--bottom {
-  color: #fff;
 }
 
 @keyframes servicioLeadFadeUp {
@@ -693,10 +751,13 @@
     opacity: 1;
     transform: none;
   }
-  .servicio__hero-cta {
+  .servicio__hero-cta-wrap {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .servicio__hero-cta-ring-path {
+    transition: none;
   }
   .servicio__body-copy--scroll {
     --servicio-body-p: 1;
