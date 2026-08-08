@@ -21,7 +21,7 @@ const STYLE_WORDS = [
   // Mundo perruno / mascota
   "Peludo", "Peluda", "Patitas", "Huellas", "Guau", "Wau", "Colita",
   "Orejas", "Hocico", "Bebé", "Princesa", "Príncipe", "Rey", "Reina",
-  "Nube", "Sol", "Miel", "Canela", "Trufa", "Canijo", "Chulo", "Chula",
+  "Nube", "Sol", "Miel", "Canela", "Trufa", "Canijo",
   "Travieso", "Traviesa", "Ladrón", "Ladrona", "Paseo", "Parque",
   // Poco inglés (lo que sí usa la clientela)
   "Forever", "Pup", "Paws",
@@ -47,6 +47,14 @@ const STYLE_PHRASES = [
 const PLACES = ["Vigo", "Galicia", "Cíes", "Rías", "42°N"];
 
 const FALLBACK_ES = ["♡", "Amor", "Fiel", "Patitas", "Mi vida", "Siempre"];
+
+/** No sugerir «Chulo/Chula» salvo que sea el nombre real de la mascota. */
+function isBlockedSuggestion(text: string, petName?: string | null): boolean {
+  const t = normalize(text).toLowerCase().replace(/[♡❤️.\s]+$/g, "").trim();
+  if (t !== "chulo" && t !== "chula") return false;
+  const pet = normalize(String(petName ?? "")).toLowerCase();
+  return pet !== t;
+}
 
 function resolveMax(maxLength?: number | null): number {
   return maxLength != null && maxLength > 0 ? maxLength : 28;
@@ -85,7 +93,7 @@ function looksSpanish(text: string): boolean {
   if (/♡/.test(t)) return true;
   // Common Spanish engraving words without accents
   if (
-    /\b(amor|fiel|dulce|siempre|juntos|hogar|familia|alma|luz|vida|tesoro|cariño|cariño|peludo|peluda|patitas|huellas|guau|bebé|bebe|princesa|nube|miel|contigo|mío|mio|mía|mia|único|unica|única|libre|guardián|guardian|paseo|parque|colita|hocico|canela|trufa|canijo|chulo|travieso|compañero|companero|compañera|eterno|valiente|bombón|bombon)\b/i.test(
+    /\b(amor|fiel|dulce|siempre|juntos|hogar|familia|alma|luz|vida|tesoro|cariño|peludo|peluda|patitas|huellas|guau|bebé|bebe|princesa|nube|miel|contigo|mío|mio|mía|mia|único|unica|única|libre|guardián|guardian|paseo|parque|colita|hocico|canela|trufa|canijo|travieso|compañero|companero|compañera|eterno|valiente|bombón|bombon)\b/i.test(
       t,
     )
   ) {
@@ -192,7 +200,9 @@ export function buildPersonalizationTextOptions(
       .filter(Boolean),
   );
 
-  const pool = buildPool(input).filter((c) => !avoid.has(c.toLowerCase()));
+  const pool = buildPool(input).filter(
+    (c) => !avoid.has(c.toLowerCase()) && !isBlockedSuggestion(c, input.petName),
+  );
   const source = pool.length
     ? pool
     : FALLBACK_ES.filter((c) => fits(c, max));

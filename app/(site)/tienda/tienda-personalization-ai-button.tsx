@@ -6,6 +6,22 @@ import { createPortal } from "react-dom";
 import { postWebStorePersonalizationTextDraft } from "@/lib/web-store/api";
 import { buildPersonalizationTextOptions } from "@/lib/web-store/personalization-text-draft";
 
+function isBlockedEngravingSuggestion(
+  text: string,
+  petName?: string | null,
+): boolean {
+  const t = text
+    .trim()
+    .toLowerCase()
+    .replace(/[♡❤️.\s]+$/g, "")
+    .trim();
+  if (t !== "chulo" && t !== "chula") return false;
+  const pet = String(petName ?? "")
+    .trim()
+    .toLowerCase();
+  return pet !== t;
+}
+
 type Props = {
   productName: string;
   fieldLabel: string;
@@ -170,13 +186,14 @@ export function TiendaPersonalizationAiButton({
           const seen = new Set<string>();
           const next: string[] = [];
           for (const item of [...local, ...merged]) {
+            if (isBlockedEngravingSuggestion(item, petName)) continue;
             const key = item.toLowerCase();
             if (seen.has(key)) continue;
             seen.add(key);
             next.push(item);
             if (next.length >= 8) break;
           }
-          setOptions(next);
+          if (next.length) setOptions(next);
         }
       })
       .catch(() => {

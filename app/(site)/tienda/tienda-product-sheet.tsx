@@ -34,6 +34,7 @@ import {
 import { TiendaProductDescription } from "./tienda-product-description";
 import { TiendaProductGallery } from "./tienda-product-gallery";
 import { TiendaPersonalizationAiButton } from "./tienda-personalization-ai-button";
+import { TiendaViewportTip } from "./tienda-viewport-tip";
 import { useWebStoreMvCareSession } from "./use-web-store-mvcare-session";
 import { useWebStoreCart } from "./web-store-cart";
 
@@ -515,6 +516,25 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
     }
   };
 
+  const clearPhoto = (label: string) => {
+    const prevPreview = photoPreviewUrlsRef.current[label];
+    if (prevPreview?.startsWith("blob:")) URL.revokeObjectURL(prevPreview);
+    const nextPreviews = { ...photoPreviewUrlsRef.current };
+    delete nextPreviews[label];
+    photoPreviewUrlsRef.current = nextPreviews;
+    setPhotoPreviews((prev) => {
+      const next = { ...prev };
+      delete next[label];
+      return next;
+    });
+    setPhotoUrls((prev) => {
+      const next = { ...prev };
+      delete next[label];
+      return next;
+    });
+    clearFieldError(`photo:${label}`);
+  };
+
   const onAdd = (event?: FormEvent) => {
     event?.preventDefault();
     if (outOfStock || photoUploading != null || added) return;
@@ -963,82 +983,134 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                 const preview = photoPreviews[field.label];
                 const displaySrc =
                   preview || (url ? webStoreFileUrl(url) : "");
+                const hasImage = Boolean(displaySrc);
                 const uploading = photoUploading === field.label;
                 const extra =
                   field.extraPriceCents != null && field.extraPriceCents > 0
                     ? `+${formatEuroFromCents(field.extraPriceCents)}`
                     : null;
+                const openPicker = () => {
+                  if (uploading || added) return;
+                  document.getElementById(fileId)?.click();
+                };
                 return (
                   <div
                     key={field.label}
                     className={
                       "tienda-photo-field" +
-                      (error ? " tienda-photo-field--error" : "")
+                      (error ? " tienda-photo-field--error" : "") +
+                      (hasImage ? " tienda-photo-field--filled" : "") +
+                      (uploading ? " tienda-photo-field--uploading" : "")
                     }
                   >
                     <div className="tienda-photo-field__head">
-                      <span className="tienda-photo-field__label">
-                        {field.label}
-                        {required ? " *" : ""}
-                      </span>
+                      <div className="tienda-photo-field__title">
+                        <span className="tienda-photo-field__label">
+                          {field.label}
+                          {required ? " *" : ""}
+                        </span>
+                        <TiendaViewportTip label="Consejo para la foto del grabado">
+                          Esta foto se graba en la joya. Usa una imagen nítida,
+                          con el motivo centrado y el fondo lo más limpio y
+                          uniforme posible.
+                        </TiendaViewportTip>
+                      </div>
                       {extra ? (
                         <span className="tienda-photo-field__extra">{extra}</span>
                       ) : null}
                     </div>
-                    <div className="tienda-photo-field__row">
-                      <button
-                        type="button"
-                        id={buttonId}
-                        className={
-                          "tienda-photo-field__thumb" +
-                          (displaySrc ? " has-image" : "")
-                        }
-                        aria-label={
-                          displaySrc
-                            ? `Cambiar foto: ${field.label}`
-                            : `Subir foto: ${field.label}`
-                        }
-                        disabled={uploading || added}
-                        onClick={() =>
-                          document.getElementById(fileId)?.click()
-                        }
-                      >
-                        {displaySrc ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={displaySrc} alt="" />
-                        ) : (
-                          <span className="tienda-photo-field__placeholder">
-                            Foto
-                          </span>
-                        )}
+                    <p className="tienda-photo-field__lede">
+                      Se graba en la pieza · fondo limpio
+                    </p>
+
+                    {hasImage ? (
+                      <div className="tienda-photo-field__preview">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={displaySrc} alt="" />
                         {uploading ? (
                           <span
                             className="tienda-photo-field__spin"
                             role="status"
                             aria-label="Subiendo foto"
                           />
-                        ) : null}
-                      </button>
-                      <div className="tienda-photo-field__actions">
-                        <button
-                          type="button"
-                          className="tienda-photo-field__btn"
-                          disabled={uploading || added}
-                          onClick={() =>
-                            document.getElementById(fileId)?.click()
-                          }
-                        >
-                          {uploading
-                            ? "Subiendo…"
-                            : displaySrc
-                              ? "Cambiar foto"
-                              : "Subir foto"}
-                        </button>
-                        <p className="tienda-photo-field__hint">
-                          Elige desde la galería o la cámara.
-                        </p>
+                        ) : (
+                          <div className="tienda-photo-field__preview-bar">
+                            <button
+                              type="button"
+                              id={buttonId}
+                              className="tienda-photo-field__btn tienda-photo-field__btn--ghost"
+                              disabled={added}
+                              onClick={openPicker}
+                            >
+                              Cambiar
+                            </button>
+                            <button
+                              type="button"
+                              className="tienda-photo-field__btn tienda-photo-field__btn--ghost"
+                              disabled={added}
+                              onClick={() => clearPhoto(field.label)}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    ) : (
+                      <button
+                        type="button"
+                        id={buttonId}
+                        className="tienda-photo-field__drop"
+                        aria-label={`Subir foto para grabar: ${field.label}`}
+                        disabled={uploading || added}
+                        onClick={openPicker}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = "copy";
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          if (uploading || added) return;
+                          const file = event.dataTransfer.files?.[0];
+                          if (file && file.type.startsWith("image/")) {
+                            void uploadPhoto(field.label, file);
+                          }
+                        }}
+                      >
+                        {uploading ? (
+                          <span
+                            className="tienda-photo-field__spin tienda-photo-field__spin--inline"
+                            role="status"
+                            aria-label="Subiendo foto"
+                          />
+                        ) : (
+                          <>
+                            <span
+                              className="tienda-photo-field__icon"
+                              aria-hidden={true}
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M4.5 7.5h2.1l1.2-2.1h8.4l1.2 2.1h2.1A1.5 1.5 0 0 1 21 9v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V9a1.5 1.5 0 0 1 1.5-1.5Z" />
+                                <circle cx="12" cy="13.2" r="3.2" />
+                              </svg>
+                            </span>
+                            <span className="tienda-photo-field__cta">
+                              Añadir foto
+                            </span>
+                            <span className="tienda-photo-field__hint">
+                              Galería o cámara
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
                     <input
                       id={fileId}
                       type="file"

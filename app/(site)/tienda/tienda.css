@@ -2646,90 +2646,265 @@
 .tienda-photo-field {
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(244, 244, 242, 0.1);
-  background: rgba(0, 0, 0, 0.22);
+  padding: 14px;
+  border: 1px solid rgba(187, 149, 93, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      160deg,
+      rgba(187, 149, 93, 0.08) 0%,
+      rgba(0, 0, 0, 0.28) 48%
+    );
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.tienda-photo-field--filled {
+  border-color: rgba(187, 149, 93, 0.32);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 .tienda-photo-field--error {
-  border-color: rgba(212, 120, 90, 0.55);
+  border-color: rgba(232, 180, 180, 0.55);
 }
 
 .tienda-photo-field__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.tienda-photo-field__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .tienda-photo-field__label {
   font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgba(244, 244, 242, 0.62);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.72);
+}
+
+.tienda-photo-field__lede {
+  margin: -2px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: rgba(244, 244, 242, 0.48);
+}
+
+.tienda-photo-field .tienda-field-tip {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+  transform: none;
+}
+
+.tienda-viewport-tip__bubble {
+  position: fixed;
+  z-index: 240;
+  padding: 10px 12px;
+  border: 1px solid rgba(187, 149, 93, 0.35);
+  border-radius: 10px;
+  background: #121212;
+  color: rgba(244, 244, 242, 0.82);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: left;
+  text-decoration: none;
+  text-transform: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.tienda-viewport-tip__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--tip-arrow-left, 50%);
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid rgba(187, 149, 93, 0.35);
+  border-bottom: 1px solid rgba(187, 149, 93, 0.35);
+  background: #121212;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+}
+
+.tienda-viewport-tip__bubble--below::after {
+  top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 1px solid rgba(187, 149, 93, 0.35);
+  border-top: 1px solid rgba(187, 149, 93, 0.35);
 }
 
 .tienda-photo-field__extra {
   font-size: 10px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold-lt, #d4af7a);
-  border: 1px solid rgba(212, 175, 122, 0.35);
-  padding: 2px 7px;
+  border: 1px solid rgba(187, 149, 93, 0.4);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: rgba(187, 149, 93, 0.1);
 }
 
-.tienda-photo-field__row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.tienda-photo-field__thumb {
+.tienda-photo-field__drop {
   appearance: none;
-  position: relative;
-  flex: 0 0 auto;
-  width: 80px;
-  height: 80px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 132px;
   margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border: 1px dashed rgba(244, 244, 242, 0.22);
-  background: rgba(0, 0, 0, 0.35);
-  color: rgba(244, 244, 242, 0.4);
+  padding: 22px 16px;
+  border: 1px dashed rgba(187, 149, 93, 0.38);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(187, 149, 93, 0.12) 0%,
+      transparent 55%
+    ),
+    rgba(0, 0, 0, 0.28);
+  color: rgba(244, 244, 242, 0.78);
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 
-.tienda-photo-field__thumb.has-image {
-  border-style: solid;
-  border-color: rgba(212, 175, 122, 0.35);
-}
-
-.tienda-photo-field__thumb:hover:not(:disabled),
-.tienda-photo-field__thumb:focus-visible {
-  border-color: rgba(212, 175, 122, 0.55);
+.tienda-photo-field__drop:hover:not(:disabled),
+.tienda-photo-field__drop:focus-visible {
+  border-color: rgba(187, 149, 93, 0.72);
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(187, 149, 93, 0.18) 0%,
+      transparent 55%
+    ),
+    rgba(0, 0, 0, 0.34);
   outline: none;
 }
 
-.tienda-photo-field__thumb:disabled {
-  opacity: 0.7;
-  cursor: default;
+.tienda-photo-field__drop:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
-.tienda-photo-field__thumb img {
+.tienda-photo-field__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(187, 149, 93, 0.35);
+  background: rgba(187, 149, 93, 0.1);
+  color: var(--gold-lt, #d4af7a);
+}
+
+.tienda-photo-field__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tienda-photo-field__cta {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cream, #f4f4f2);
+}
+
+.tienda-photo-field__hint {
+  margin: 0;
+  max-width: 26ch;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: none;
+  color: rgba(244, 244, 242, 0.45);
+}
+
+.tienda-photo-field__preview {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  border: 1px solid rgba(187, 149, 93, 0.28);
+  background: #000;
+}
+
+.tienda-photo-field__preview img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-.tienda-photo-field__placeholder {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+.tienda-photo-field__preview-bar {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 28px 12px 12px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(8, 8, 8, 0.78) 55%
+  );
+}
+
+.tienda-photo-field__btn {
+  appearance: none;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid rgba(187, 149, 93, 0.45);
+  border-radius: 999px;
+  background: rgba(187, 149, 93, 0.14);
+  color: var(--cream, #f4f4f2);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tienda-photo-field__btn--ghost {
+  border-color: rgba(244, 244, 242, 0.22);
+  background: rgba(14, 14, 14, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.tienda-photo-field__btn:hover:not(:disabled),
+.tienda-photo-field__btn:focus-visible {
+  border-color: rgba(187, 149, 93, 0.75);
+  background: rgba(187, 149, 93, 0.24);
+  outline: none;
+}
+
+.tienda-photo-field__btn:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .tienda-photo-field__spin {
@@ -2740,12 +2915,19 @@
   background: rgba(11, 11, 11, 0.55);
 }
 
+.tienda-photo-field__spin--inline {
+  position: relative;
+  inset: auto;
+  min-height: 72px;
+  background: transparent;
+}
+
 .tienda-photo-field__spin::after {
   content: "";
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  border: 2px solid rgba(212, 175, 122, 0.25);
+  border: 2px solid rgba(187, 149, 93, 0.25);
   border-top-color: var(--gold-lt, #d4af7a);
   animation: tienda-photo-spin 0.7s linear infinite;
 }
@@ -2754,45 +2936,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.tienda-photo-field__actions {
-  min-width: 0;
-  display: grid;
-  gap: 6px;
-}
-
-.tienda-photo-field__btn {
-  appearance: none;
-  justify-self: start;
-  margin: 0;
-  padding: 8px 14px;
-  border: 1px solid rgba(212, 175, 122, 0.45);
-  background: rgba(212, 175, 122, 0.1);
-  color: var(--cream, #f4f4f2);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.tienda-photo-field__btn:hover:not(:disabled),
-.tienda-photo-field__btn:focus-visible {
-  background: rgba(212, 175, 122, 0.18);
-  border-color: rgba(212, 175, 122, 0.7);
-  outline: none;
-}
-
-.tienda-photo-field__btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.tienda-photo-field__hint {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: rgba(244, 244, 242, 0.42);
 }
 
 .tienda-sheet .sr-only {
