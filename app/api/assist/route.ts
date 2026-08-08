@@ -135,6 +135,7 @@ export async function POST(request: Request) {
       serviceHref: service ? `/servicios/${service.slug}` : null,
       suggestBooking: parsed.suggestBooking,
       suggestStore: parsed.suggestStore,
+      suggestAcompanamiento: parsed.suggestAcompanamiento,
       storeHref: parsed.suggestStore ? "/tienda" : null,
     });
   } catch (error) {

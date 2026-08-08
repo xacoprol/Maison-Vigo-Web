@@ -9,6 +9,7 @@ import {
   type TiendaLegalDocs,
 } from "../tienda-legal-provider";
 import { TiendaOrderTrackBanner } from "../tienda-order-track-banner";
+import { AcompanamientoInquirySheet } from "../acompanamiento-inquiry-sheet";
 import { getLegalDocument } from "@/lib/legal/get-legal-document";
 import { WebStoreCartProvider } from "./tienda/web-store-cart";
 
@@ -41,6 +42,7 @@ export default function SiteLayout({
         {children}
         <ContactFormSectionGate />
         <TiendaOrderTrackBanner />
+        <AcompanamientoInquirySheet />
         <SiteFooter />
         <TiendaCartFab />
       </TiendaLegalProvider>

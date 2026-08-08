@@ -14,6 +14,9 @@ export const CARE_ASSIST_OPEN_EVENT = "mv-care-assist-open";
 /** Abre el modal de seguimiento de pedido (banner The Selection). */
 export const ORDER_TRACK_OPEN_EVENT = "mv-order-track-open";
 
+/** Abre el formulario de solicitud de acompañamiento (bodas / eventos). */
+export const ACOMPANAMIENTO_INQUIRY_OPEN_EVENT = "mv-acompanamiento-inquiry-open";
+
 export type CareAssistOpenDetail = {
   prompt?: string;
 };
@@ -29,7 +32,7 @@ export type CareAssistChip = {
   id: string;
   label: string;
   prompt?: string;
-  action?: "order-track";
+  action?: "order-track" | "acompanamiento-inquiry";
 };
 
 export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
@@ -54,8 +57,7 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   {
     id: "evento",
     label: "Boda / Evento",
-    prompt:
-      "Tengo una boda o evento y quiero que estéis presentes cuidando a mi perro para poder estar con él en ese momento especial. ¿Cómo funciona el acompañamiento?",
+    action: "acompanamiento-inquiry",
   },
   {
     id: "tienda",
@@ -169,7 +171,7 @@ export function buildCareAssistSystemPrompt(
     `Eres la orientación de cuidado de ${siteConfig.shortName} (Vigo).`,
     "Hablas en español de España, con calma, claridad y tono editorial — nunca comercial agresivo.",
     "Tu trabajo: entender qué necesita el perro/familia y orientar hacia UN servicio, hacia The Selection (tienda), o aclarar si hace falta más info.",
-    "Luego invita a reservar, a visitar /tienda, o a escribir por WhatsApp si la duda es operativa.",
+    "Luego invita a reservar (citas de salón), a solicitar acompañamiento (bodas/eventos), a visitar /tienda, o a escribir por WhatsApp si la duda es operativa.",
     "",
     "Reglas estrictas:",
     "- No inventes precios de servicios/citas, tarifas de salón, disponibilidad ni huecos de agenda.",
@@ -178,8 +180,9 @@ export function buildCareAssistSystemPrompt(
     "- No inventes direcciones, horarios ni teléfonos distintos a los del sitio.",
     "- No digas que eres ChatGPT u OpenAI; eres orientación de Maison Vigo.",
     "- Respuestas cortas: 2–4 frases máximo, más una sugerencia clara.",
-    "- Si el usuario quiere reservar, indica que puede hacerlo desde «Reservar cita» en la web (portal de reservas).",
-    `- URL de reserva (referencia): ${bookingUrl}`,
+    "- Si el usuario quiere reservar una cita de salón (grooming, bienestar, guardería, educación), indica «Reservar cita» (suggestBooking: true).",
+    `- URL de reserva de citas (referencia): ${bookingUrl}`,
+    "- Si es boda, evento, sesión fotográfica o acompañamiento in situ: NO uses suggestBooking. Usa suggestAcompanamiento: true (formulario de solicitud que llega al equipo).",
     "- Si pregunta por productos, joyas, collares, pulseras, regalos, cosmética para llevar a casa o The Selection: orienta a /tienda (suggestStore: true).",
     "- También pueden contactar por WhatsApp o teléfono del pie de página.",
     "",
@@ -188,13 +191,14 @@ export function buildCareAssistSystemPrompt(
     "- Bienestar (bienestar): piel, picores, manto con seguimiento cutáneo, ozonoterapia, planes cutáneos, recomendaciones de cosmética/casa para la piel. NO es el servicio de conducta.",
     "- Grooming (grooming): baño, corte, estética, nudos, mantenimiento del pelo sin foco en conducta.",
     "- Guardería Familiar (guarderia-familiar): MV Home. Estancias de DÍA y también de NOCHE (pernocta). Los perros pueden quedarse solo de día, solo de noche o combinar. Entorno reducido, tranquilo y supervisado. Si preguntan «¿solo de día?» aclara que también hay noches.",
-    "- Acompañamiento (acompanamiento): presencia de Maison Vigo en bodas, eventos y momentos especiales cuidando al perro in situ, para que la familia pueda estar con él y vivir ese día juntos con tranquilidad. No es dejar al perro aparte: es cuidado presente para que forme parte del momento. También cubre sesiones fotográficas, traslados y acompañamientos a medida.",
+    "- Acompañamiento (acompanamiento): presencia de Maison Vigo en bodas, eventos y momentos especiales cuidando al perro in situ, para que la familia pueda estar con él y vivir ese día juntos con tranquilidad. No es dejar al perro aparte: es cuidado presente para que forme parte del momento. También cubre sesiones fotográficas, traslados y acompañamientos a medida. Para este servicio: suggestAcompanamiento true y suggestBooking false.",
     "",
     "Formato de respuesta: SOLO un JSON válido, sin markdown ni texto fuera del JSON:",
-    '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false,"suggestStore":true|false}',
+    '{"reply":"texto para el usuario","serviceSlug":"grooming|bienestar|guarderia-familiar|acompanamiento|educacion"|null,"suggestBooking":true|false,"suggestStore":true|false,"suggestAcompanamiento":true|false}',
     "serviceSlug: el servicio más adecuado, o null si aún no está claro o la duda es de tienda.",
-    "suggestBooking: true si conviene reservar o pedir cita.",
+    "suggestBooking: true solo para citas de salón (no acompañamiento de evento).",
     "suggestStore: true si conviene abrir The Selection (/tienda).",
+    "suggestAcompanamiento: true si conviene abrir el formulario de solicitud de acompañamiento (bodas/eventos).",
     "",
     "Catálogo de servicios:",
     buildServicesCatalog(),
@@ -210,6 +214,7 @@ export type CareAssistModelResult = {
   serviceSlug: ServicioSlug | null;
   suggestBooking: boolean;
   suggestStore: boolean;
+  suggestAcompanamiento: boolean;
 };
 
 export function parseCareAssistModelContent(
@@ -224,6 +229,7 @@ export function parseCareAssistModelContent(
       serviceSlug: null,
       suggestBooking: false,
       suggestStore: false,
+      suggestAcompanamiento: false,
     };
   }
 
@@ -233,16 +239,25 @@ export function parseCareAssistModelContent(
       serviceSlug?: unknown;
       suggestBooking?: unknown;
       suggestStore?: unknown;
+      suggestAcompanamiento?: unknown;
     };
     const reply =
       typeof data.reply === "string" && data.reply.trim()
         ? data.reply.trim().slice(0, 800)
         : "Cuéntame un poco más qué necesita tu perro.";
+    const serviceSlug = isServicioSlug(data.serviceSlug)
+      ? data.serviceSlug
+      : null;
+    let suggestBooking = data.suggestBooking === true;
+    let suggestAcompanamiento =
+      data.suggestAcompanamiento === true || serviceSlug === "acompanamiento";
+    if (suggestAcompanamiento) suggestBooking = false;
     return {
       reply,
-      serviceSlug: isServicioSlug(data.serviceSlug) ? data.serviceSlug : null,
-      suggestBooking: data.suggestBooking === true,
+      serviceSlug,
+      suggestBooking,
       suggestStore: data.suggestStore === true,
+      suggestAcompanamiento,
     };
   } catch {
     return {
@@ -250,6 +265,7 @@ export function parseCareAssistModelContent(
       serviceSlug: null,
       suggestBooking: false,
       suggestStore: false,
+      suggestAcompanamiento: false,
     };
   }
 }

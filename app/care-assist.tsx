@@ -16,6 +16,7 @@ import {
   CARE_ASSIST_MAX_MESSAGE_CHARS,
   CARE_ASSIST_MAX_USER_MESSAGES,
   CARE_ASSIST_OPEN_EVENT,
+  ACOMPANAMIENTO_INQUIRY_OPEN_EVENT,
   ORDER_TRACK_OPEN_EVENT,
   type CareAssistChip,
   type CareAssistMessage,
@@ -32,6 +33,7 @@ type UiMessage = {
   serviceTitle?: string | null;
   suggestBooking?: boolean;
   suggestStore?: boolean;
+  suggestAcompanamiento?: boolean;
 };
 
 type AssistApiOk = {
@@ -41,6 +43,7 @@ type AssistApiOk = {
   serviceHref: string | null;
   suggestBooking: boolean;
   suggestStore?: boolean;
+  suggestAcompanamiento?: boolean;
   storeHref?: string | null;
 };
 
@@ -129,6 +132,15 @@ export function CareAssist() {
           return;
         }
         router.push("/tienda");
+        return;
+      }
+      if (chip.action === "acompanamiento-inquiry") {
+        setOpen(false);
+        window.setTimeout(() => {
+          document.body.dispatchEvent(
+            new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT),
+          );
+        }, 180);
         return;
       }
       if (!chip.prompt) return;
@@ -580,6 +592,7 @@ export function CareAssist() {
             serviceTitle: data.serviceTitle,
             suggestBooking: data.suggestBooking,
             suggestStore: Boolean(data.suggestStore),
+            suggestAcompanamiento: Boolean(data.suggestAcompanamiento),
           },
         ]);
       } catch {
@@ -717,7 +730,8 @@ export function CareAssist() {
               <p>{message.content}</p>
               {(message.serviceHref ||
                 message.suggestBooking ||
-                message.suggestStore) && (
+                message.suggestStore ||
+                message.suggestAcompanamiento) && (
                 <div className="care-assist-actions">
                   {message.serviceHref && message.serviceTitle ? (
                     <Link
@@ -736,6 +750,22 @@ export function CareAssist() {
                     >
                       Ver The Selection
                     </Link>
+                  ) : null}
+                  {message.suggestAcompanamiento ? (
+                    <button
+                      type="button"
+                      className="care-assist-action care-assist-action--gold"
+                      onClick={() => {
+                        setOpen(false);
+                        window.setTimeout(() => {
+                          document.body.dispatchEvent(
+                            new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT),
+                          );
+                        }, 180);
+                      }}
+                    >
+                      Solicitar acompañamiento
+                    </button>
                   ) : null}
                   {message.suggestBooking ? (
                     <button
