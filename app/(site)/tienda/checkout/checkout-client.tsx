@@ -25,24 +25,17 @@ import {
   fulfillmentRequiresAddress,
   webStoreFileUrl,
 } from "@/lib/web-store/utils";
+import { useTiendaLegal } from "../../../tienda-legal-provider";
 
 import { useWebStoreCart } from "../web-store-cart";
 import { TiendaLogoLoader } from "../tienda-logo-loader";
-import {
-  TiendaLegalSheet,
-  type TiendaLegalDoc,
-} from "../tienda-legal-sheet";
 
 const PICKUP_ADDRESS = `${legalCompany.address}. ${legalCompany.postalCode}, ${legalCompany.city}`;
 
 type PayMethod = "card" | "bizum";
-type LegalDocKey = "condiciones" | "privacidad";
 
-type Props = {
-  legalDocs: Record<LegalDocKey, TiendaLegalDoc>;
-};
-
-export default function TiendaCheckoutClient({ legalDocs }: Props) {
+export default function TiendaCheckoutClient() {
+  const legal = useTiendaLegal();
   const { lines, subtotalCents, hydrated } = useWebStoreCart();
   const [config, setConfig] = useState<WebStoreConfig | null>(null);
   const [configError, setConfigError] = useState<string | null>(null);
@@ -62,7 +55,6 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
   const [postalLookupPending, setPostalLookupPending] = useState(false);
-  const [legalDocKey, setLegalDocKey] = useState<LegalDocKey | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -730,7 +722,7 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
             <button
               type="button"
               className="tienda-checkout__legal-link"
-              onClick={() => setLegalDocKey("condiciones")}
+              onClick={() => legal?.openLegal("condiciones")}
             >
               condiciones generales
             </button>{" "}
@@ -738,7 +730,7 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
             <button
               type="button"
               className="tienda-checkout__legal-link"
-              onClick={() => setLegalDocKey("privacidad")}
+              onClick={() => legal?.openLegal("privacidad")}
             >
               política de privacidad
             </button>
@@ -776,12 +768,6 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
       <aside className="tienda-checkout__aside" aria-label="Resumen del pedido">
         <div className="tienda-checkout__aside-inner">{summaryBody}</div>
       </aside>
-
-      <TiendaLegalSheet
-        doc={legalDocKey ? legalDocs[legalDocKey] : null}
-        open={Boolean(legalDocKey)}
-        onClose={() => setLegalDocKey(null)}
-      />
     </div>
   );
 }

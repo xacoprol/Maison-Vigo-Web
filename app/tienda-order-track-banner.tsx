@@ -45,6 +45,12 @@ function misPedidosHref(storeOrderRef: string) {
 export function TiendaOrderTrackBanner() {
   const pathname = usePathname() || "";
   if (!isTiendaPath(pathname)) return null;
+  if (
+    pathname === "/tienda/checkout" ||
+    pathname.startsWith("/tienda/checkout/")
+  ) {
+    return null;
+  }
   return <TiendaOrderTrackBannerInner />;
 }
 

@@ -181,7 +181,7 @@ export default function TiendaCarritoPage() {
           </div>
 
           <div className="tienda-nav-links tienda-actions">
-            <Link href="/tienda" className="tienda-link">
+            <Link href="/tienda" className="tienda-btn">
               Seguir comprando
             </Link>
             <Link
