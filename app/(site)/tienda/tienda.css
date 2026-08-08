@@ -267,8 +267,8 @@
   justify-content: space-between;
   gap: 12px 20px;
   margin: 0 0 clamp(6px, 1vw, 10px);
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(187, 149, 93, 0.18);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .tienda-category__title {
@@ -283,6 +283,15 @@
   color: var(--cream, #f4f4f2);
   flex: 0 1 auto;
   min-width: 0;
+}
+
+/* Impares: sin filtros; el h2 ocupa el hueco derecho del head. */
+.tienda-category--odd .tienda-category__head {
+  justify-content: flex-end;
+}
+
+.tienda-category--odd .tienda-category__title {
+  text-align: right;
 }
 
 .tienda-category__filters {
@@ -377,7 +386,7 @@
   will-change: transform;
 }
 
-/* Desfase editorial (impar: alta / baja / media · par: baja / alta / media). */
+/* Desfase editorial (impar: alta / baja / media · par: col 2 más baja). */
 .tienda-editorial__col--2 {
   margin-top: clamp(56px, 8vh, 120px);
 }
@@ -387,15 +396,16 @@
 }
 
 .tienda-editorial--stagger-flip .tienda-editorial__col--1 {
-  margin-top: clamp(56px, 8vh, 120px);
-}
-
-.tienda-editorial--stagger-flip .tienda-editorial__col--2 {
   margin-top: 0;
 }
 
+/* Pares: columna del medio un poco más baja, sin invadir el título. */
+.tienda-editorial--stagger-flip .tienda-editorial__col--2 {
+  margin-top: clamp(40px, 5.5vh, 88px);
+}
+
 .tienda-editorial--stagger-flip .tienda-editorial__col--3 {
-  margin-top: clamp(24px, 3.5vh, 64px);
+  margin-top: clamp(16px, 2.5vh, 40px);
 }
 
 .tienda-editorial__carousel-shell {
@@ -3631,17 +3641,17 @@
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--1 {
-    margin-top: clamp(28px, 5vh, 56px);
-  }
-
-  .tienda-editorial--grid.tienda-editorial--stagger-flip
-    .tienda-editorial__col--2 {
     margin-top: 0;
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
+    .tienda-editorial__col--2 {
+    margin-top: clamp(24px, 4vh, 48px);
+  }
+
+  .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--3 {
-    margin-top: clamp(12px, 2.5vh, 28px);
+    margin-top: clamp(10px, 2vh, 20px);
   }
 
   .tienda-editorial--grid .tienda-editorial__link {

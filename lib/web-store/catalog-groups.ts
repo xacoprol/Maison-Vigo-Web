@@ -8,7 +8,10 @@ export type CatalogSubcategoryFilter = {
 
 export type CatalogSection = {
   id: string;
+  /** Título base de sección: nombre del padre, o «Padre · Hija» si solo hay una hija. */
   name: string;
+  /** Padre sin hija (p. ej. «Alimentación»). */
+  parentName: string | null;
   slug: string;
   /** Todos los productos de la sección (filtro «Todos»). */
   products: WebStoreProduct[];
@@ -20,14 +23,16 @@ function childLabel(category: WebStoreCategory): string {
   if (category.parentId && category.name.includes(" · ")) {
     return category.name.split(" · ").slice(1).join(" · ").trim() || category.name;
   }
-  return category.name;
+  return category.name.trim();
 }
 
 function parentLabel(category: WebStoreCategory): string {
+  const fromApi = category.parentName?.trim();
+  if (fromApi) return fromApi;
   if (category.parentId && category.name.includes(" · ")) {
     return category.name.split(" · ")[0]!.trim() || category.name;
   }
-  return category.name;
+  return category.name.trim();
 }
 
 /** Colgante ≡ Collar (misma familia de pieza). */
@@ -94,6 +99,13 @@ function inferFiltersFromNames(
     }));
 }
 
+function sectionTitle(parent: string | null, child: string | null): string {
+  const p = parent?.trim() || "";
+  const c = child?.trim() || "";
+  if (p && c && p.toLowerCase() !== c.toLowerCase()) return `${p} · ${c}`;
+  return p || c;
+}
+
 /**
  * Agrupa el catálogo plano del API en secciones padre + filtros de subcategoría.
  * Si no hay subcategorías reales, infiere filtros por prefijo del nombre del producto.
@@ -137,9 +149,14 @@ export function groupCatalogSections(
       const own = root.products.filter((p) => !seen.has(p.id));
       const products = [...own, ...childProducts];
       if (!products.length) continue;
+      const parent = root.name.trim();
       sections.push({
         id: root.id,
-        name: root.name,
+        parentName: parent,
+        name:
+          filters.length === 1
+            ? sectionTitle(parent, filters[0]!.name)
+            : parent,
         slug: root.slug,
         products,
         filters,
@@ -150,6 +167,7 @@ export function groupCatalogSections(
     if (!root.products.length) continue;
     sections.push({
       id: root.id,
+      parentName: null,
       name: root.name,
       slug: root.slug,
       products: root.products,
@@ -157,7 +175,7 @@ export function groupCatalogSections(
     });
   }
 
-  // Subcategorías cuyo padre no es público: una sección por grupo de padre.
+  // Subcategorías cuyo padre no viene como categoría con productos.
   const orphanGroups = new Map<string, WebStoreCategory[]>();
   for (const orphan of orphans) {
     const key = orphan.parentId ?? orphan.id;
@@ -170,21 +188,18 @@ export function groupCatalogSections(
     if (group.length === 1) {
       const only = group[0]!;
       if (!only.products.length) continue;
+      const parent = parentLabel(only);
+      const child = childLabel(only);
       sections.push({
         id: only.id,
-        name: parentLabel(only),
+        parentName: parent !== child ? parent : null,
+        name: sectionTitle(
+          parent !== child ? parent : null,
+          child,
+        ),
         slug: only.slug,
         products: only.products,
-        filters:
-          only.parentId != null
-            ? mergeFiltersByLabel([
-                {
-                  id: only.id,
-                  name: childLabel(only),
-                  products: only.products,
-                },
-              ])
-            : inferFiltersFromNames(only.products),
+        filters: inferFiltersFromNames(only.products),
       });
       continue;
     }
@@ -199,9 +214,14 @@ export function groupCatalogSections(
     const products = filters.flatMap((f) => f.products);
     if (!products.length) continue;
     const head = group[0]!;
+    const parent = parentLabel(head);
     sections.push({
       id: head.parentId ?? head.id,
-      name: parentLabel(head),
+      parentName: parent,
+      name:
+        filters.length === 1
+          ? sectionTitle(parent, filters[0]!.name)
+          : parent,
       slug: head.slug,
       products,
       filters,

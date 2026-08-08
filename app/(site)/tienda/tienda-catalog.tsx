@@ -35,6 +35,7 @@ export function TiendaCatalog({ categories }: Props) {
           key={section.id}
           sectionId={section.id}
           name={section.name}
+          parentName={section.parentName}
           allProducts={section.products}
           filters={section.filters}
           productLayout={productLayout}
@@ -55,6 +56,7 @@ export function TiendaCatalog({ categories }: Props) {
 function CategorySection({
   sectionId,
   name,
+  parentName,
   allProducts,
   filters,
   productLayout,
@@ -63,6 +65,7 @@ function CategorySection({
 }: {
   sectionId: string;
   name: string;
+  parentName: string | null;
   allProducts: WebStoreProduct[];
   filters: { id: string; name: string; products: WebStoreProduct[] }[];
   productLayout: "grid" | "carousel";
@@ -135,17 +138,36 @@ function CategorySection({
     }, FILTER_FADE_MS);
   };
 
+  const activeFilter =
+    activeFilterId !== "all"
+      ? filters.find((f) => f.id === activeFilterId)
+      : undefined;
+  // Padre · Hija; si el filtro es inferido (no subcategoría), no lo metemos en el h2.
+  const title = (() => {
+    if (!activeFilter) return name;
+    const isSubcategory = !activeFilter.id.startsWith("infer:");
+    if (!isSubcategory) return name;
+    const parent = parentName?.trim() || name.split(" · ")[0]?.trim() || name;
+    const child = activeFilter.name.trim();
+    if (!child || parent.toLowerCase() === child.toLowerCase()) return parent;
+    return `${parent} · ${child}`;
+  })();
+  const isOdd = sectionIndex % 2 === 0;
+  const showFilterBar = showFilters && !isOdd;
+
   return (
     <section
-      className="tienda-category"
+      className={
+        "tienda-category" + (isOdd ? " tienda-category--odd" : "")
+      }
       aria-labelledby={`tienda-cat-${sectionId}`}
     >
       <div className="tienda-category__head">
         <h2 id={`tienda-cat-${sectionId}`} className="tienda-category__title">
-          {name}
+          {title}
         </h2>
 
-        {showFilters ? (
+        {showFilterBar ? (
           <div
             className="tienda-category__filters"
             role="toolbar"

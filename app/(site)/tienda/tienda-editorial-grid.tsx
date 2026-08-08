@@ -24,11 +24,11 @@ import {
 const DESKTOP_MIN = 900;
 /** Amplitud de parallax por columna (vh) — categorías impares. */
 const DESKTOP_PARALLAX_VH = [36, 58, 82] as const;
-/** Categorías pares: 1.ª columna más baja. */
-const DESKTOP_PARALLAX_VH_FLIP = [82, 36, 58] as const;
+/** Categorías pares: columna del medio un poco más baja (parallax suave). */
+const DESKTOP_PARALLAX_VH_FLIP = [40, 52, 34] as const;
 /** Amplitud de parallax por columna (vh), móvil en layout grilla. */
 const MOBILE_PARALLAX_VH = [18, 30] as const;
-const MOBILE_PARALLAX_VH_FLIP = [30, 18] as const;
+const MOBILE_PARALLAX_VH_FLIP = [16, 26] as const;
 
 function subscribeDesktopMq(onChange: () => void) {
   const mq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`);

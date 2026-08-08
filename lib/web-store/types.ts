@@ -72,6 +72,8 @@ export type WebStoreCategory = {
   description: string | null;
   kind: WebStoreProductKind;
   parentId: string | null;
+  /** Nombre del padre si aplica (sin componer con la hija). */
+  parentName?: string | null;
   products: WebStoreProduct[];
 };
 
