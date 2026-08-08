@@ -2,10 +2,13 @@
 
 .tienda-cart-fab {
   --tienda-cart-fab-size: 48px;
+  --tienda-cart-fab-gap: 12px;
   position: fixed;
+  /* Centrado sobre el FAB Care ((62 − 48) / 2 ≈ 7px). */
   right: calc(var(--nav-pad-x, 42px) + 4px + 7px);
   bottom: calc(
-    var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) + 12px
+    var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) +
+      var(--tienda-cart-fab-gap)
   );
   z-index: 120;
   display: grid;
@@ -28,7 +31,9 @@
     transform 0.3s ease,
     box-shadow 0.3s ease,
     opacity 0.3s ease,
-    visibility 0.3s ease;
+    visibility 0.3s ease,
+    bottom 0.55s cubic-bezier(0.33, 1, 0.48, 1),
+    right 0.3s ease;
 }
 
 .tienda-cart-fab:hover {
@@ -76,9 +81,38 @@ body.care-assist-open .tienda-cart-fab {
   pointer-events: none;
 }
 
-body.tienda-cart-fab-visible .care-assist-panel {
-  bottom: calc(
-    var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) + 12px +
-      48px + 12px
-  );
+/* Escritorio: sube el panel Care para no tapar el carrito. */
+@media (min-width: 901px) {
+  body.tienda-cart-fab-visible .care-assist-panel {
+    --care-assist-stack-bottom: calc(
+      var(--nav-pad-x, 42px) + 4px + var(--care-assist-fab-size, 62px) +
+        var(--tienda-cart-fab-gap, 12px) + 48px + 12px
+    );
+    bottom: var(--care-assist-stack-bottom);
+    height: min(640px, calc(100svh - var(--care-assist-stack-bottom) - 24px));
+    max-height: calc(100svh - var(--care-assist-stack-bottom) - 24px);
+  }
+}
+
+@media (max-width: 900px) {
+  .tienda-cart-fab {
+    /* Misma ancla que .care-assist-dock en móvil; apilado encima. */
+    --care-assist-fab-size: 50px;
+    right: max(11px, calc(env(safe-area-inset-right, 0px) + 1px));
+    bottom: calc(
+      14px + env(safe-area-inset-bottom, 0px) + var(--care-assist-fab-size) +
+        var(--tienda-cart-fab-gap)
+    );
+  }
+
+  /* Con banner de cookies el dock Care sube; el carrito también. */
+  body:has(
+      .cookie-banner:not(.cookie-banner--hidden):not(.cookie-banner--awaiting)
+    )
+    .tienda-cart-fab {
+    bottom: calc(
+      92px + env(safe-area-inset-bottom, 0px) + var(--care-assist-fab-size, 50px) +
+        var(--tienda-cart-fab-gap)
+    );
+  }
 }

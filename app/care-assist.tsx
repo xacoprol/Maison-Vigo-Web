@@ -54,9 +54,12 @@ function newId() {
 export function CareAssist() {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const grabberRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [open, setOpen] = useState(false);
+  const setOpenRef = useRef(setOpen);
+  setOpenRef.current = setOpen;
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,9 +160,35 @@ export function CareAssist() {
 
     const onTouchMove = (event: TouchEvent) => {
       const target = event.target;
-      if (!(target instanceof Node)) return;
+      if (!(target instanceof Node)) {
+        event.preventDefault();
+        return;
+      }
       const panel = panelRef.current;
-      if (panel?.contains(target)) return;
+      if (!panel?.contains(target)) {
+        event.preventDefault();
+        return;
+      }
+      let node: Element | null =
+        target instanceof Element ? target : target.parentElement;
+      while (node && node !== panel) {
+        if (
+          node.classList.contains("care-assist-messages") ||
+          node.classList.contains("care-assist-input") ||
+          node.classList.contains("care-assist-grabber")
+        ) {
+          return;
+        }
+        const style = window.getComputedStyle(node);
+        const oy = style.overflowY;
+        if (
+          (oy === "auto" || oy === "scroll" || oy === "overlay") &&
+          node.scrollHeight > node.clientHeight + 1
+        ) {
+          return;
+        }
+        node = node.parentElement;
+      }
       event.preventDefault();
     };
 
@@ -212,6 +241,177 @@ export function CareAssist() {
       body.classList.remove("care-assist-open");
       html.classList.remove("care-assist-open");
       lenis?.start();
+    };
+  }, [open]);
+
+  /* Móvil: arrastrar la bandita hacia abajo cierra el sheet. */
+  useEffect(() => {
+    if (!open) return;
+    const handle = grabberRef.current;
+    const panel = panelRef.current;
+    if (!handle || !panel) return;
+    if (!window.matchMedia("(max-width: 900px)").matches) return;
+
+    /* Limpia restos de un cierre/gesto anterior para que el sheet abra bien. */
+    panel.classList.remove("care-assist-panel--dragging");
+    panel.style.transform = "";
+    panel.style.transition = "";
+    const bdReset = document.querySelector(".care-assist-backdrop");
+    if (bdReset instanceof HTMLElement) {
+      bdReset.style.opacity = "";
+      bdReset.style.transition = "";
+    }
+
+    type DragState = {
+      startY: number;
+      lastY: number;
+      lastTs: number;
+      dy: number;
+      velocity: number;
+      pointerId: number | null;
+    };
+    let drag: DragState | null = null;
+    let closing = false;
+
+    const backdropEl = () =>
+      document.querySelector(".care-assist-backdrop");
+
+    const startDrag = (clientY: number, pointerId: number | null) => {
+      if (closing) return;
+      drag = {
+        startY: clientY,
+        lastY: clientY,
+        lastTs: performance.now(),
+        dy: 0,
+        velocity: 0,
+        pointerId,
+      };
+      panel.classList.add("care-assist-panel--dragging");
+      panel.style.transition = "none";
+    };
+
+    const moveDrag = (clientY: number) => {
+      if (!drag || closing) return;
+      const now = performance.now();
+      const dt = Math.max(1, now - drag.lastTs);
+      drag.velocity = (clientY - drag.lastY) / dt;
+      drag.lastY = clientY;
+      drag.lastTs = now;
+      const dy = Math.max(0, clientY - drag.startY);
+      drag.dy = dy;
+      panel.style.transform = `translate3d(0, ${dy}px, 0)`;
+      const bd = backdropEl();
+      if (bd instanceof HTMLElement) {
+        bd.style.opacity = String(Math.max(0.15, 1 - dy / 480));
+      }
+    };
+
+    const endDrag = () => {
+      if (!drag || closing) return;
+      const { dy, velocity } = drag;
+      drag = null;
+      const shouldClose = dy > 100 || (dy > 44 && velocity > 0.35);
+
+      panel.classList.remove("care-assist-panel--dragging");
+
+      const bd = backdropEl();
+
+      if (shouldClose) {
+        closing = true;
+        panel.style.transition =
+          "transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)";
+        panel.style.transform = "translate3d(0, 108%, 0)";
+        if (bd instanceof HTMLElement) {
+          bd.style.transition = "opacity 0.35s ease, visibility 0.35s";
+          bd.style.opacity = "0";
+        }
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          panel.removeEventListener("transitionend", finish);
+          panel.style.transform = "";
+          panel.style.transition = "";
+          if (bd instanceof HTMLElement) {
+            bd.style.opacity = "";
+            bd.style.transition = "";
+          }
+          setOpenRef.current(false);
+        };
+        panel.addEventListener("transitionend", finish);
+        window.setTimeout(finish, 480);
+        return;
+      }
+
+      panel.style.transition =
+        "transform 0.36s cubic-bezier(0.22, 1, 0.36, 1)";
+      panel.style.transform = "translate3d(0, 0, 0)";
+      if (bd instanceof HTMLElement) bd.style.opacity = "";
+      window.setTimeout(() => {
+        if (!panel.classList.contains("care-assist-panel--dragging")) {
+          panel.style.transform = "";
+          panel.style.transition = "";
+        }
+      }, 380);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      startDrag(event.touches[0]!.clientY, null);
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      if (!drag || event.touches.length !== 1) return;
+      event.preventDefault();
+      moveDrag(event.touches[0]!.clientY);
+    };
+    const onTouchEnd = () => endDrag();
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      if (event.button !== 0) return;
+      handle.setPointerCapture(event.pointerId);
+      startDrag(event.clientY, event.pointerId);
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      moveDrag(event.clientY);
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (handle.hasPointerCapture(event.pointerId)) {
+        handle.releasePointerCapture(event.pointerId);
+      }
+      endDrag();
+    };
+
+    handle.addEventListener("touchstart", onTouchStart, { passive: true });
+    handle.addEventListener("touchmove", onTouchMove, { passive: false });
+    handle.addEventListener("touchend", onTouchEnd);
+    handle.addEventListener("touchcancel", onTouchEnd);
+    handle.addEventListener("pointerdown", onPointerDown);
+    handle.addEventListener("pointermove", onPointerMove);
+    handle.addEventListener("pointerup", onPointerUp);
+    handle.addEventListener("pointercancel", onPointerUp);
+
+    return () => {
+      handle.removeEventListener("touchstart", onTouchStart);
+      handle.removeEventListener("touchmove", onTouchMove);
+      handle.removeEventListener("touchend", onTouchEnd);
+      handle.removeEventListener("touchcancel", onTouchEnd);
+      handle.removeEventListener("pointerdown", onPointerDown);
+      handle.removeEventListener("pointermove", onPointerMove);
+      handle.removeEventListener("pointerup", onPointerUp);
+      handle.removeEventListener("pointercancel", onPointerUp);
+      if (!closing) {
+        panel.classList.remove("care-assist-panel--dragging");
+        panel.style.transform = "";
+        panel.style.transition = "";
+        const bd = backdropEl();
+        if (bd instanceof HTMLElement) {
+          bd.style.opacity = "";
+          bd.style.transition = "";
+        }
+      }
     };
   }, [open]);
 
@@ -360,6 +560,21 @@ export function CareAssist() {
         aria-hidden={!open}
       >
         <header className="care-assist-header">
+          <div
+            ref={grabberRef}
+            className="care-assist-grabber"
+            role="button"
+            tabIndex={0}
+            aria-label="Arrastra hacia abajo para cerrar"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setOpen(false);
+              }
+            }}
+          >
+            <span className="care-assist-grabber-bar" aria-hidden={true} />
+          </div>
           <div className="care-assist-header-copy">
             <p className="care-assist-eyebrow">Maison Vigo</p>
             <h2 id={titleId} className="care-assist-title">

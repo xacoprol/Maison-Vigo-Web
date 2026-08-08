@@ -90,6 +90,7 @@
   max-height: calc(100svh - 140px);
   display: flex;
   flex-direction: column;
+  min-height: 0;
   overflow: hidden;
   background: rgba(14, 14, 14, 0.96);
   color: var(--cream);
@@ -124,6 +125,14 @@
   gap: 14px;
   padding: 22px 20px 16px;
   border-bottom: 1px solid rgba(244, 244, 242, 0.08);
+}
+
+.care-assist-grabber {
+  display: none;
+}
+
+.care-assist-panel--dragging {
+  transition: none !important;
 }
 
 .care-assist-eyebrow {
@@ -170,7 +179,8 @@
 }
 
 .care-assist-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -489,58 +499,88 @@ body.reserva-open .care-assist-dock {
     margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Bottom sheet redondeado arriba. */
+  /* Bottom sheet: entra desde abajo y queda pegado al borde inferior. */
   .care-assist-panel {
     --care-assist-radius: 22px;
     --care-assist-kb-inset: 0px;
     --care-assist-vv-h: 100svh;
-    top: auto;
+    top: auto !important;
     right: 0;
     left: 0;
-    /* Se eleva justo por encima del teclado (visualViewport). */
-    bottom: var(--care-assist-kb-inset);
-    width: 100vw;
-    height: min(82svh, 720px, var(--care-assist-vv-h));
+    bottom: var(--care-assist-kb-inset) !important;
+    width: 100%;
+    max-width: 100vw;
+    height: min(82svh, 720px, calc(var(--care-assist-vv-h) - 8px));
     max-height: calc(var(--care-assist-vv-h) - 8px);
+    margin: 0;
     border-radius: var(--care-assist-radius) var(--care-assist-radius) 0 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
-    transform: translateY(108%);
+    transform: translate3d(0, 110%, 0);
     opacity: 1;
-    /* Sin animar bottom/height: el teclado no debe “empujar” con transición. */
+    visibility: hidden;
+    pointer-events: none;
     transition:
       transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.35s ease,
       visibility 0.45s;
   }
 
   .care-assist-panel.is-open {
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Con el chat abierto, el FAB (con X) sigue accesible por si falla el gesto. */
+  body.care-assist-open .care-assist-dock {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
     transform: translateY(0);
   }
 
   .care-assist-header {
-    padding: 18px 18px 14px;
-    padding-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 4px 18px 14px;
+    padding-top: 2px;
   }
 
-  .care-assist-header::before {
-    content: "";
+  .care-assist-grabber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 32px;
+    margin: 0 0 6px;
+    padding: 10px 0 6px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .care-assist-grabber:active {
+    cursor: grabbing;
+  }
+
+  .care-assist-grabber-bar {
     display: block;
     width: 42px;
     height: 4px;
-    margin: 0 auto 14px;
     border-radius: 999px;
-    background: rgba(244, 244, 242, 0.22);
-    grid-column: 1 / -1;
+    background: rgba(244, 244, 242, 0.32);
   }
 
-  .care-assist-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
+  .care-assist-close {
+    display: none;
   }
 
   .care-assist-messages {
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 14px 16px 6px;
   }
 
