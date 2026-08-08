@@ -16,7 +16,7 @@ const ZOOM_SCALES = [1, 1.5, 2.25] as const;
 type ZoomLevel = 0 | 1 | 2;
 
 type Props = {
-  photos: { url: string }[];
+  photos?: { url: string }[] | null;
   alt: string;
 };
 
@@ -228,8 +228,8 @@ function ZoomableProductPhoto({
  * zoom por pulsación y flechas en desktop.
  */
 export function TiendaProductGallery({ photos, alt }: Props) {
-  const urls = photos
-    .map((photo) => webStoreFileUrl(photo.url))
+  const urls = (photos ?? [])
+    .map((photo) => webStoreFileUrl(photo?.url))
     .filter((url): url is string => Boolean(url));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);

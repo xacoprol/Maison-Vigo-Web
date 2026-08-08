@@ -925,11 +925,13 @@
 }
 
 .tienda-sheet__gallery {
+  position: absolute;
+  inset: 0;
   display: flex;
   gap: 8px;
   width: 100%;
-  min-width: 0;
   height: 100%;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -956,7 +958,6 @@
   width: 85%;
   max-width: 100%;
   height: 100%;
-  aspect-ratio: 1;
   margin: 0;
   scroll-snap-align: start;
 }
@@ -968,11 +969,13 @@
 .tienda-sheet__gallery-spacer {
   flex: 0 0 15%;
   width: 15%;
+  height: 100%;
   scroll-snap-align: none;
 }
 
 .tienda-sheet__zoom {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -981,6 +984,12 @@
   cursor: zoom-in;
   user-select: none;
   touch-action: pan-x;
+}
+
+/* Zoom dentro de un slide: rellena el slide */
+.tienda-sheet__gallery-slide .tienda-sheet__zoom {
+  position: absolute;
+  inset: 0;
 }
 
 .tienda-sheet__zoom--zoomed {
