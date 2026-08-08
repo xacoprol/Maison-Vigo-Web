@@ -108,7 +108,9 @@ export function AcompanamientoDateField({
 }: Props) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [panelHeight, setPanelHeight] = useState<number | null>(null);
   const min = useMemo(() => todayKey(), []);
   const max = useMemo(() => maxKey(), []);
   const selected = useMemo(
@@ -130,6 +132,44 @@ export function AcompanamientoDateField({
       setViewM0(p.m0);
     }
   }, [open, selected]);
+
+  useEffect(() => {
+    if (!open) {
+      setPanelHeight(null);
+      return;
+    }
+    const syncHeight = () => {
+      const root = rootRef.current;
+      const trigger = root?.querySelector<HTMLElement>(
+        ".acompanamiento-inquiry-sheet__date-trigger",
+      );
+      const form = root?.closest("form");
+      if (!root || !trigger || !form) return;
+      const gap = 4;
+      const top = trigger.getBoundingClientRect().bottom + gap;
+      const bottom = form.getBoundingClientRect().bottom;
+      setPanelHeight(Math.max(220, Math.round(bottom - top)));
+    };
+    syncHeight();
+    const frame = window.requestAnimationFrame(syncHeight);
+    window.addEventListener("resize", syncHeight);
+    const form = rootRef.current?.closest("form");
+    const body = rootRef.current?.closest(
+      ".acompanamiento-inquiry-sheet__body",
+    );
+    body?.addEventListener("scroll", syncHeight, { passive: true });
+    const ro =
+      typeof ResizeObserver !== "undefined" && form
+        ? new ResizeObserver(syncHeight)
+        : null;
+    if (form && ro) ro.observe(form);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", syncHeight);
+      body?.removeEventListener("scroll", syncHeight);
+      ro?.disconnect();
+    };
+  }, [open, viewY, viewM0, value]);
 
   useEffect(() => {
     if (!open) return;
@@ -245,10 +285,12 @@ export function AcompanamientoDateField({
 
       {open ? (
         <div
+          ref={calendarRef}
           id={listboxId}
           className="acompanamiento-date"
           role="dialog"
           aria-label="Elegir fechas del evento"
+          style={panelHeight != null ? { height: panelHeight } : undefined}
         >
           <div className="acompanamiento-date__nav">
             <button
