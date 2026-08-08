@@ -396,16 +396,17 @@
 }
 
 .tienda-editorial--stagger-flip .tienda-editorial__col--1 {
-  margin-top: 0;
+  /* Bajo el h2: no subir a tapar el título de categoría. */
+  margin-top: clamp(56px, 8vh, 120px);
 }
 
 /* Pares: columna del medio un poco más baja, sin invadir el título. */
 .tienda-editorial--stagger-flip .tienda-editorial__col--2 {
-  margin-top: clamp(40px, 5.5vh, 88px);
+  margin-top: clamp(88px, 12vh, 168px);
 }
 
 .tienda-editorial--stagger-flip .tienda-editorial__col--3 {
-  margin-top: clamp(16px, 2.5vh, 40px);
+  margin-top: clamp(28px, 4vh, 64px);
 }
 
 .tienda-editorial__carousel-shell {
@@ -3647,17 +3648,17 @@
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--1 {
-    margin-top: 0;
+    margin-top: clamp(28px, 5vh, 56px);
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--2 {
-    margin-top: clamp(24px, 4vh, 48px);
+    margin-top: clamp(40px, 7vh, 80px);
   }
 
   .tienda-editorial--grid.tienda-editorial--stagger-flip
     .tienda-editorial__col--3 {
-    margin-top: clamp(10px, 2vh, 20px);
+    margin-top: clamp(14px, 2.5vh, 28px);
   }
 
   .tienda-editorial--grid .tienda-editorial__link {

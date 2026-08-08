@@ -24,11 +24,11 @@ import {
 const DESKTOP_MIN = 900;
 /** Amplitud de parallax por columna (vh) — categorías impares. */
 const DESKTOP_PARALLAX_VH = [36, 58, 82] as const;
-/** Categorías pares: columna del medio un poco más baja (parallax suave). */
-const DESKTOP_PARALLAX_VH_FLIP = [40, 52, 34] as const;
+/** Categorías pares: parallax suave; col 1 no sube tanto hacia el título. */
+const DESKTOP_PARALLAX_VH_FLIP = [22, 48, 32] as const;
 /** Amplitud de parallax por columna (vh), móvil en layout grilla. */
 const MOBILE_PARALLAX_VH = [18, 30] as const;
-const MOBILE_PARALLAX_VH_FLIP = [16, 26] as const;
+const MOBILE_PARALLAX_VH_FLIP = [12, 24] as const;
 
 function subscribeDesktopMq(onChange: () => void) {
   const mq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`);
@@ -129,8 +129,14 @@ export function TiendaEditorialGrid({
         minY = Math.min(minY, y);
         maxY = Math.max(maxY, y);
       });
-      // Compensa el empujón hacia abajo para no abrir un hueco arriba del bloque.
-      wrap.style.marginTop = maxY > 0 ? `${-maxY}px` : "";
+      // Compensa el empujón hacia abajo. En pares, solo parcialmente
+      // para no arrastrar la 1.ª columna encima del título de categoría.
+      if (maxY > 0) {
+        const pull = staggerFlip ? maxY * 0.35 : maxY;
+        wrap.style.marginTop = `${-pull}px`;
+      } else {
+        wrap.style.marginTop = "";
+      }
       // Si las columnas suben, compacta el hueco inferior.
       wrap.style.marginBottom = minY < 0 ? `${minY}px` : "";
     };
