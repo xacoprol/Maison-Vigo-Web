@@ -2330,6 +2330,17 @@
   overflow-wrap: anywhere;
 }
 
+.tienda-checkout__method-note {
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(232, 213, 181, 0.78);
+  overflow-wrap: anywhere;
+}
+
+.tienda-checkout__method.is-selected .tienda-checkout__method-note {
+  color: rgba(232, 213, 181, 0.92);
+}
+
 .tienda-checkout__method-price {
   font-size: 13px;
   color: rgba(244, 244, 242, 0.72);
