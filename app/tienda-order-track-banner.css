@@ -6,7 +6,7 @@
   isolation: isolate;
   /* Misma textura que #ritmo-cuidado (bgpasos). */
   --ritmo-bg: #1a1614;
-  margin-top: clamp(56px, 8vw, 96px);
+  margin-top: 0;
   background-color: var(--ritmo-bg);
   background-image:
     linear-gradient(rgba(11, 11, 11, 0.5), rgba(11, 11, 11, 0.5)),

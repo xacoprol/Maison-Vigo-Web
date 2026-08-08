@@ -76,6 +76,23 @@ function maxKey() {
   return toKey(now.getFullYear() + 3, now.getMonth(), now.getDate());
 }
 
+/** Rango inclusivo YYYY-MM-DD (días civiles locales). */
+function keysBetween(a: string, b: string): string[] {
+  const start = a < b ? a : b;
+  const end = a < b ? b : a;
+  const from = parseKey(start);
+  const to = parseKey(end);
+  if (!from || !to) return [];
+  const out: string[] = [];
+  const cur = new Date(from.y, from.m0, from.d);
+  const last = new Date(to.y, to.m0, to.d);
+  while (cur.getTime() <= last.getTime()) {
+    out.push(toKey(cur.getFullYear(), cur.getMonth(), cur.getDate()));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
 type Props = {
   id: string;
   value: string[];
@@ -168,10 +185,37 @@ export function AcompanamientoDateField({
 
   const toggleDay = (key: string) => {
     if (key < min || key > max) return;
-    const next = new Set(selected);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    onChange([...next].sort());
+    const sorted = [...selected].sort();
+    if (!sorted.length) {
+      onChange([key]);
+      return;
+    }
+    const rangeStart = sorted[0]!;
+    const rangeEnd = sorted[sorted.length - 1]!;
+
+    // Solo extremos se pueden quitar (así no quedan huecos).
+    if (selected.has(key)) {
+      if (key === rangeStart && key === rangeEnd) {
+        onChange([]);
+        return;
+      }
+      if (key === rangeStart) {
+        onChange(sorted.slice(1));
+        return;
+      }
+      if (key === rangeEnd) {
+        onChange(sorted.slice(0, -1));
+        return;
+      }
+      return;
+    }
+
+    // Ampliar siempre en bloque continuo (rellena días intermedios).
+    const nextStart = key < rangeStart ? key : rangeStart;
+    const nextEnd = key > rangeEnd ? key : rangeEnd;
+    onChange(
+      keysBetween(nextStart, nextEnd).filter((k) => k >= min && k <= max),
+    );
   };
 
   return (
@@ -229,7 +273,9 @@ export function AcompanamientoDateField({
               ›
             </button>
           </div>
-          <p className="acompanamiento-date__hint">Puedes elegir varias</p>
+          <p className="acompanamiento-date__hint">
+            Varias fechas seguidas
+          </p>
           <div className="acompanamiento-date__weekdays" aria-hidden={true}>
             {WEEKDAYS.map((w) => (
               <span key={w}>{w}</span>
