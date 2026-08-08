@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { espacioPanels } from "@/lib/espacio-panels";
 
 import { EspacioMobileSection } from "./espacio-mobile-section";
+import { WaveText } from "./wave-text";
 
 const ESPACIO_MOBILE_MQ = "(max-width: 900px)";
 
@@ -466,7 +468,21 @@ function EspacioDesktopSection() {
                       {espacioPanel.title}
                     </span>
                   </h2>
-                  <p className="espacio__body">{espacioPanel.body}</p>
+                  {espacioPanel.ctaHref && espacioPanel.ctaLabel ? (
+                    <div className="espacio__text-block">
+                      <p className="espacio__body">{espacioPanel.body}</p>
+                      <div className="espacio__cta">
+                        <Link
+                          href={espacioPanel.ctaHref}
+                          className="espacio__cta-link nav-cta mob-link--wave"
+                        >
+                          <WaveText text={espacioPanel.ctaLabel} />
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="espacio__body">{espacioPanel.body}</p>
+                  )}
                 </div>
               </div>
             </article>

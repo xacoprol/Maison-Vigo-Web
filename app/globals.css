@@ -3623,13 +3623,12 @@ a.contact-line:focus-visible .contact-text {
   }
   .site-footer__contacto,
   #contacto {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
-      "brand"
-      "ubicacion"
-      "contacto"
-      "horario";
-    gap: clamp(28px, 7vw, 36px);
+      "brand brand"
+      "ubicacion ubicacion"
+      "contacto horario";
+    gap: clamp(24px, 6vw, 32px) clamp(14px, 3.5vw, 20px);
     align-items: start;
   }
   .contact-block--brand {
@@ -3637,6 +3636,15 @@ a.contact-line:focus-visible .contact-text {
   }
   .contact-brand-logo {
     width: clamp(72px, 20vw, 96px);
+  }
+  .contact-block--align-center-l,
+  .contact-block--align-end {
+    min-width: 0;
+  }
+  .contact-block--align-center-l .contact-text,
+  .contact-block--align-end .contact-text {
+    font-size: clamp(12px, 3.2vw, 13px);
+    word-break: break-word;
   }
   .footer-bar {
     align-items: flex-start;

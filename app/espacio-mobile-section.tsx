@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useKeenSlider } from "keen-slider/react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { espacioPanels } from "@/lib/espacio-panels";
+
+import { WaveText } from "./wave-text";
 
 import "keen-slider/keen-slider.min.css";
 
@@ -153,6 +156,21 @@ export function EspacioMobileSection() {
                   />
                   {panel.body}
                 </p>
+
+                {panel.ctaHref && panel.ctaLabel ? (
+                  <div className="espacio-mobile__cta">
+                    <span
+                      className="espacio-mobile__body-offset"
+                      aria-hidden={true}
+                    />
+                    <Link
+                      href={panel.ctaHref}
+                      className="espacio-mobile__cta-link nav-cta mob-link--wave"
+                    >
+                      <WaveText text={panel.ctaLabel} />
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             </article>
           ))}

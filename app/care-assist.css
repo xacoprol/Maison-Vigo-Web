@@ -190,6 +190,26 @@
   gap: 10px;
   scroll-behavior: smooth;
   touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(187, 149, 93, 0.35) transparent;
+}
+
+.care-assist-messages::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.care-assist-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.care-assist-messages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(187, 149, 93, 0.35);
+}
+
+.care-assist-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(187, 149, 93, 0.55);
 }
 
 .care-assist-bubble {

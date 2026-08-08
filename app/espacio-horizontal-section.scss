@@ -256,6 +256,44 @@
   color: var(--espacio-cream);
 }
 
+.espacio__cta {
+  max-width: min(90vw, 1040px);
+  margin: clamp(20px, 2.4vw, 32px) auto 0;
+  padding-left: clamp(180px, 30vw, 360px);
+}
+
+.espacio__cta-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  min-height: 0;
+  color: var(--espacio-cream);
+  font-family: var(--ff-sans);
+  font-size: clamp(12px, 1.15vw, 13px);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.35s ease;
+}
+
+.espacio__cta-link:hover,
+.espacio__cta-link:focus-visible {
+  color: var(--espacio-gold);
+  background: transparent;
+  border-color: transparent;
+  outline: none;
+}
+
+.espacio__cta-link:focus-visible {
+  outline: 2px solid var(--espacio-gold);
+  outline-offset: 3px;
+}
+
 .espacio__panel--one {
   --espacio-one-copy-left: clamp(24vw, 36vw, 43vw);
   --espacio-one-peek-max: clamp(72px, 13vh, 128px);
@@ -438,6 +476,37 @@
     font-size: clamp(11px, 1.08vw, 16px);
     transform: translateY(-50%);
   }
+
+  .espacio__text-block {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% - var(--espacio-three-img-size) / 2);
+    left: calc(
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) +
+        clamp(160px, 18vw, 300px)
+    );
+    right: clamp(40px, 5vw, 88px);
+    width: min(32vw, 400px);
+    max-width: min(32vw, 400px);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .espacio__text-block .espacio__body {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+
+  .espacio__text-block .espacio__cta {
+    margin: clamp(16px, 1.8vw, 24px) 0 0;
+    padding-left: clamp(56px, 9vw, 128px);
+    max-width: none;
+  }
 }
 
 .espacio__panel--four {
@@ -559,6 +628,20 @@
     transform: translate3d(0, -50%, 0);
   }
 
+  .espacio__panel--three .espacio__text-block {
+    top: calc(
+      100% - var(--espacio-three-img-size) / 2 + clamp(48px, 6.5vh, 96px)
+    );
+    left: calc(
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) +
+        clamp(48px, 6vw, 120px)
+    );
+    right: clamp(48px, 7vw, 120px);
+    width: min(32vw, 380px);
+    max-width: min(32vw, 380px);
+    transform: translate3d(0, -50%, 0);
+  }
+
   /**
    * Grooming Room: el título usa translateY hacia abajo; padding en .espacio__copy
    * no deja aire bajo «Room» porque el transform lo saca del flujo. Subimos el
@@ -597,6 +680,18 @@
   }
 
   .espacio__panel--three .espacio__body {
+    z-index: 6;
+    left: calc(
+      var(--espacio-three-img-left) + var(--espacio-three-img-size) +
+        clamp(24px, 3.5vw, 56px)
+    );
+    right: clamp(32px, 5vw, 72px);
+    width: auto;
+    max-width: min(34vw, 320px);
+    transform: translate3d(0, -50%, 0);
+  }
+
+  .espacio__panel--three .espacio__text-block {
     z-index: 6;
     left: calc(
       var(--espacio-three-img-left) + var(--espacio-three-img-size) +

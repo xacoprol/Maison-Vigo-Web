@@ -8,6 +8,9 @@ export type EspacioPanel = {
   image: string;
   imageAlt: string;
   modifier: string;
+  /** CTA opcional bajo el texto (p. ej. The Selection → /tienda). */
+  ctaHref?: string;
+  ctaLabel?: string;
 };
 
 export const espacioPanels: EspacioPanel[] = [
@@ -67,13 +70,15 @@ export const espacioPanels: EspacioPanel[] = [
     ),
     body: (
       <>
-        Cosmética, accesorios y objetos seleccionados bajo la misma mirada que
-        guía cada cuidado en Maison Vigo.
+        Cosmética, accesorios, alimentación y objetos seleccionados bajo la misma
+        mirada que guía cada cuidado en Maison Vigo.
       </>
     ),
     image: "/assets/images/the-selection.webp",
     imageAlt: "Detalle de The Selection en Maison Vigo.",
     modifier: "espacio__panel--three",
+    ctaHref: "/tienda",
+    ctaLabel: "Ver The Selection",
   },
   {
     id: "espacio-04",
