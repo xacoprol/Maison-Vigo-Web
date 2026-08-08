@@ -212,8 +212,7 @@ function ZoomableProductPhoto({
         alt={alt}
         draggable={false}
         className={
-          "tienda-sheet__zoom-img" +
-          (isDragging ? " is-dragging" : "")
+          "tienda-sheet__zoom-img" + (isDragging ? " is-dragging" : "")
         }
         style={{
           transform: `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`,
@@ -305,7 +304,9 @@ export function TiendaProductGallery({ photos, alt }: Props) {
     };
   }, [multi, syncIndex, zoom]);
 
-  const getSlideZoom = (i: number): Pick<SlideZoomState, "level" | "panX" | "panY"> => {
+  const getSlideZoom = (
+    i: number,
+  ): Pick<SlideZoomState, "level" | "panX" | "panY"> => {
     if (zoom?.slideIndex === i) {
       return { level: zoom.level, panX: zoom.panX, panY: zoom.panY };
     }
@@ -338,32 +339,10 @@ export function TiendaProductGallery({ photos, alt }: Props) {
     );
   }
 
-  const renderPhoto = (url: string, i: number, slideAlt: string) => {
-    const { level, panX, panY } = getSlideZoom(i);
-    const allowSwipe = multi && level > 0;
-    return (
-      <ZoomableProductPhoto
-        src={url}
-        alt={slideAlt}
-        level={level}
-        panX={panX}
-        panY={panY}
-        onTapCycle={() => tapCycle(i)}
-        onPanChange={(x, y) => updatePan(i, x, y)}
-        onSwipe={allowSwipe ? navigateSlide : undefined}
-      />
-    );
-  };
-
   const carouselLocked = zoom != null && zoom.level > 0;
-
-  if (!multi) {
-    return (
-      <div className="tienda-sheet__media">
-        {renderPhoto(urls[0], 0, alt)}
-      </div>
-    );
-  }
+  const slideWidthClass = multi
+    ? "tienda-sheet__gallery-slide"
+    : "tienda-sheet__gallery-slide tienda-sheet__gallery-slide--solo";
 
   return (
     <div className="tienda-sheet__media">
@@ -371,29 +350,43 @@ export function TiendaProductGallery({ photos, alt }: Props) {
         ref={scrollRef}
         className={
           "tienda-sheet__gallery" +
-          (carouselLocked ? " tienda-sheet__gallery--locked" : "")
+          (carouselLocked ? " tienda-sheet__gallery--locked" : "") +
+          (multi ? "" : " tienda-sheet__gallery--solo")
         }
         aria-roledescription="carrusel"
         aria-label={alt}
       >
-        {urls.map((url, i) => (
-          <figure
-            key={`${url}-${i}`}
-            data-photo-slide
-            className={
-              "tienda-sheet__gallery-slide" +
-              (carouselLocked && zoom?.slideIndex !== i
-                ? " is-inert"
-                : "")
-            }
-          >
-            {renderPhoto(url, i, i === 0 ? alt : `${alt} ${i + 1}`)}
-          </figure>
-        ))}
-        <span className="tienda-sheet__gallery-spacer" aria-hidden />
+        {urls.map((url, i) => {
+          const { level, panX, panY } = getSlideZoom(i);
+          const allowSwipe = multi && level > 0;
+          return (
+            <figure
+              key={`${url}-${i}`}
+              data-photo-slide
+              className={
+                slideWidthClass +
+                (carouselLocked && zoom?.slideIndex !== i ? " is-inert" : "")
+              }
+            >
+              <ZoomableProductPhoto
+                src={url}
+                alt={i === 0 ? alt : `${alt} ${i + 1}`}
+                level={level}
+                panX={panX}
+                panY={panY}
+                onTapCycle={() => tapCycle(i)}
+                onPanChange={(x, y) => updatePan(i, x, y)}
+                onSwipe={allowSwipe ? navigateSlide : undefined}
+              />
+            </figure>
+          );
+        })}
+        {multi ? (
+          <span className="tienda-sheet__gallery-spacer" aria-hidden />
+        ) : null}
       </div>
 
-      {!carouselLocked ? (
+      {multi && !carouselLocked ? (
         <>
           <button
             type="button"
@@ -416,26 +409,33 @@ export function TiendaProductGallery({ photos, alt }: Props) {
         </>
       ) : null}
 
-      <div className="tienda-sheet__gallery-dots" role="tablist" aria-label="Fotos">
-        {urls.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            role="tab"
-            aria-selected={i === index}
-            aria-label={`Foto ${i + 1} de ${urls.length}`}
-            className={
-              "tienda-sheet__gallery-dot" +
-              (i === index ? " is-active" : "")
-            }
-            onClick={() => scrollToSlide(i)}
-          />
-        ))}
-      </div>
-
-      <p className="tienda-sheet__gallery-count" aria-live="polite">
-        {index + 1} / {urls.length}
-      </p>
+      {multi ? (
+        <>
+          <div
+            className="tienda-sheet__gallery-dots"
+            role="tablist"
+            aria-label="Fotos"
+          >
+            {urls.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={`Foto ${i + 1} de ${urls.length}`}
+                className={
+                  "tienda-sheet__gallery-dot" +
+                  (i === index ? " is-active" : "")
+                }
+                onClick={() => scrollToSlide(i)}
+              />
+            ))}
+          </div>
+          <p className="tienda-sheet__gallery-count" aria-live="polite">
+            {index + 1} / {urls.length}
+          </p>
+        </>
+      ) : null}
     </div>
   );
 }

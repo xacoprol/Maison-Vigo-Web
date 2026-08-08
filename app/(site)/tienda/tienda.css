@@ -904,11 +904,13 @@
 }
 
 .tienda-sheet__media {
+  /* Cuadrado forzado con padding: no colapsa aunque los hijos sean absolute */
   position: relative;
-  aspect-ratio: 1;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: 0;
+  padding-bottom: 100%;
   margin: 0 auto 18px;
   overflow: hidden;
   border: 1px solid rgba(244, 244, 242, 0.08);
@@ -920,6 +922,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  height: auto;
+  padding-bottom: 0;
+  min-height: 180px;
   font-size: 12px;
   color: rgba(244, 244, 242, 0.35);
 }
@@ -927,6 +932,7 @@
 .tienda-sheet__gallery {
   position: absolute;
   inset: 0;
+  z-index: 0;
   display: flex;
   gap: 8px;
   width: 100%;
@@ -940,6 +946,10 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   touch-action: pan-x;
+}
+
+.tienda-sheet__gallery--solo {
+  gap: 0;
 }
 
 .tienda-sheet__gallery--locked {
@@ -962,6 +972,11 @@
   scroll-snap-align: start;
 }
 
+.tienda-sheet__gallery-slide--solo {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
 .tienda-sheet__gallery-slide.is-inert {
   pointer-events: none;
 }
@@ -976,6 +991,7 @@
 .tienda-sheet__zoom {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -984,12 +1000,6 @@
   cursor: zoom-in;
   user-select: none;
   touch-action: pan-x;
-}
-
-/* Zoom dentro de un slide: rellena el slide */
-.tienda-sheet__gallery-slide .tienda-sheet__zoom {
-  position: absolute;
-  inset: 0;
 }
 
 .tienda-sheet__zoom--zoomed {
@@ -1172,11 +1182,10 @@
   }
 
   .tienda-sheet__media {
-    aspect-ratio: 1;
     width: 100%;
-    height: auto;
-    max-height: 100%;
-    min-height: 0;
+    height: 0;
+    padding-bottom: 100%;
+    max-height: none;
     margin-bottom: 0;
     align-self: start;
   }
