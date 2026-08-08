@@ -30,7 +30,7 @@ export function TiendaCatalog({ categories }: Props) {
 
   return (
     <>
-      {sections.map((section) => (
+      {sections.map((section, sectionIndex) => (
         <CategorySection
           key={section.id}
           sectionId={section.id}
@@ -38,6 +38,7 @@ export function TiendaCatalog({ categories }: Props) {
           allProducts={section.products}
           filters={section.filters}
           productLayout={productLayout}
+          sectionIndex={sectionIndex}
           onSelectProduct={setPickerProduct}
         />
       ))}
@@ -57,6 +58,7 @@ function CategorySection({
   allProducts,
   filters,
   productLayout,
+  sectionIndex,
   onSelectProduct,
 }: {
   sectionId: string;
@@ -64,6 +66,7 @@ function CategorySection({
   allProducts: WebStoreProduct[];
   filters: { id: string; name: string; products: WebStoreProduct[] }[];
   productLayout: "grid" | "carousel";
+  sectionIndex: number;
   onSelectProduct: (product: WebStoreProduct) => void;
 }) {
   const showFilters = filters.length > 0;
@@ -192,6 +195,7 @@ function CategorySection({
           key={stageKey}
           products={displayProducts}
           layout={productLayout}
+          sectionIndex={sectionIndex}
           onSelectProduct={onSelectProduct}
         />
       </div>

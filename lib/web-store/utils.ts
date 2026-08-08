@@ -41,6 +41,64 @@ export function formatEuroFromCents(cents: number): string {
   }).format(n / 100);
 }
 
+/** PVP efectivo de variante: sin precio propio (> 0) hereda el del producto. */
+export function effectiveVariantSalePriceCents(
+  variantSalePriceCents: number | null | undefined,
+  baseSalePriceCents: number,
+): number {
+  const v = Math.round(Number(variantSalePriceCents ?? 0));
+  if (v > 0) return v;
+  return Math.round(Number(baseSalePriceCents ?? 0));
+}
+
+/** Rango de PVP visible (base o variantes activas con precio > 0). */
+export function storeProductSalePriceRange(product: {
+  salePriceCents: number;
+  variants?: { salePriceCents?: number | null }[];
+}): { min: number; max: number } {
+  const base = Math.round(Number(product.salePriceCents ?? 0));
+  const variants = product.variants ?? [];
+  if (variants.length > 0) {
+    const prices = variants
+      .map((v) => effectiveVariantSalePriceCents(v.salePriceCents, base))
+      .filter((p) => p > 0);
+    if (prices.length > 0) {
+      return { min: Math.min(...prices), max: Math.max(...prices) };
+    }
+  }
+  return { min: base, max: base };
+}
+
+/**
+ * Etiqueta de precio en tarjeta (como Care): null si no hay PVP,
+ * «Desde …» si hay rango entre variantes.
+ */
+export function formatProductPriceLabel(product: {
+  salePriceCents: number;
+  variants?: { salePriceCents?: number | null }[];
+}): string | null {
+  const { min, max } = storeProductSalePriceRange(product);
+  if (min <= 0) return null;
+  if ((product.variants?.length ?? 0) > 0 && min !== max) {
+    return `Desde ${formatEuroFromCents(min)}`;
+  }
+  return formatEuroFromCents(min);
+}
+
+/** Título de tarjeta pienso/húmeda: marca · variedad (sin kg del eje Peso). */
+export function kibbleCardDisplayName(product: {
+  kind?: string;
+  name: string;
+  brand?: string | null;
+  variety?: string | null;
+}): string {
+  if (product.kind !== "kibble") return product.name;
+  const brand = String(product.brand ?? "").trim();
+  const variety = String(product.variety ?? "").trim();
+  const parts = [brand, variety].filter(Boolean);
+  return parts.length ? parts.join(" · ") : product.name;
+}
+
 /** Misma clave de variante que Care (`variantCombinationKey`). */
 export function variantCombinationKey(optionValues: Record<string, string>): string {
   return Object.keys(optionValues)

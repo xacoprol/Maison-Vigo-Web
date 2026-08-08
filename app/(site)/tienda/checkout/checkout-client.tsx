@@ -487,15 +487,15 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
                         {fulfillmentMethodLabel(method)}
                       </span>
                       {method === "pickup" ? (
-                        <>
-                          <span className="tienda-checkout__method-hint">
+                        <span className="tienda-checkout__method-hint">
+                          <span className="tienda-checkout__method-hint-line">
                             {PICKUP_ADDRESS}
                           </span>
-                          <span className="tienda-checkout__method-note">
-                            Te avisamos cuando esté listo y te iremos
-                            notificando el estado del pedido.
+                          <span className="tienda-checkout__method-hint-line">
+                            Te avisaremos cuando esté listo para que pases a
+                            recogerlo.
                           </span>
-                        </>
+                        </span>
                       ) : (
                         <span className="tienda-checkout__method-hint">
                           Entrega en 24/48 h

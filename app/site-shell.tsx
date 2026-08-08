@@ -142,6 +142,15 @@ export function SiteShell() {
               </Link>
             </div>
 
+            <div className="mobile-menu-secondary">
+              <Link
+                href="/tienda"
+                className="mob-link mob-link--secondary mob-link--wave"
+              >
+                <WaveText text="The Selection" />
+              </Link>
+            </div>
+
             <div className="mobile-menu-assist">
               <p className="mobile-menu-assist-title">
                 ¿Qué necesita tu perro?

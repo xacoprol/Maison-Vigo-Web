@@ -14,13 +14,21 @@ import {
   minPersonalizationExtraCents,
   productHasPricedPersonalization,
 } from "@/lib/web-store/personalization";
-import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
+import {
+  formatEuroFromCents,
+  kibbleCardDisplayName,
+  storeProductSalePriceRange,
+  webStoreFileUrl,
+} from "@/lib/web-store/utils";
 
 const DESKTOP_MIN = 900;
-/** Amplitud de parallax por columna (vh), escritorio — bien perceptible. */
+/** Amplitud de parallax por columna (vh) — categorías impares. */
 const DESKTOP_PARALLAX_VH = [36, 58, 82] as const;
+/** Categorías pares: 1.ª columna más baja. */
+const DESKTOP_PARALLAX_VH_FLIP = [82, 36, 58] as const;
 /** Amplitud de parallax por columna (vh), móvil en layout grilla. */
 const MOBILE_PARALLAX_VH = [18, 30] as const;
+const MOBILE_PARALLAX_VH_FLIP = [30, 18] as const;
 
 function subscribeDesktopMq(onChange: () => void) {
   const mq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`);
@@ -45,16 +53,20 @@ type Props = {
   onSelectProduct: (product: WebStoreProduct) => void;
   /** Con una sola categoría visible: grilla editorial también en móvil. */
   layout?: "grid" | "carousel";
+  /** Índice 0-based de la sección; pares (2.ª, 4.ª…) invierten el desfase. */
+  sectionIndex?: number;
 };
 
 export function TiendaEditorialGrid({
   products,
   onSelectProduct,
   layout = "carousel",
+  sectionIndex = 0,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const colRefs = useRef<(HTMLUListElement | null)[]>([]);
   const asGrid = layout === "grid";
+  const staggerFlip = sectionIndex % 2 === 1;
   const columnCount = useEditorialColumnCount();
 
   const columns = Array.from({ length: columnCount }, (_, col) =>
@@ -92,7 +104,13 @@ export function TiendaEditorialGrid({
         return;
       }
       const desktop = desktopMq.matches;
-      const amplitudes = desktop ? DESKTOP_PARALLAX_VH : MOBILE_PARALLAX_VH;
+      const amplitudes = desktop
+        ? staggerFlip
+          ? DESKTOP_PARALLAX_VH_FLIP
+          : DESKTOP_PARALLAX_VH
+        : staggerFlip
+          ? MOBILE_PARALLAX_VH_FLIP
+          : MOBILE_PARALLAX_VH;
       const vh = window.innerHeight;
       const rect = wrap.getBoundingClientRect();
       const range = wrap.offsetHeight + vh;
@@ -138,7 +156,7 @@ export function TiendaEditorialGrid({
       desktopMq.removeEventListener("change", onMqChange);
       clear();
     };
-  }, [asGrid, columnCount, products.length]);
+  }, [asGrid, columnCount, products.length, staggerFlip]);
 
   return (
     <div
@@ -146,6 +164,7 @@ export function TiendaEditorialGrid({
       className={
         "tienda-editorial" +
         (asGrid ? " tienda-editorial--grid" : " tienda-editorial--carousel") +
+        (staggerFlip ? " tienda-editorial--stagger-flip" : "") +
         ` tienda-editorial--cols-${columnCount}`
       }
     >
@@ -296,31 +315,23 @@ function EditorialMobileCarousel({
     };
   }, [pauseLenis, resumeLenis, products.length]);
 
-  const scrollByColumn = (direction: -1 | 1) => {
+  const scrollBySlide = (direction: -1 | 1) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const columns = Array.from(el.children).filter(
-      (node, index): node is HTMLElement =>
-        node instanceof HTMLElement && index % 2 === 0,
+    const slides = Array.from(el.children).filter(
+      (node): node is HTMLElement => node instanceof HTMLElement,
     );
-    if (!columns.length) {
-      el.scrollBy({
-        left: direction * Math.max(el.clientWidth * 0.5, 120),
-        behavior: "smooth",
-      });
-      return;
-    }
-
+    if (!slides.length) return;
     const scrollLeft = el.scrollLeft;
     let currentIndex = 0;
-    for (let i = 0; i < columns.length; i++) {
-      if (columns[i]!.offsetLeft <= scrollLeft + 8) currentIndex = i;
+    for (let i = 0; i < slides.length; i++) {
+      if (slides[i]!.offsetLeft <= scrollLeft + 8) currentIndex = i;
     }
     const targetIndex = Math.max(
       0,
-      Math.min(columns.length - 1, currentIndex + direction),
+      Math.min(slides.length - 1, currentIndex + direction),
     );
-    columns[targetIndex]!.scrollIntoView({
+    slides[targetIndex]!.scrollIntoView({
       behavior: "smooth",
       inline: "start",
       block: "nearest",
@@ -335,36 +346,76 @@ function EditorialMobileCarousel({
     onSelectProduct(product);
   };
 
+  const showSwipeHint = products.length > 2 && hasOverflow;
+
   return (
     <div ref={shellRef} className="tienda-editorial__carousel-shell">
-      {hasOverflow ? (
-        <div className="tienda-editorial__carousel-nav" aria-hidden={false}>
-          <CarouselArrow
-            direction="prev"
-            disabled={!canScrollLeft}
-            onClick={() => scrollByColumn(-1)}
-          />
-          <CarouselArrow
-            direction="next"
-            disabled={!canScrollRight}
-            onClick={() => scrollByColumn(1)}
-          />
+      <div className="tienda-editorial__carousel-frame">
+        {hasOverflow ? (
+          <div className="tienda-editorial__carousel-nav" aria-hidden={false}>
+            <CarouselArrow
+              direction="prev"
+              disabled={!canScrollLeft}
+              onClick={() => scrollBySlide(-1)}
+            />
+            <CarouselArrow
+              direction="next"
+              disabled={!canScrollRight}
+              onClick={() => scrollBySlide(1)}
+            />
+          </div>
+        ) : null}
+
+        <ul
+          ref={scrollerRef}
+          className="tienda-editorial__carousel"
+          aria-label="Productos"
+        >
+          {products.map((product) => (
+            <EditorialCard
+              key={`mob-${product.id}`}
+              product={product}
+              onSelect={selectProduct}
+            />
+          ))}
+        </ul>
+      </div>
+
+      {showSwipeHint ? (
+        <div
+          className="tienda-editorial__carousel-hint"
+          role="img"
+          aria-label="Desliza para ver más"
+        >
+          <span className="tienda-editorial__carousel-hint-inner">
+            <span
+              className="tienda-editorial__carousel-hint-line tienda-editorial__carousel-hint-line--left"
+              aria-hidden={true}
+            />
+            <span className="tienda-editorial__carousel-hint-pill">
+              Desliza
+              <svg
+                viewBox="0 0 24 24"
+                className="tienda-editorial__carousel-hint-chevron"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden={true}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </span>
+            <span
+              className="tienda-editorial__carousel-hint-line tienda-editorial__carousel-hint-line--right"
+              aria-hidden={true}
+            />
+          </span>
         </div>
       ) : null}
-
-      <ul
-        ref={scrollerRef}
-        className="tienda-editorial__carousel"
-        aria-label="Productos"
-      >
-        {products.map((product) => (
-          <EditorialCard
-            key={`mob-${product.id}`}
-            product={product}
-            onSelect={selectProduct}
-          />
-        ))}
-      </ul>
     </div>
   );
 }
@@ -378,12 +429,8 @@ function CarouselArrow({
   disabled?: boolean;
   onClick: () => void;
 }) {
-  const src =
-    direction === "prev"
-      ? "/assets/images/iconos/arrow-left.svg"
-      : "/assets/images/iconos/arrow-right.svg";
   const label =
-    direction === "prev" ? "Productos anteriores" : "Productos siguientes";
+    direction === "prev" ? "Ver anteriores" : "Ver siguientes";
 
   return (
     <button
@@ -398,14 +445,20 @@ function CarouselArrow({
       disabled={disabled}
       onClick={onClick}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        width={14}
-        height={14}
+      <svg
+        viewBox="0 0 24 24"
         className="tienda-editorial__carousel-arrow-icon"
-      />
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden={true}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d={direction === "prev" ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"}
+        />
+      </svg>
     </button>
   );
 }
@@ -421,8 +474,14 @@ function EditorialCard({
   const secondary = webStoreFileUrl(product.photos[1]?.url);
   const hasHoverSwap = Boolean(primary && secondary && secondary !== primary);
   const priced = productHasPricedPersonalization(product.personalization);
-  const fromCents =
-    product.salePriceCents + minPersonalizationExtraCents(product.personalization);
+  const { min: priceMin, max: priceMax } = storeProductSalePriceRange(product);
+  const fromCents = priceMin + minPersonalizationExtraCents(product.personalization);
+  const showDesde =
+    priced || (product.variants.length > 0 && priceMax !== priceMin);
+  const priceLabel =
+    fromCents > 0
+      ? `${showDesde ? "Desde " : ""}${formatEuroFromCents(fromCents)}`
+      : null;
 
   return (
     <li className="tienda-editorial__card">
@@ -453,11 +512,12 @@ function EditorialCard({
           ) : null}
         </span>
         <span className="tienda-editorial__copy">
-          <span className="tienda-editorial__name">{product.name}</span>
-          <span className="tienda-editorial__price">
-            {priced ? "Desde " : ""}
-            {formatEuroFromCents(fromCents)}
+          <span className="tienda-editorial__name">
+            {kibbleCardDisplayName(product)}
           </span>
+          {priceLabel ? (
+            <span className="tienda-editorial__price">{priceLabel}</span>
+          ) : null}
         </span>
       </button>
     </li>
