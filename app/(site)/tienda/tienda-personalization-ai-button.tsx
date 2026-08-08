@@ -89,10 +89,14 @@ export function TiendaPersonalizationAiButton({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("touchstart", onPointer, { passive: true });
+    // Defer so the opening click/tap does not immediately close the panel.
+    const timer = window.setTimeout(() => {
+      document.addEventListener("mousedown", onPointer);
+      document.addEventListener("touchstart", onPointer, { passive: true });
+    }, 0);
     document.addEventListener("keydown", onKey);
     return () => {
+      window.clearTimeout(timer);
       document.removeEventListener("mousedown", onPointer);
       document.removeEventListener("touchstart", onPointer);
       document.removeEventListener("keydown", onKey);
@@ -115,6 +119,7 @@ export function TiendaPersonalizationAiButton({
       count: 8,
     });
     setOptions(local);
+    updatePos();
     setOpen(true);
 
     void postWebStorePersonalizationTextDraft({

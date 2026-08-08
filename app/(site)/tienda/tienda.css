@@ -1271,7 +1271,8 @@
 
 .tienda-ai-panel {
   position: fixed;
-  z-index: 80;
+  /* Above .tienda-sheet (220); below Care Assist / overlays (~270). */
+  z-index: 230;
   padding: 12px;
   border: 1px solid rgba(187, 149, 93, 0.28);
   background: rgba(14, 14, 14, 0.97);
