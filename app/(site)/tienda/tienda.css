@@ -2665,29 +2665,44 @@
   }
 
   .tienda-checkout__method {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "radio copy"
-      ". trail";
-    column-gap: 12px;
-    row-gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: none;
+    column-gap: 10px;
+    row-gap: 0;
     padding: 14px 12px;
-    align-items: start;
+    align-items: center;
   }
 
   .tienda-checkout__method-radio {
-    grid-area: radio;
-    margin-top: 2px;
+    grid-area: auto;
+    margin-top: 0;
   }
 
   .tienda-checkout__method-copy {
-    grid-area: copy;
+    grid-area: auto;
   }
 
   .tienda-checkout__method-price,
   .tienda-checkout__card-brands {
-    grid-area: trail;
+    grid-area: auto;
     justify-self: end;
+  }
+
+  .tienda-checkout__method-hint {
+    font-size: 11px;
+  }
+
+  .tienda-checkout__card-brands {
+    gap: 4px;
+  }
+
+  .tienda-checkout__card-brand--bizum {
+    height: 16px;
+  }
+
+  .tienda-checkout__card-brands .tienda-checkout__card-brand:not(.tienda-checkout__card-brand--bizum) {
+    width: 32px;
+    height: 20px;
   }
 
   .tienda-checkout__line {
