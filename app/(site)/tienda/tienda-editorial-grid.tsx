@@ -16,18 +16,27 @@ import {
 import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
 const DESKTOP_MIN = 900;
-const COL1_PARALLAX_VH = 18;
-const COL2_PARALLAX_VH = 28;
+const COL1_PARALLAX_VH = 28;
+const COL2_PARALLAX_VH = 44;
+const MOBILE_COL1_PARALLAX_VH = 10;
+const MOBILE_COL2_PARALLAX_VH = 16;
 
 type Props = {
   products: WebStoreProduct[];
   onSelectProduct: (product: WebStoreProduct) => void;
+  /** Con una sola categoría visible: grilla editorial también en móvil. */
+  layout?: "grid" | "carousel";
 };
 
-export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
+export function TiendaEditorialGrid({
+  products,
+  onSelectProduct,
+  layout = "carousel",
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const col1Ref = useRef<HTMLUListElement>(null);
   const col2Ref = useRef<HTMLUListElement>(null);
+  const asGrid = layout === "grid";
 
   const col1 = products.filter((_, index) => index % 2 === 0);
   const col2 = products.filter((_, index) => index % 2 === 1);
@@ -44,14 +53,24 @@ export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
     const clear = () => {
       c1.style.transform = "";
       c2.style.transform = "";
+      wrap.style.marginBottom = "";
     };
 
-    if (!desktopMq.matches || reduced) {
+    // Carrusel móvil: sin parallax. Grilla editorial (móvil o escritorio): sí.
+    const parallaxEnabled = () =>
+      !reduced && (desktopMq.matches || asGrid);
+
+    if (!parallaxEnabled()) {
       clear();
       return;
     }
 
     const update = () => {
+      if (!parallaxEnabled()) {
+        clear();
+        return;
+      }
+      const desktop = desktopMq.matches;
       const vh = window.innerHeight;
       const rect = wrap.getBoundingClientRect();
       const range = wrap.offsetHeight + vh;
@@ -59,27 +78,49 @@ export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
         range > 0 ? Math.min(Math.max((vh - rect.top) / range, 0), 1) : 0;
       const parallaxY = (sizeVh: number) =>
         ((0.5 - progress) * 2 * sizeVh * vh) / 100;
-      c1.style.transform = `translate3d(0, ${parallaxY(COL1_PARALLAX_VH)}px, 0)`;
-      c2.style.transform = `translate3d(0, ${parallaxY(COL2_PARALLAX_VH)}px, 0)`;
+      const y1 = parallaxY(
+        desktop ? COL1_PARALLAX_VH : MOBILE_COL1_PARALLAX_VH,
+      );
+      const y2 = parallaxY(
+        desktop ? COL2_PARALLAX_VH : MOBILE_COL2_PARALLAX_VH,
+      );
+      c1.style.transform = `translate3d(0, ${y1}px, 0)`;
+      c2.style.transform = `translate3d(0, ${y2}px, 0)`;
+      // Si las columnas suben, compacta el hueco inferior para no dejar aire muerto.
+      wrap.style.marginBottom = `${Math.min(0, y1, y2)}px`;
+    };
+
+    const onMqChange = () => {
+      if (!parallaxEnabled()) {
+        clear();
+        return;
+      }
+      update();
     };
 
     window.addEventListener("mv-scroll", update, { passive: true });
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update, { passive: true });
-    desktopMq.addEventListener("change", update);
+    desktopMq.addEventListener("change", onMqChange);
     update();
 
     return () => {
       window.removeEventListener("mv-scroll", update);
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
-      desktopMq.removeEventListener("change", update);
+      desktopMq.removeEventListener("change", onMqChange);
       clear();
     };
-  }, [products.length]);
+  }, [asGrid, products.length]);
 
   return (
-    <div ref={wrapRef} className="tienda-editorial">
+    <div
+      ref={wrapRef}
+      className={
+        "tienda-editorial" +
+        (asGrid ? " tienda-editorial--grid" : " tienda-editorial--carousel")
+      }
+    >
       <div className="tienda-editorial__columns">
         <ul ref={col1Ref} className="tienda-editorial__col tienda-editorial__col--1">
           {col1.map((product) => (
@@ -101,10 +142,12 @@ export function TiendaEditorialGrid({ products, onSelectProduct }: Props) {
         </ul>
       </div>
 
-      <EditorialMobileCarousel
-        products={products}
-        onSelectProduct={onSelectProduct}
-      />
+      {asGrid ? null : (
+        <EditorialMobileCarousel
+          products={products}
+          onSelectProduct={onSelectProduct}
+        />
+      )}
     </div>
   );
 }

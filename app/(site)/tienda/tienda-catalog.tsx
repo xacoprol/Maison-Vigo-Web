@@ -22,6 +22,8 @@ export function TiendaCatalog({ categories }: Props) {
     () => groupCatalogSections(categories),
     [categories],
   );
+  /** Una sola sección visible → grilla editorial también en móvil; varias → carrusel. */
+  const productLayout = sections.length === 1 ? "grid" : "carousel";
   const [pickerProduct, setPickerProduct] = useState<WebStoreProduct | null>(
     null,
   );
@@ -35,6 +37,7 @@ export function TiendaCatalog({ categories }: Props) {
           name={section.name}
           allProducts={section.products}
           filters={section.filters}
+          productLayout={productLayout}
           onSelectProduct={setPickerProduct}
         />
       ))}
@@ -53,12 +56,14 @@ function CategorySection({
   name,
   allProducts,
   filters,
+  productLayout,
   onSelectProduct,
 }: {
   sectionId: string;
   name: string;
   allProducts: WebStoreProduct[];
   filters: { id: string; name: string; products: WebStoreProduct[] }[];
+  productLayout: "grid" | "carousel";
   onSelectProduct: (product: WebStoreProduct) => void;
 }) {
   const showFilters = filters.length > 0;
@@ -186,6 +191,7 @@ function CategorySection({
         <TiendaEditorialGrid
           key={stageKey}
           products={displayProducts}
+          layout={productLayout}
           onSelectProduct={onSelectProduct}
         />
       </div>

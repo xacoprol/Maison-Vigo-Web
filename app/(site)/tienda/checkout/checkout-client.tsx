@@ -755,9 +755,19 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
             className="tienda-btn tienda-btn--solid tienda-checkout__pay"
             disabled={pending || Boolean(configError)}
           >
-            {pending
-              ? "Redirigiendo al pago…"
-              : `Pagar ahora · ${formatEuroFromCents(totalCents)}`}
+            {pending ? (
+              "Redirigiendo al pago…"
+            ) : (
+              <>
+                <span className="tienda-checkout__pay-label">Pagar ahora</span>
+                <span className="tienda-checkout__pay-sep" aria-hidden="true">
+                  ·
+                </span>
+                <span className="tienda-checkout__pay-amount">
+                  {formatEuroFromCents(totalCents)}
+                </span>
+              </>
+            )}
           </button>
         </form>
       </div>
