@@ -3472,7 +3472,18 @@
 
 @media (max-width: 639px) {
   .tienda-variants--grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tienda-chip--block {
+    min-height: 3.75rem;
+    padding: 8px 4px;
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .tienda-chip--block .tienda-chip__price {
+    font-size: 9px;
   }
 }
 
