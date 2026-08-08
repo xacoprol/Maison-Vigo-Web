@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -18,11 +19,18 @@ import {
 } from "@/lib/web-store/api";
 import {
   formatQuantityTextSlotLabel,
+  listPersonalizationCustomizationErrors,
   maxQuantityTextGroupFromLinkedStock,
+  normalizePersonalizationTextMaxLength,
+  personalizationErrorFocusId,
+  personalizationErrorsToFieldMap,
   personalizationExtraCentsFromCustomization,
+  personalizationFieldErrorMessage,
   productHasPricedPersonalization,
   quantityTextGroupExtraCents,
   quantityTextSlotKey,
+  webStorePersonalizationConfig,
+  type PersonalizationFieldError,
 } from "@/lib/web-store/personalization";
 import type { WebStoreProduct } from "@/lib/web-store/types";
 import {
@@ -74,6 +82,13 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNotice, setFormNotice] = useState<string | null>(null);
+  const [personalizationNotices, setPersonalizationNotices] = useState<
+    string[]
+  >([]);
+  const [personalizationFocusKey, setPersonalizationFocusKey] = useState(0);
+  const focusPersonalizationTargetRef =
+    useRef<PersonalizationFieldError | null>(null);
+  const personalizationRef = useRef<HTMLDivElement>(null);
   const [cartPhase, setCartPhase] = useState<CartActionPhase>("idle");
   const cartPhaseTimersRef = useRef<number[]>([]);
   const photoPreviewUrlsRef = useRef<Record<string, string>>({});
@@ -263,6 +278,8 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       setQtyTextValues({});
       setFieldErrors({});
       setFormNotice(null);
+      setPersonalizationNotices([]);
+      focusPersonalizationTargetRef.current = null;
       clearCartPhaseTimers();
       setCartPhase("idle");
       let frame2 = 0;
@@ -305,6 +322,40 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       }
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const target = focusPersonalizationTargetRef.current;
+    if (!target || personalizationNotices.length === 0) return;
+    focusPersonalizationTargetRef.current = null;
+    const config = webStorePersonalizationConfig(
+      activeProduct?.personalization ?? null,
+    );
+    if (!config) return;
+    const focusId = personalizationErrorFocusId(target, config);
+    const focusField = () => {
+      if (!focusId) return;
+      const input = document.getElementById(focusId) as
+        | HTMLInputElement
+        | HTMLButtonElement
+        | null;
+      if (!input) return;
+      input.focus({ preventScroll: true });
+      if (
+        target.code === "max_length" &&
+        input instanceof HTMLInputElement &&
+        input.value.length > 0
+      ) {
+        input.select();
+      }
+    };
+    personalizationRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+    focusField();
+    const retryId = window.setTimeout(focusField, 80);
+    return () => window.clearTimeout(retryId);
+  }, [personalizationNotices, personalizationFocusKey, activeProduct]);
 
   const selectedVariant = useMemo(() => {
     if (!activeProduct || !variantKey) return null;
@@ -362,13 +413,6 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
     selectedVariant?.stockQuantity ?? activeProduct.stockQuantity ?? null;
   const outOfStock = stock != null && stock <= 0;
 
-  const hasAnyText = textFields.some((field) =>
-    String(textValues[field.label] ?? "").trim(),
-  );
-  const hasAnyPhoto = photoFields.some((field) =>
-    String(photoUrls[field.label] ?? "").trim(),
-  );
-
   const allFilledTexts = [
     ...textFields
       .map((field) => String(textValues[field.label] ?? "").trim())
@@ -389,102 +433,45 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
   };
 
   const clearFieldError = (key: string) => {
-    if (!fieldErrors[key] && !formNotice) return;
+    if (!fieldErrors[key] && !formNotice && !personalizationNotices.length) {
+      return;
+    }
     setFieldErrors((prev) => {
       const next = { ...prev };
       delete next[key];
       return next;
     });
     setFormNotice(null);
+    setPersonalizationNotices([]);
   };
 
-  const validatePersonalization = (): {
-    ok: boolean;
-    errors: Record<string, string>;
-    notice: string | null;
-  } => {
-    const errors: Record<string, string> = {};
-    for (const field of textFields) {
-      const value = String(textValues[field.label] ?? "").trim();
-      if (isTextFieldRequired(field.label) && !value) {
-        errors[field.label] = `Completa «${field.label}» para continuar.`;
-      }
+  const applyPersonalizationValidation = (): boolean => {
+    const config = webStorePersonalizationConfig(personalization);
+    if (!config) {
+      setFieldErrors({});
+      setPersonalizationNotices([]);
+      return true;
     }
-    for (const field of photoFields) {
-      const url = String(photoUrls[field.label] ?? "").trim();
-      if (isPhotoFieldRequired(field.label) && !url) {
-        errors[`photo:${field.label}`] =
-          `Sube la imagen de «${field.label}» para continuar.`;
-      }
+    const errors = listPersonalizationCustomizationErrors(
+      config,
+      customizationPreview,
+    );
+    if (!errors.length) {
+      setFieldErrors({});
+      setPersonalizationNotices([]);
+      return true;
     }
-    for (let gi = 0; gi < quantityTextGroups.length; gi++) {
-      const group = quantityTextGroups[gi]!;
-      const quantity = qtyGroupQuantities[gi] ?? group.minQuantity;
-      if (quantity < group.minQuantity) {
-        errors[`qty:${gi}`] =
-          `Elige al menos ${group.minQuantity} de «${group.label}».`;
-        continue;
-      }
-      if (group.required !== false && quantity > 0) {
-        for (let si = 0; si < quantity; si++) {
-          const key = quantityTextSlotKey(gi, si);
-          const label = formatQuantityTextSlotLabel(group.textLabelTemplate, si);
-          const value = String(qtyTextValues[key] ?? "").trim();
-          if (!value) {
-            errors[key] = `Completa «${label}» para continuar.`;
-          }
-        }
-      }
+    const messages: string[] = [];
+    for (const err of errors) {
+      const msg = personalizationFieldErrorMessage(err);
+      if (!messages.includes(msg)) messages.push(msg);
     }
-    if (
-      requireAtLeastOneTextOrPhoto &&
-      textFields.length > 0 &&
-      photoFields.length > 0 &&
-      !hasAnyText &&
-      !hasAnyPhoto
-    ) {
-      return {
-        ok: false,
-        errors,
-        notice: "Indica un texto o sube una foto para personalizar.",
-      };
-    }
-    if (
-      requireAtLeastOneTextOrPhoto &&
-      textFields.length > 0 &&
-      photoFields.length === 0 &&
-      !hasAnyText
-    ) {
-      return {
-        ok: false,
-        errors,
-        notice: "Indica al menos un texto de personalización.",
-      };
-    }
-    if (
-      requireAtLeastOneTextOrPhoto &&
-      photoFields.length > 0 &&
-      textFields.length === 0 &&
-      !hasAnyPhoto
-    ) {
-      return {
-        ok: false,
-        errors,
-        notice: "Sube al menos una foto de personalización.",
-      };
-    }
-    const missingLabels = Object.keys(errors);
-    if (missingLabels.length) {
-      return {
-        ok: false,
-        errors,
-        notice:
-          missingLabels.length === 1
-            ? "Falta un campo obligatorio."
-            : "Faltan campos obligatorios.",
-      };
-    }
-    return { ok: true, errors: {}, notice: null };
+    focusPersonalizationTargetRef.current = errors[0]!;
+    setFieldErrors(personalizationErrorsToFieldMap(errors, config));
+    setPersonalizationNotices(messages);
+    setFormNotice(null);
+    setPersonalizationFocusKey((k) => k + 1);
+    return false;
   };
 
   const hardBlock =
@@ -561,25 +548,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       return;
     }
 
-    const validation = validatePersonalization();
-    setFieldErrors(validation.errors);
-    setFormNotice(validation.notice);
-    if (!validation.ok) {
-      const firstErrorKey = Object.keys(validation.errors)[0];
-      if (firstErrorKey) {
-        const inputId = firstErrorKey.startsWith("photo:")
-          ? `sheet-photo-${firstErrorKey.slice(6)}`
-          : firstErrorKey.startsWith("qty:")
-            ? `sheet-qty-${firstErrorKey.slice(4)}`
-            : firstErrorKey.includes(":")
-              ? `sheet-qty-text-${firstErrorKey}`
-              : `sheet-pers-${firstErrorKey}`;
-        const input = document.getElementById(inputId) as HTMLElement | null;
-        input?.focus({ preventScroll: false });
-        input?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-      return;
-    }
+    if (!applyPersonalizationValidation()) return;
 
     const texts = textFields.map((field) => ({
       label: field.label,
@@ -730,13 +699,39 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                 </div>
               ) : null}
 
-              {textFields.length > 0 &&
-              photoFields.length > 0 &&
-              requireAtLeastOneTextOrPhoto ? (
-                <p className="tienda-note">
-                  Puedes personalizar con texto, con foto, o con ambos.
-                </p>
-              ) : null}
+              {(textFields.length > 0 ||
+                photoFields.length > 0 ||
+                quantityTextGroups.length > 0) && (
+                <div
+                  ref={personalizationRef}
+                  className="tienda-sheet__personalization"
+                >
+                  {textFields.length > 0 &&
+                  photoFields.length > 0 &&
+                  requireAtLeastOneTextOrPhoto ? (
+                    <p className="tienda-note">
+                      Indica al menos un texto o una foto. Puedes elegir solo uno
+                      o completar ambos.
+                    </p>
+                  ) : null}
+
+                  {personalizationNotices.length > 0 ? (
+                    <div
+                      className="tienda-sheet__pers-notice"
+                      role="alert"
+                    >
+                      <p className="tienda-sheet__pers-notice-title">
+                        {personalizationNotices.length === 1
+                          ? "Falta un detalle"
+                          : "Faltan algunos detalles"}
+                      </p>
+                      <ul className="tienda-sheet__pers-notice-list">
+                        {personalizationNotices.map((msg) => (
+                          <li key={msg}>{msg}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
               {quantityTextGroups.map((group, gi) => {
                 const quantity = qtyGroupQuantities[gi] ?? group.minQuantity;
@@ -941,7 +936,11 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                       <TiendaPersonalizationAiButton
                         productName={activeProduct.name}
                         fieldLabel={field.label}
-                        maxLength={field.maxLength ?? 120}
+                        maxLength={
+                          normalizePersonalizationTextMaxLength(
+                            field.maxLength,
+                          ) ?? 120
+                        }
                         currentValue={textValues[field.label] ?? ""}
                         otherTexts={allFilledTexts.filter(
                           (t) =>
@@ -952,7 +951,10 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                         disabled={cartLocked}
                         onGenerated={(text) => {
                           let next = text;
-                          const max = field.maxLength ?? 120;
+                          const max =
+                            normalizePersonalizationTextMaxLength(
+                              field.maxLength,
+                            ) ?? 120;
                           if (max > 0 && next.length > max) {
                             next = next.slice(0, max);
                           }
@@ -967,9 +969,12 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                     <input
                       id={inputId}
                       className="tienda-input"
-                      maxLength={field.maxLength ?? 120}
+                      maxLength={
+                        normalizePersonalizationTextMaxLength(
+                          field.maxLength,
+                        ) ?? undefined
+                      }
                       placeholder={field.placeholder ?? undefined}
-                      required={required}
                       aria-required={required}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? `${inputId}-error` : undefined}
@@ -1166,6 +1171,8 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                   )}
                 </p>
               ) : null}
+                </div>
+              )}
 
               <div className="tienda-field tienda-field--qty-price">
                 <div>
