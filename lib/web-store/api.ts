@@ -4,6 +4,7 @@ import type {
   WebStoreCheckoutResult,
   WebStoreConfig,
   WebStoreOrderLookup,
+  WebStoreOrderTrack,
   WebStoreRedsysSession,
 } from "./types";
 import { webStoreApiRoot } from "./utils";
@@ -207,4 +208,18 @@ export function fetchWebStoreOrder(
   return webStoreFetch<WebStoreOrderLookup>(
     `/orders/${encodeURIComponent(storeOrderRef)}?${q.toString()}`,
   );
+}
+
+/** Seguimiento sin cuenta: referencia + teléfono del comprador. */
+export function postWebStoreOrderLookup(input: {
+  storeOrderRef: string;
+  phone: string;
+}): Promise<WebStoreOrderTrack> {
+  return webStoreFetch<WebStoreOrderTrack>("/orders/lookup", {
+    method: "POST",
+    body: JSON.stringify({
+      storeOrderRef: input.storeOrderRef,
+      phone: input.phone,
+    }),
+  });
 }

@@ -152,6 +152,32 @@ export type WebStoreOrderLookup = {
   lines: unknown[];
 };
 
+export type WebStoreOrderTrackLine = {
+  name: string;
+  quantity: number;
+  salePriceCents: number;
+  optionLabel: string | null;
+  imageUrl: string | null;
+  isReservation: boolean;
+};
+
+export type WebStoreOrderTrack = {
+  storeOrderRef: string;
+  status: string;
+  statusLabel: string;
+  fulfillmentMethod: string;
+  fulfillmentLabel: string;
+  totalCents: number;
+  subtotalCents: number;
+  shippingCents: number;
+  currency: string;
+  carrier: string | null;
+  trackingNumber: string | null;
+  createdAt: string | null;
+  paidAt: string | null;
+  lines: WebStoreOrderTrackLine[];
+};
+
 export type WebStoreApiError = {
   error: string;
   message?: string;

@@ -12,7 +12,15 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
-import { bookingUrl } from "@/lib/site-config";
+import {
+  postWebStoreOrderLookup,
+  WebStoreRequestError,
+} from "@/lib/web-store/api";
+import type { WebStoreOrderTrack } from "@/lib/web-store/types";
+import {
+  formatEuroFromCents,
+  webStoreFileUrl,
+} from "@/lib/web-store/utils";
 
 import { WaveText } from "./wave-text";
 
@@ -35,11 +43,71 @@ function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
 }
 
-function misPedidosHref(storeOrderRef: string) {
-  const url = new URL(bookingUrl);
-  url.searchParams.set("pedidos", "1");
-  url.searchParams.set("storeOrderRef", storeOrderRef);
-  return url.toString();
+type ProgressStep = { id: string; label: string };
+
+function progressStepsFor(fulfillmentMethod: string): ProgressStep[] {
+  if (fulfillmentMethod === "shipping") {
+    return [
+      { id: "paid", label: "Recibido" },
+      { id: "preparing", label: "Preparación" },
+      { id: "shipped", label: "Enviado" },
+      { id: "completed", label: "Completado" },
+    ];
+  }
+  if (fulfillmentMethod === "local_delivery") {
+    return [
+      { id: "paid", label: "Recibido" },
+      { id: "preparing", label: "Preparación" },
+      { id: "out_for_delivery", label: "Reparto" },
+      { id: "completed", label: "Completado" },
+    ];
+  }
+  return [
+    { id: "paid", label: "Recibido" },
+    { id: "preparing", label: "Preparación" },
+    { id: "ready_for_pickup", label: "Recogida" },
+    { id: "completed", label: "Completado" },
+  ];
+}
+
+function showsProgress(status: string) {
+  return [
+    "paid",
+    "preparing",
+    "ready_for_pickup",
+    "out_for_delivery",
+    "shipped",
+    "completed",
+  ].includes(status);
+}
+
+function stepState(
+  stepId: string,
+  status: string,
+  steps: ProgressStep[],
+): "done" | "current" | "todo" {
+  const idx = steps.findIndex((s) => s.id === stepId);
+  const cur = steps.findIndex((s) => s.id === status);
+  if (status === "completed") return "done";
+  if (cur < 0) return "todo";
+  if (idx < cur) return "done";
+  if (idx === cur) return "current";
+  return "todo";
+}
+
+function formatOrderDate(iso: string | null) {
+  if (!iso) return null;
+  try {
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
 }
 
 export function TiendaOrderTrackBanner() {
@@ -65,6 +133,8 @@ function TiendaOrderTrackBannerInner() {
   const [orderSuffix, setOrderSuffix] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [tracked, setTracked] = useState<WebStoreOrderTrack | null>(null);
   const orderInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const grabberRef = useRef<HTMLDivElement>(null);
@@ -82,6 +152,8 @@ function TiendaOrderTrackBannerInner() {
       setMounted(false);
       setOpen(false);
       setError(null);
+      setPending(false);
+      setTracked(null);
       closeTimer.current = null;
     }, EXIT_MS);
   }, []);
@@ -256,7 +328,7 @@ function TiendaOrderTrackBannerInner() {
     }
   }, [visible]);
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const ref = normalizeStoreOrderRef(orderSuffix);
     const phoneDigits = digitsOnly(phone);
@@ -271,8 +343,34 @@ function TiendaOrderTrackBannerInner() {
     }
 
     setError(null);
-    window.location.assign(misPedidosHref(ref));
+    setPending(true);
+    try {
+      const data = await postWebStoreOrderLookup({
+        storeOrderRef: ref,
+        phone: phone.trim(),
+      });
+      setTracked(data);
+    } catch (err) {
+      if (err instanceof WebStoreRequestError) {
+        if (err.status === 404) {
+          setError("No encontramos ese pedido con esos datos.");
+        } else if (err.status === 429) {
+          setError("Demasiados intentos. Espera un momento.");
+        } else {
+          setError("No se pudo consultar el pedido. Inténtalo de nuevo.");
+        }
+      } else {
+        setError("No se pudo consultar el pedido. Inténtalo de nuevo.");
+      }
+    } finally {
+      setPending(false);
+    }
   }
+
+  const trackedSteps = tracked
+    ? progressStepsFor(tracked.fulfillmentMethod)
+    : [];
+  const trackedDate = tracked ? formatOrderDate(tracked.createdAt) : null;
 
   const modal =
     portalReady && mounted
@@ -292,10 +390,14 @@ function TiendaOrderTrackBannerInner() {
             />
             <div
               ref={panelRef}
-              className="tienda-order-track-modal__panel"
+              className={
+                "tienda-order-track-modal__panel" +
+                (tracked ? " tienda-order-track-modal__panel--result" : "")
+              }
               role="dialog"
               aria-modal="true"
-              aria-labelledby={titleId}
+              aria-labelledby={tracked ? undefined : titleId}
+              aria-label={tracked ? `Pedido ${tracked.storeOrderRef}` : undefined}
             >
               <header className="tienda-order-track-modal__header">
                 <div
@@ -326,74 +428,223 @@ function TiendaOrderTrackBannerInner() {
                 </button>
               </header>
 
-              <div className="tienda-order-track-modal__body">
-                <h2 id={titleId} className="tienda-order-track-modal__title">
-                  Seguir tu pedido
-                </h2>
-                <form
-                  className="tienda-order-track-modal__form"
-                  onSubmit={onSubmit}
-                  noValidate
-                >
-                  <div className="tienda-order-track-modal__field">
-                    <label htmlFor={orderId}>Referencia</label>
-                    <div className="tienda-order-track-modal__order">
-                      <span
-                        className="tienda-order-track-modal__prefix"
-                        aria-hidden
-                      >
-                        MV
-                      </span>
-                      <input
-                        ref={orderInputRef}
-                        id={orderId}
-                        className="tienda-order-track-modal__input"
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        spellCheck={false}
-                        placeholder="260018"
-                        value={orderSuffix}
-                        onChange={(e) => {
-                          const next = e.target.value
-                            .toUpperCase()
-                            .replace(/^MV/i, "");
-                          setOrderSuffix(next.replace(/[^\dA-Z]/gi, ""));
-                          if (error) setError(null);
-                        }}
-                      />
+              <div
+                className={
+                  "tienda-order-track-modal__body" +
+                  (tracked ? " tienda-order-track-modal__body--result" : "")
+                }
+              >
+                {tracked ? (
+                  <div className="tienda-order-track-result">
+                    <div className="tienda-order-track-result__top">
+                      <p className="tienda-order-track-result__ref">
+                        {tracked.storeOrderRef}
+                      </p>
+                      {trackedDate ? (
+                        <p className="tienda-order-track-result__date">
+                          {trackedDate}
+                        </p>
+                      ) : null}
                     </div>
-                  </div>
 
-                  <div className="tienda-order-track-modal__field">
-                    <label htmlFor={phoneId}>Teléfono</label>
-                    <input
-                      id={phoneId}
-                      className="tienda-order-track-modal__input"
-                      type="tel"
-                      autoComplete="tel"
-                      placeholder="600 000 000"
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                        if (error) setError(null);
-                      }}
-                    />
-                  </div>
+                    {showsProgress(tracked.status) ? (
+                      <ol
+                        className="tienda-order-track-progress"
+                        aria-label="Estado del pedido"
+                      >
+                        {trackedSteps.map((step) => {
+                          const state = stepState(
+                            step.id,
+                            tracked.status,
+                            trackedSteps,
+                          );
+                          return (
+                            <li
+                              key={step.id}
+                              className={
+                                "tienda-order-track-progress__step" +
+                                ` tienda-order-track-progress__step--${state}`
+                              }
+                            >
+                              <span
+                                className="tienda-order-track-progress__dot"
+                                aria-hidden
+                              />
+                              <span className="tienda-order-track-progress__label">
+                                {step.label}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    ) : (
+                      <p
+                        className={
+                          "tienda-order-track-result__badge" +
+                          (tracked.status === "cancelled"
+                            ? " tienda-order-track-result__badge--muted"
+                            : "")
+                        }
+                      >
+                        {tracked.statusLabel}
+                      </p>
+                    )}
 
-                  {error ? (
-                    <p className="tienda-order-track-modal__error" role="alert">
-                      {error}
+                    <p className="tienda-order-track-result__fulfillment">
+                      {tracked.fulfillmentLabel}
                     </p>
-                  ) : null}
 
-                  <button
-                    type="submit"
-                    className="tienda-order-track-modal__submit mob-link--wave"
-                  >
-                    <WaveText text="Consultar" />
-                  </button>
-                </form>
+                    <ul className="tienda-order-track-result__lines">
+                      {tracked.lines.map((line, i) => {
+                        const img = webStoreFileUrl(line.imageUrl);
+                        return (
+                          <li
+                            key={`${line.name}-${i}`}
+                            className="tienda-order-track-result__line"
+                          >
+                            <div className="tienda-order-track-result__thumb">
+                              {img ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={img} alt="" />
+                              ) : (
+                                <span aria-hidden>◇</span>
+                              )}
+                            </div>
+                            <div className="tienda-order-track-result__line-copy">
+                              <p className="tienda-order-track-result__line-name">
+                                {line.name}
+                              </p>
+                              {line.optionLabel ? (
+                                <p className="tienda-order-track-result__line-opt">
+                                  {line.optionLabel}
+                                </p>
+                              ) : null}
+                              <p className="tienda-order-track-result__line-qty">
+                                {line.quantity} ×{" "}
+                                {formatEuroFromCents(line.salePriceCents)}
+                              </p>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    {tracked.shippingCents > 0 ? (
+                      <p className="tienda-order-track-result__ship">
+                        Envío: {formatEuroFromCents(tracked.shippingCents)}
+                      </p>
+                    ) : null}
+
+                    {tracked.trackingNumber ? (
+                      <p className="tienda-order-track-result__tracking">
+                        Seguimiento
+                        {tracked.carrier ? ` (${tracked.carrier})` : ""}:{" "}
+                        <strong>{tracked.trackingNumber}</strong>
+                      </p>
+                    ) : null}
+
+                    <div className="tienda-order-track-result__total">
+                      <span>Total</span>
+                      <strong>
+                        {formatEuroFromCents(tracked.totalCents)}
+                      </strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="tienda-order-track-modal__submit mob-link--wave"
+                      onClick={() => {
+                        setTracked(null);
+                        setError(null);
+                        window.setTimeout(
+                          () => orderInputRef.current?.focus(),
+                          40,
+                        );
+                      }}
+                    >
+                      <WaveText text="Consultar otro" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2
+                      id={titleId}
+                      className="tienda-order-track-modal__title"
+                    >
+                      Seguir tu pedido
+                    </h2>
+                    <form
+                      className="tienda-order-track-modal__form"
+                      onSubmit={onSubmit}
+                      noValidate
+                    >
+                      <div className="tienda-order-track-modal__field">
+                        <label htmlFor={orderId}>Referencia</label>
+                        <div className="tienda-order-track-modal__order">
+                          <span
+                            className="tienda-order-track-modal__prefix"
+                            aria-hidden
+                          >
+                            MV
+                          </span>
+                          <input
+                            ref={orderInputRef}
+                            id={orderId}
+                            className="tienda-order-track-modal__input"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder="260018"
+                            value={orderSuffix}
+                            onChange={(e) => {
+                              const next = e.target.value
+                                .toUpperCase()
+                                .replace(/^MV/i, "");
+                              setOrderSuffix(next.replace(/[^\dA-Z]/gi, ""));
+                              if (error) setError(null);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="tienda-order-track-modal__field">
+                        <label htmlFor={phoneId}>Teléfono</label>
+                        <input
+                          id={phoneId}
+                          className="tienda-order-track-modal__input"
+                          type="tel"
+                          autoComplete="tel"
+                          placeholder="600 000 000"
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            if (error) setError(null);
+                          }}
+                        />
+                      </div>
+
+                      {error ? (
+                        <p
+                          className="tienda-order-track-modal__error"
+                          role="alert"
+                        >
+                          {error}
+                        </p>
+                      ) : null}
+
+                      <button
+                        type="submit"
+                        className="tienda-order-track-modal__submit mob-link--wave"
+                        disabled={pending}
+                      >
+                        <WaveText
+                          text={pending ? "Consultando…" : "Consultar"}
+                        />
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           </div>,
