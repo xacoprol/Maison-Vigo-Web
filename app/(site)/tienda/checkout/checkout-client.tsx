@@ -241,13 +241,19 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
   const summaryBody = (
     <>
       <ul className="tienda-checkout__lines">
-        {lines.map((line) => (
+        {lines.map((line) => {
+          const extra = line.personalizationExtraCents ?? 0;
+          return (
           <li key={line.lineId} className="tienda-checkout__line">
             <div className="tienda-checkout__line-media">
               {line.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={line.imageUrl} alt="" />
-              ) : null}
+              ) : (
+                <span className="tienda-checkout__line-media-empty" aria-hidden>
+                  —
+                </span>
+              )}
               <span className="tienda-checkout__line-qty">{line.quantity}</span>
             </div>
             <div className="tienda-checkout__line-meta">
@@ -264,51 +270,73 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
                   {line.customization.texts?.map((text, index) =>
                     text.value ? (
                       <li key={`${text.label}-${index}`}>
-                        {text.label}: {text.value}
-                      </li>
-                    ) : null,
-                  )}
-                  {line.customization.photos?.map((photo, index) =>
-                    photo.url ? (
-                      <li
-                        key={`photo-${photo.label}-${index}`}
-                        className="tienda-checkout__line-photo"
-                      >
-                        <span>{photo.label}</span>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={webStoreFileUrl(photo.url)} alt="" />
+                        <span className="tienda-checkout__line-custom-label">
+                          {text.label}:
+                        </span>{" "}
+                        {text.value}
                       </li>
                     ) : null,
                   )}
                   {line.customization.quantityTextGroups?.map((group, gi) =>
                     group.quantity > 0 ? (
                       <li key={`qty-${group.label}-${gi}`}>
-                        {group.label}: {group.quantity}
-                        {group.texts?.some((t) => t.value)
-                          ? ` · ${group.texts
-                              .filter((t) => t.value)
-                              .map((t) => `${t.label}: ${t.value}`)
-                              .join(" · ")}`
-                          : ""}
+                        <span className="tienda-checkout__line-custom-label">
+                          {group.label} ({group.quantity})
+                        </span>
+                        {group.texts?.some((t) => t.value) ? (
+                          <ul className="tienda-checkout__line-custom-nested">
+                            {group.texts.map((text, ti) =>
+                              text.value ? (
+                                <li key={`${text.label}-${ti}`}>
+                                  <span className="tienda-checkout__line-custom-label">
+                                    {text.label}:
+                                  </span>{" "}
+                                  {text.value}
+                                </li>
+                              ) : null,
+                            )}
+                          </ul>
+                        ) : null}
                       </li>
                     ) : null,
                   )}
                 </ul>
               ) : null}
-            </div>
-            <div className="tienda-checkout__line-price-wrap">
-              <p className="tienda-checkout__line-price">
-                {formatEuroFromCents(line.salePriceCents * line.quantity)}
+              {line.customization?.photos?.some((p) => p.url) ? (
+                <div className="tienda-checkout__line-photos">
+                  {line.customization.photos.map((photo, index) =>
+                    photo.url ? (
+                      <div
+                        key={`photo-${photo.label}-${index}`}
+                        className="tienda-checkout__line-photo"
+                        title={photo.label}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={webStoreFileUrl(photo.url)}
+                          alt={photo.label}
+                        />
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              ) : null}
+              <p className="tienda-checkout__line-unit">
+                {formatEuroFromCents(line.salePriceCents)}
               </p>
-              {(line.personalizationExtraCents ?? 0) > 0 ? (
+              {extra > 0 ? (
                 <p className="tienda-checkout__line-extra">
-                  incl. {formatEuroFromCents(line.personalizationExtraCents ?? 0)}{" "}
-                  pers./ud.
+                  {formatEuroFromCents(line.salePriceCents - extra)} +{" "}
+                  {formatEuroFromCents(extra)} pers.
                 </p>
               ) : null}
             </div>
+            <p className="tienda-checkout__line-price">
+              {formatEuroFromCents(line.salePriceCents * line.quantity)}
+            </p>
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       <div className="tienda-checkout__totals">
