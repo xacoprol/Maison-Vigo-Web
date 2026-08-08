@@ -2249,6 +2249,7 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  justify-self: end;
 }
 
 .tienda-checkout__card-brand {
@@ -2686,7 +2687,7 @@
   .tienda-checkout__method-price,
   .tienda-checkout__card-brands {
     grid-area: trail;
-    justify-self: start;
+    justify-self: end;
   }
 
   .tienda-checkout__line {
