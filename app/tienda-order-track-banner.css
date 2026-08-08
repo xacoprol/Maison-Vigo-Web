@@ -6,6 +6,7 @@
   isolation: isolate;
   /* Misma textura que #ritmo-cuidado (bgpasos). */
   --ritmo-bg: #1a1614;
+  margin-top: clamp(56px, 8vw, 96px);
   background-color: var(--ritmo-bg);
   background-image:
     linear-gradient(rgba(11, 11, 11, 0.5), rgba(11, 11, 11, 0.5)),
@@ -23,7 +24,7 @@
   align-items: center;
   text-align: center;
   gap: clamp(18px, 2.4vw, 26px);
-  padding: clamp(56px, 7vw, 96px) var(--nav-pad-x, 42px);
+  padding: clamp(28px, 3.5vw, 44px) var(--nav-pad-x, 42px);
   max-width: 640px;
   margin: 0 auto;
 }
