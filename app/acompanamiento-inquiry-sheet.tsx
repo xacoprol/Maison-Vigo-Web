@@ -192,7 +192,7 @@ export function AcompanamientoInquirySheet() {
     };
   }, [mounted, visible]);
 
-  const onSubmit = async (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending || done) return;
     setError(null);
