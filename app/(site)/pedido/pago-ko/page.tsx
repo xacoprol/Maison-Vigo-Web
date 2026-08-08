@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { TiendaLogoLoader } from "../tienda/tienda-logo-loader";
+import { TiendaLogoLoader } from "../../tienda/tienda-logo-loader";
 import { PagoKoClient } from "./pago-ko-client";
 
 import "../../tienda/tienda.css";
