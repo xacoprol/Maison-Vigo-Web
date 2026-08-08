@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import { ORDER_TRACK_OPEN_EVENT } from "@/lib/care-assist";
 import {
   postWebStoreOrderLookup,
   WebStoreRequestError,
@@ -143,6 +144,20 @@ function TiendaOrderTrackBannerInner() {
 
   useEffect(() => {
     setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    const onOpen = () => {
+      if (closeTimer.current != null) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
+      setOpen(true);
+    };
+    document.body.addEventListener(ORDER_TRACK_OPEN_EVENT, onOpen);
+    return () => {
+      document.body.removeEventListener(ORDER_TRACK_OPEN_EVENT, onOpen);
+    };
   }, []);
 
   const closeModal = useCallback(() => {
@@ -655,6 +670,7 @@ function TiendaOrderTrackBannerInner() {
   return (
     <>
       <section
+        id="seguir-pedido"
         className="tienda-order-track"
         aria-labelledby="tienda-order-track-title"
       >

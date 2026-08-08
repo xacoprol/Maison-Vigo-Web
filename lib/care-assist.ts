@@ -11,6 +11,9 @@ export const CARE_ASSIST_MAX_HISTORY = 12;
 /** Abre el panel de orientación (detalle opcional: `{ prompt?: string }`). */
 export const CARE_ASSIST_OPEN_EVENT = "mv-care-assist-open";
 
+/** Abre el modal de seguimiento de pedido (banner The Selection). */
+export const ORDER_TRACK_OPEN_EVENT = "mv-order-track-open";
+
 export type CareAssistOpenDetail = {
   prompt?: string;
 };
@@ -25,36 +28,28 @@ export type CareAssistMessage = {
 export type CareAssistChip = {
   id: string;
   label: string;
-  prompt: string;
+  prompt?: string;
+  action?: "order-track";
 };
 
 export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
   {
     id: "grooming",
-    label: "Manto y estética",
-    prompt: "Mi perro necesita cuidado del manto y la estética. ¿Qué servicio encaja?",
+    label: "Baño o corte",
+    prompt:
+      "Mi perro necesita baño, corte o mantenimiento del manto. ¿Qué servicio de grooming encaja?",
   },
   {
     id: "bienestar",
-    label: "Piel o manto",
-    prompt: "Tiene la piel sensible o el manto necesita un seguimiento cutáneo. ¿Qué me recomendáis?",
+    label: "Piel sensible",
+    prompt:
+      "Tiene la piel sensible o el manto necesita un seguimiento cutáneo. ¿Qué me recomendáis?",
   },
   {
     id: "guarderia",
-    label: "Guardería / noches",
+    label: "Guardería",
     prompt:
       "Necesito que mi perro se quede en guardería, de día o también alguna noche. ¿Cómo funciona Guardería Familiar?",
-  },
-  {
-    id: "evento",
-    label: "Boda o evento",
-    prompt: "Tengo una boda o evento y quiero acompañamiento para mi perro. ¿Cómo funciona?",
-  },
-  {
-    id: "educacion",
-    label: "Conducta o nervios",
-    prompt:
-      "Mi perro está nervioso o tenemos dudas de conducta y convivencia. ¿Qué servicio encaja?",
   },
   {
     id: "tienda",
@@ -63,8 +58,13 @@ export const CARE_ASSIST_CHIPS: CareAssistChip[] = [
       "¿Qué productos tenéis en The Selection? Me interesan joyas, collares o accesorios.",
   },
   {
+    id: "order-track",
+    label: "Seguir pedido",
+    action: "order-track",
+  },
+  {
     id: "reserva",
-    label: "Quiero reservar",
+    label: "Reservar cita",
     prompt: "Quiero reservar una cita. ¿Cuál es el siguiente paso?",
   },
 ];

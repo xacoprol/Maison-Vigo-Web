@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -15,6 +16,8 @@ import {
   CARE_ASSIST_MAX_MESSAGE_CHARS,
   CARE_ASSIST_MAX_USER_MESSAGES,
   CARE_ASSIST_OPEN_EVENT,
+  ORDER_TRACK_OPEN_EVENT,
+  type CareAssistChip,
   type CareAssistMessage,
   type CareAssistOpenDetail,
 } from "@/lib/care-assist";
@@ -56,6 +59,8 @@ function newId() {
 
 export function CareAssist() {
   const titleId = useId();
+  const router = useRouter();
+  const pathname = usePathname() || "";
   const panelRef = useRef<HTMLDivElement>(null);
   const grabberRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -68,11 +73,75 @@ export function CareAssist() {
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<UiMessage[]>([WELCOME]);
   const pendingPromptRef = useRef<string | null>(null);
+  const pendingOrderTrackRef = useRef(false);
   const sendMessageRef = useRef<(text: string) => Promise<void>>(
     async () => {},
   );
   const userTurns = messages.filter((m) => m.role === "user").length;
   const limitReached = userTurns >= CARE_ASSIST_MAX_USER_MESSAGES;
+
+  const openOrderTrackModal = useCallback(() => {
+    const el = document.getElementById("seguir-pedido");
+    if (!el) return false;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.body.dispatchEvent(new Event(ORDER_TRACK_OPEN_EVENT));
+    return true;
+  }, []);
+
+  /** Tras navegar a /tienda, abre el modal cuando el banner ya está montado. */
+  useEffect(() => {
+    if (!pendingOrderTrackRef.current) return;
+    if (
+      pathname !== "/tienda" &&
+      !pathname.startsWith("/tienda/")
+    ) {
+      return;
+    }
+    if (
+      pathname === "/tienda/checkout" ||
+      pathname.startsWith("/tienda/checkout/")
+    ) {
+      return;
+    }
+
+    let attempts = 0;
+    const tryOpen = () => {
+      if (openOrderTrackModal()) {
+        pendingOrderTrackRef.current = false;
+        return;
+      }
+      if (attempts++ >= 40) {
+        pendingOrderTrackRef.current = false;
+        return;
+      }
+      window.requestAnimationFrame(tryOpen);
+    };
+    tryOpen();
+  }, [pathname, openOrderTrackModal]);
+
+  const onChipClick = useCallback(
+    (chip: CareAssistChip) => {
+      if (chip.action === "order-track") {
+        setOpen(false);
+        pendingOrderTrackRef.current = true;
+        if (openOrderTrackModal()) {
+          pendingOrderTrackRef.current = false;
+          return;
+        }
+        router.push("/tienda");
+        return;
+      }
+      if (!chip.prompt) return;
+      setInput(chip.prompt);
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      if (!coarse) {
+        window.requestAnimationFrame(() =>
+          inputRef.current?.focus({ preventScroll: true }),
+        );
+      }
+    },
+    [openOrderTrackModal, router],
+  );
 
   const scrollToBottom = useCallback(() => {
     const el = listRef.current;
@@ -672,19 +741,13 @@ export function CareAssist() {
                   type="button"
                   className={
                     "care-assist-chip" +
-                    (input === chip.prompt ? " is-selected" : "")
+                    (chip.prompt && input === chip.prompt
+                      ? " is-selected"
+                      : "")
                   }
                   role="listitem"
                   disabled={pending}
-                  onClick={() => {
-                    setInput(chip.prompt);
-                    const coarse = window.matchMedia("(pointer: coarse)").matches;
-                    if (!coarse) {
-                      window.requestAnimationFrame(() =>
-                        inputRef.current?.focus({ preventScroll: true }),
-                      );
-                    }
-                  }}
+                  onClick={() => onChipClick(chip)}
                 >
                   {chip.label}
                 </button>
