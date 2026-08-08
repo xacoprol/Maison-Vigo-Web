@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
 } from "react";
 
 import type { WebStoreProduct } from "@/lib/web-store/types";
@@ -63,6 +64,8 @@ type Props = {
   layout?: "grid" | "carousel";
   /** Índice 0-based de la sección; pares (2.ª, 4.ª…) invierten el desfase. */
   sectionIndex?: number;
+  /** Entrada escalonada (cambio grilla ↔ carrusel). */
+  staggerEnter?: boolean;
 };
 
 export function TiendaEditorialGrid({
@@ -70,6 +73,7 @@ export function TiendaEditorialGrid({
   onSelectProduct,
   layout = "carousel",
   sectionIndex = 0,
+  staggerEnter = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const colRefs = useRef<(HTMLUListElement | null)[]>([]);
@@ -82,7 +86,9 @@ export function TiendaEditorialGrid({
   const showCarousel = !asGrid && !isDesktop;
 
   const columns = Array.from({ length: columnCount }, (_, col) =>
-    products.filter((_, index) => index % columnCount === col),
+    products
+      .map((product, index) => ({ product, index }))
+      .filter(({ index }) => index % columnCount === col),
   );
 
   useEffect(() => {
@@ -134,17 +140,20 @@ export function TiendaEditorialGrid({
 
       let minY = 0;
       let maxY = 0;
+      let firstY = 0;
       cols.forEach((col, index) => {
         const sizeVh = amplitudes[Math.min(index, amplitudes.length - 1)] ?? 0;
         const y = parallaxY(sizeVh);
         col.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (index === 0) firstY = y;
         minY = Math.min(minY, y);
         maxY = Math.max(maxY, y);
       });
       if (maxY > 0) {
-        // En móvil: poco pull para no subir la col 1 sobre el H2.
+        // Móvil: compensar solo el empujón de la col 1 (quita el negro bajo el H2)
+        // sin subirla encima del título. Escritorio: pull completo / parcial en pares.
         const pull = !desktop
-          ? maxY * 0.5
+          ? Math.max(0, firstY)
           : staggerFlip
             ? maxY * 0.35
             : maxY;
@@ -185,6 +194,7 @@ export function TiendaEditorialGrid({
         "tienda-editorial" +
         (asGrid ? " tienda-editorial--grid" : " tienda-editorial--carousel") +
         (staggerFlip ? " tienda-editorial--stagger-flip" : "") +
+        (staggerEnter ? " tienda-editorial--enter" : "") +
         ` tienda-editorial--cols-${columnCount}`
       }
     >
@@ -201,10 +211,11 @@ export function TiendaEditorialGrid({
                 ` tienda-editorial__col--${colIndex + 1}`
               }
             >
-              {columnProducts.map((product) => (
+              {columnProducts.map(({ product, index }) => (
                 <EditorialCard
                   key={`desk-${product.id}`}
                   product={product}
+                  staggerIndex={index}
                   onSelect={onSelectProduct}
                 />
               ))}
@@ -393,10 +404,11 @@ function EditorialMobileCarousel({
           className="tienda-editorial__carousel"
           aria-label="Productos"
         >
-          {products.map((product) => (
+          {products.map((product, index) => (
             <EditorialCard
               key={`mob-${product.id}`}
               product={product}
+              staggerIndex={index}
               onSelect={selectProduct}
             />
           ))}
@@ -488,9 +500,11 @@ function CarouselArrow({
 function EditorialCard({
   product,
   onSelect,
+  staggerIndex = 0,
 }: {
   product: WebStoreProduct;
   onSelect: (product: WebStoreProduct) => void;
+  staggerIndex?: number;
 }) {
   const primary = webStoreFileUrl(product.photos[0]?.url);
   const secondary = webStoreFileUrl(product.photos[1]?.url);
@@ -504,9 +518,13 @@ function EditorialCard({
     fromCents > 0
       ? `${showDesde ? "Desde " : ""}${formatEuroFromCents(fromCents)}`
       : null;
+  const stagger = Math.min(Math.max(staggerIndex, 0), 12);
 
   return (
-    <li className="tienda-editorial__card">
+    <li
+      className="tienda-editorial__card"
+      style={{ "--tienda-stagger": stagger } as CSSProperties}
+    >
       <button
         type="button"
         className={

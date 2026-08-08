@@ -11,13 +11,25 @@ import type {
 import { TiendaEditorialGrid } from "./tienda-editorial-grid";
 import { TiendaProductSheet } from "./tienda-product-sheet";
 
+/** Fade del stage al filtrar. */
 const FILTER_FADE_MS = 280;
+/** Delay entre tarjetas al cambiar grilla ↔ carrusel. */
+const LAYOUT_STAGGER_MS = 58;
+/** Duración de la animación de cada tarjeta. */
+const LAYOUT_CARD_MS = 420;
+/** Tope de delays (listas largas no tardan eternamente). */
+const LAYOUT_STAGGER_CAP = 12;
 
 type ProductLayout = "grid" | "carousel";
 
 type Props = {
   categories: WebStoreCategory[];
 };
+
+function layoutEnterDuration(productCount: number) {
+  const steps = Math.min(Math.max(productCount, 1), LAYOUT_STAGGER_CAP);
+  return (steps - 1) * LAYOUT_STAGGER_MS + LAYOUT_CARD_MS;
+}
 
 export function TiendaCatalog({ categories }: Props) {
   const sections = useMemo(
@@ -26,15 +38,9 @@ export function TiendaCatalog({ categories }: Props) {
   );
   const defaultLayout: ProductLayout =
     sections.length === 1 ? "grid" : "carousel";
-  const [productLayout, setProductLayout] =
-    useState<ProductLayout>(defaultLayout);
   const [pickerProduct, setPickerProduct] = useState<WebStoreProduct | null>(
     null,
   );
-
-  useEffect(() => {
-    setProductLayout(sections.length === 1 ? "grid" : "carousel");
-  }, [sections.length]);
 
   return (
     <>
@@ -46,8 +52,7 @@ export function TiendaCatalog({ categories }: Props) {
           parentName={section.parentName}
           allProducts={section.products}
           filters={section.filters}
-          productLayout={productLayout}
-          onProductLayoutChange={setProductLayout}
+          defaultLayout={defaultLayout}
           sectionIndex={sectionIndex}
           onSelectProduct={setPickerProduct}
         />
@@ -105,8 +110,7 @@ function CategorySection({
   parentName,
   allProducts,
   filters,
-  productLayout,
-  onProductLayoutChange,
+  defaultLayout,
   sectionIndex,
   onSelectProduct,
 }: {
@@ -115,20 +119,24 @@ function CategorySection({
   parentName: string | null;
   allProducts: WebStoreProduct[];
   filters: { id: string; name: string; products: WebStoreProduct[] }[];
-  productLayout: ProductLayout;
-  onProductLayoutChange: (layout: ProductLayout) => void;
+  defaultLayout: ProductLayout;
   sectionIndex: number;
   onSelectProduct: (product: WebStoreProduct) => void;
 }) {
   const showFilters = filters.length > 0;
   const [activeFilterId, setActiveFilterId] = useState("all");
   const [displayProducts, setDisplayProducts] = useState(allProducts);
+  const [productLayout, setProductLayout] =
+    useState<ProductLayout>(defaultLayout);
+  const [layoutBusy, setLayoutBusy] = useState(false);
+  const [staggerEnter, setStaggerEnter] = useState(false);
   const [stageKey, setStageKey] = useState("all");
   const [phase, setPhase] = useState<"in" | "out">("in");
   const pendingFilterRef = useRef("all");
   const pendingProductsRef = useRef(allProducts);
   const reducedMotionRef = useRef(false);
   const fadeTimerRef = useRef<number | null>(null);
+  const layoutBusyTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia(
@@ -150,15 +158,47 @@ function CategorySection({
   }, [allProducts]);
 
   useEffect(() => {
+    setProductLayout(defaultLayout);
+    setStaggerEnter(false);
+  }, [defaultLayout]);
+
+  useEffect(() => {
     return () => {
       if (fadeTimerRef.current != null) {
         window.clearTimeout(fadeTimerRef.current);
       }
+      if (layoutBusyTimerRef.current != null) {
+        window.clearTimeout(layoutBusyTimerRef.current);
+      }
     };
   }, []);
 
+  useEffect(() => {
+    if (!staggerEnter) return;
+    const timer = window.setTimeout(() => {
+      setStaggerEnter(false);
+    }, layoutEnterDuration(displayProducts.length));
+    return () => window.clearTimeout(timer);
+  }, [staggerEnter, productLayout, displayProducts.length]);
+
+  const requestLayoutChange = (next: ProductLayout) => {
+    if (next === productLayout || layoutBusy) return;
+    setLayoutBusy(true);
+    setProductLayout(next);
+    setStaggerEnter(!reducedMotionRef.current);
+    setPhase("in");
+    if (layoutBusyTimerRef.current != null) {
+      window.clearTimeout(layoutBusyTimerRef.current);
+    }
+    layoutBusyTimerRef.current = window.setTimeout(() => {
+      layoutBusyTimerRef.current = null;
+      setLayoutBusy(false);
+    }, layoutEnterDuration(displayProducts.length));
+  };
+
   const applyFilter = (filterId: string) => {
     if (filterId === activeFilterId && phase === "in") return;
+    if (layoutBusy) return;
     const next =
       filterId === "all"
         ? allProducts
@@ -171,6 +211,7 @@ function CategorySection({
       setDisplayProducts(next);
       setStageKey(filterId);
       setPhase("in");
+      setStaggerEnter(false);
       return;
     }
 
@@ -180,6 +221,7 @@ function CategorySection({
     setPhase("out");
     fadeTimerRef.current = window.setTimeout(() => {
       fadeTimerRef.current = null;
+      setStaggerEnter(false);
       setDisplayProducts(pendingProductsRef.current);
       setStageKey(pendingFilterRef.current);
       requestAnimationFrame(() => setPhase("in"));
@@ -223,7 +265,9 @@ function CategorySection({
           className="tienda-category__layout-toggle"
           aria-label={layoutLabel}
           title={layoutLabel}
-          onClick={() => onProductLayoutChange(nextLayout)}
+          aria-busy={layoutBusy}
+          disabled={layoutBusy}
+          onClick={() => requestLayoutChange(nextLayout)}
         >
           <LayoutToggleIcon mode={productLayout} />
         </button>
@@ -279,6 +323,7 @@ function CategorySection({
           products={displayProducts}
           layout={productLayout}
           sectionIndex={sectionIndex}
+          staggerEnter={staggerEnter}
           onSelectProduct={onSelectProduct}
         />
       </div>
