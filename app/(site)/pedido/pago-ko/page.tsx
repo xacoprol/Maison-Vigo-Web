@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { TiendaLogoLoader } from "../tienda/tienda-logo-loader";
 import { PagoKoClient } from "./pago-ko-client";
 
 import "../../tienda/tienda.css";
@@ -21,7 +22,14 @@ export default function PedidoPagoKoPage() {
           El cobro no se ha confirmado. Puedes volver al carrito e intentarlo de
           nuevo, o escribirnos si necesitas ayuda.
         </p>
-        <Suspense fallback={<p className="tienda-status">Cargando…</p>}>
+        <Suspense
+          fallback={
+            <TiendaLogoLoader
+              message="Cargando…"
+              className="tienda-logo-loader--compact"
+            />
+          }
+        >
           <PagoKoClient />
         </Suspense>
         <div className="tienda-nav-links" style={{ marginTop: 24 }}>

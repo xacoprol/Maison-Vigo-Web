@@ -27,6 +27,7 @@ import {
 } from "@/lib/web-store/utils";
 
 import { useWebStoreCart } from "../web-store-cart";
+import { TiendaLogoLoader } from "../tienda-logo-loader";
 import {
   TiendaLegalSheet,
   type TiendaLegalDoc,
@@ -221,7 +222,7 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
   };
 
   if (!hydrated) {
-    return <p className="tienda-status">Cargando…</p>;
+    return <TiendaLogoLoader message="Cargando…" />;
   }
 
   if (!lines.length) {

@@ -14,6 +14,7 @@ import {
 } from "@/lib/web-store/utils";
 
 import { useWebStoreCart } from "../web-store-cart";
+import { TiendaLogoLoader } from "../tienda-logo-loader";
 
 const PAID_STATUSES = new Set([
   "paid",
@@ -169,11 +170,7 @@ function PedidoOkInner() {
   );
 
   if (status === "loading") {
-    return (
-      <div className="tienda-pago-ok">
-        <p className="tienda-pago-ok__status">Confirmando tu pago…</p>
-      </div>
-    );
+    return <TiendaLogoLoader message="Confirmando tu pago…" />;
   }
 
   if (status === "missing" && !storeOrderRef) {
@@ -345,13 +342,7 @@ function PedidoOkInner() {
 
 export default function TiendaPedidoOkPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="tienda-pago-ok">
-          <p className="tienda-pago-ok__status">Cargando…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<TiendaLogoLoader message="Cargando…" />}>
       <PedidoOkInner />
     </Suspense>
   );

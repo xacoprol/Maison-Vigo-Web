@@ -260,6 +260,159 @@
   color: var(--gold-lt, #d4af7a);
 }
 
+/* Loader marca M (como MV Care). */
+.tienda-logo-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: min(70vh, 520px);
+  padding: 48px 24px;
+}
+
+.tienda-logo-loader--compact {
+  min-height: 0;
+  padding: 32px 16px;
+}
+
+.tienda-logo-loader__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.tienda-logo-loader__message {
+  margin: 0;
+  max-width: 20rem;
+  font-family: var(--ff-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(241, 236, 230, 0.55);
+}
+
+.tienda-logo-loader__bar {
+  position: relative;
+  width: 11rem;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tienda-logo-loader__bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(187, 149, 93, 0.85),
+    transparent
+  );
+  animation: tienda-logo-loader-bar 1.25s ease-in-out infinite;
+}
+
+@keyframes tienda-logo-loader-bar {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.tienda-logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tienda-logo-mark__svg {
+  display: block;
+  width: 56px;
+  height: auto;
+  aspect-ratio: 81.9 / 73.5;
+}
+
+.tienda-logo-mark__v {
+  fill: #bb955d;
+  fill-opacity: 0;
+  stroke: #bb955d;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation:
+    tienda-logo-draw-v 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards,
+    tienda-logo-fill-in 0.7s ease 1.4s forwards;
+}
+
+.tienda-logo-mark__wing-l {
+  fill: #bb955d;
+  fill-opacity: 0;
+  stroke: #bb955d;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation:
+    tienda-logo-draw-wing 0.8s cubic-bezier(0.4, 0, 0.2, 1) 1s forwards,
+    tienda-logo-fill-in 0.5s ease 1.55s forwards;
+}
+
+.tienda-logo-mark__wing-r {
+  fill: #bb955d;
+  fill-opacity: 0;
+  stroke: #bb955d;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation:
+    tienda-logo-draw-wing 0.8s cubic-bezier(0.4, 0, 0.2, 1) 1.1s forwards,
+    tienda-logo-fill-in 0.5s ease 1.55s forwards;
+}
+
+@keyframes tienda-logo-draw-v {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes tienda-logo-draw-wing {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes tienda-logo-fill-in {
+  from {
+    fill-opacity: 0;
+  }
+  to {
+    fill-opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tienda-logo-mark__v,
+  .tienda-logo-mark__wing-l,
+  .tienda-logo-mark__wing-r {
+    animation: none;
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+
+  .tienda-logo-loader__bar-fill {
+    animation: none;
+    left: 31%;
+  }
+}
+
 .tienda-category {
   margin: 0 0 clamp(12px, 2vw, 20px);
   padding-inline: 0;

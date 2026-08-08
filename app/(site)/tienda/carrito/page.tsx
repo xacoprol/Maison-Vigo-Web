@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
+import { TiendaLogoLoader } from "../tienda-logo-loader";
 import { useWebStoreCart } from "../web-store-cart";
 
 export default function TiendaCarritoPage() {
@@ -11,7 +12,7 @@ export default function TiendaCarritoPage() {
     useWebStoreCart();
 
   if (!hydrated) {
-    return <p className="tienda-status">Cargando carrito…</p>;
+    return <TiendaLogoLoader message="Cargando carrito…" />;
   }
 
   return (
