@@ -27,6 +27,8 @@ async function proxy(req: NextRequest, ctx: Ctx) {
   headers.set("Accept", "application/json");
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
+  const cookie = req.headers.get("cookie");
+  if (cookie) headers.set("Cookie", cookie);
 
   const init: RequestInit = {
     method: req.method,

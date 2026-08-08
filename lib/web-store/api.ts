@@ -45,6 +45,7 @@ async function webStoreFetch<T>(
 
   const res = await fetch(`${root}${path}`, {
     ...init,
+    credentials: init?.credentials ?? "same-origin",
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
@@ -71,6 +72,18 @@ export function fetchWebStoreCatalog(): Promise<WebStoreCatalog> {
 
 export function fetchWebStoreConfig(): Promise<WebStoreConfig> {
   return webStoreFetch<WebStoreConfig>("/config");
+}
+
+/** Sesión MV Care (si la cookie está disponible en este dominio). */
+export function fetchWebStoreSessionContext(): Promise<{
+  loggedIn: boolean;
+  petName: string | null;
+  pets: { id: string; name: string }[];
+}> {
+  return webStoreFetch("/session-context", {
+    method: "GET",
+    credentials: "include",
+  });
 }
 
 /** Sube foto de grabado (multipart `photo`). Devuelve URL relativa Care `/files/…`. */

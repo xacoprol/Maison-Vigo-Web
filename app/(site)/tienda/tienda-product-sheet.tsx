@@ -34,6 +34,7 @@ import {
 import { TiendaProductDescription } from "./tienda-product-description";
 import { TiendaProductGallery } from "./tienda-product-gallery";
 import { TiendaPersonalizationAiButton } from "./tienda-personalization-ai-button";
+import { useWebStoreMvCareSession } from "./use-web-store-mvcare-session";
 import { useWebStoreCart } from "./web-store-cart";
 
 const EXIT_MS = 520;
@@ -46,6 +47,7 @@ type Props = {
 
 export function TiendaProductSheet({ product, open, onClose }: Props) {
   const { addProduct } = useWebStoreCart();
+  const { petName: sessionPetName } = useWebStoreMvCareSession();
   const titleId = useId();
   const [portalReady, setPortalReady] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -356,22 +358,6 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
       .map((value) => String(value ?? "").trim())
       .filter(Boolean),
   ];
-
-  const guessedPetName =
-    textFields
-      .map((field) => ({
-        label: field.label.toLowerCase(),
-        value: String(textValues[field.label] ?? "").trim(),
-      }))
-      .find(
-        (row) =>
-          row.value &&
-          /mascota|perro|gato|nombre|huella|compañer/.test(row.label),
-      )?.value ||
-    Object.values(qtyTextValues)
-      .map((value) => String(value ?? "").trim())
-      .find(Boolean) ||
-    null;
 
   const isTextFieldRequired = (label: string) => {
     const field = textFields.find((item) => item.label === label);
@@ -821,7 +807,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                                       t !==
                                       String(qtyTextValues[key] ?? "").trim(),
                                   )}
-                                  petName={guessedPetName}
+                                  petName={sessionPetName}
                                   disabled={added}
                                   onGenerated={(text) => {
                                     let next = text;
@@ -919,7 +905,7 @@ export function TiendaProductSheet({ product, open, onClose }: Props) {
                             t !==
                             String(textValues[field.label] ?? "").trim(),
                         )}
-                        petName={guessedPetName}
+                        petName={sessionPetName}
                         disabled={added}
                         onGenerated={(text) => {
                           let next = text;

@@ -1,4 +1,4 @@
-/** Generador local de textos de grabado (mascotas / ñoño). Sin depender del API Care. */
+/** Generador local de textos de grabado (mascotas). ~90% español, tono afectuoso. */
 
 export type PersonalizationDraftInput = {
   productName?: string;
@@ -11,27 +11,42 @@ export type PersonalizationDraftInput = {
   count?: number;
 };
 
+/** Palabras cortas que caben en grabados pequeños. */
 const STYLE_WORDS = [
-  "Eterno", "Forever", "Always", "Juntos", "Siempre", "Hogar", "Amor",
-  "Familia", "Luz", "Vida", "Mía", "Soul", "Home", "Love", "Brave",
-  "Wild", "Free", "Bond", "True", "Stay", "Hope", "Dream", "Grace",
-  "Loyal", "Gentle", "Darling", "Cherish", "Ever", "Bloom", "Spark",
-  "Shine", "Soft", "Warm", "Alma", "Fiel", "Dulce", "Libre", "Única",
-  "Siempre.", "Contigo", "♡",
-  "Peludo", "Peluda", "Patitas", "Cariño", "Bebé", "Guau", "Miau", "Pup",
-  "Kitty", "Buddy", "Bestie", "Paws", "Nube", "Sol", "Miel", "Princesa",
-  "Tesoro", "Corazón", "Mimosa",
+  // Vínculo / cariño
+  "Amor", "Fiel", "Dulce", "Mío", "Mía", "Siempre", "Juntos", "Hogar",
+  "Familia", "Alma", "Luz", "Vida", "Tesoro", "Cariño", "Mimoso", "Mimosa",
+  "Bombón", "Corazón", "Único", "Única", "Libre", "Valiente", "Guardián",
+  "Compañero", "Compañera", "Eterno", "Contigo", "♡",
+  // Mundo perruno / mascota
+  "Peludo", "Peluda", "Patitas", "Huellas", "Guau", "Wau", "Colita",
+  "Orejas", "Hocico", "Bebé", "Princesa", "Príncipe", "Rey", "Reina",
+  "Nube", "Sol", "Miel", "Canela", "Trufa", "Canijo", "Chulo", "Chula",
+  "Travieso", "Traviesa", "Ladrón", "Ladrona", "Paseo", "Parque",
+  // Poco inglés (lo que sí usa la clientela)
+  "Forever", "Pup", "Paws",
 ];
 
+/** Frases cortas; prioriza emoción y vida con el perro. */
 const STYLE_PHRASES = [
-  "Para ti", "Mi hogar", "Mi luz", "Stay wild", "Almas unidas",
-  "Contigo.", "My love", "Mi norte", "Con alma",
-  "Mi bebé", "Mi vida", "Mi rey", "Mi reina", "Mi sol", "Mi nube", "Con amor",
-  "Para siempre", "Mi peludo", "Mi peluda", "Patitas ♡",
-  "Love you", "My baby", "My angel", "Sweet soul",
+  "Mi peludo", "Mi peluda", "Mi bebé", "Mi vida", "Mi sol", "Mi nube",
+  "Mi rey", "Mi reina", "Mi tesoro", "Mi cariño", "Mi hogar", "Mi luz",
+  "Mi norte", "Mi todo", "Mi familia", "Con amor", "Para ti", "Contigo.",
+  "Para siempre", "Siempre juntos", "Contigo siempre", "Hasta siempre",
+  "Mejor amigo", "Mejor amiga", "Amor eterno", "Almas unidas",
+  "4 patitas", "Patitas ♡", "Huellas ♡", "Amor de 4 patas",
+  "Fiel amigo", "Fiel amiga", "Mi guardián", "Mi compañero",
+  "Mi compañera", "Vida peluda", "Cola feliz", "Guau guau",
+  "Paseitos", "A tu lado", "Sin ti, nada", "Mi persona",
+  "Te elijo", "Siempre tú", "Mi primer amor",
+  // ~10% inglés habitual
+  "Forever ♡", "Best friend",
 ];
 
-const PLACES = ["Vigo", "42°N", "Galicia", "Rías", "Cíes", "42.2N"];
+/** Toque local Maison Vigo / Galicia (poca proporción). */
+const PLACES = ["Vigo", "Galicia", "Cíes", "Rías", "42°N"];
+
+const FALLBACK_ES = ["♡", "Amor", "Fiel", "Patitas", "Mi vida", "Siempre"];
 
 function resolveMax(maxLength?: number | null): number {
   return maxLength != null && maxLength > 0 ? maxLength : 28;
@@ -64,12 +79,49 @@ function isSingleToken(text: string): boolean {
   return !/\s/.test(normalize(text));
 }
 
+function looksSpanish(text: string): boolean {
+  const t = normalize(text);
+  if (/[áéíóúüñ¿¡]/i.test(t)) return true;
+  if (/♡/.test(t)) return true;
+  // Common Spanish engraving words without accents
+  if (
+    /\b(amor|fiel|dulce|siempre|juntos|hogar|familia|alma|luz|vida|tesoro|cariño|cariño|peludo|peluda|patitas|huellas|guau|bebé|bebe|princesa|nube|miel|contigo|mío|mio|mía|mia|único|unica|única|libre|guardián|guardian|paseo|parque|colita|hocico|canela|trufa|canijo|chulo|travieso|compañero|companero|compañera|eterno|valiente|bombón|bombon)\b/i.test(
+      t,
+    )
+  ) {
+    return true;
+  }
+  if (/^(mi |para |con |hasta |sin |a tu )/i.test(t)) return true;
+  return false;
+}
+
 function band(max: number): "initials" | "tiny" | "short" | "medium" | "roomy" {
   if (max <= 3) return "initials";
   if (max <= 6) return "tiny";
   if (max <= 10) return "short";
   if (max <= 16) return "medium";
   return "roomy";
+}
+
+function petVariants(pet: string, max: number): string[] {
+  const name = normalize(pet);
+  if (!name) return [];
+  const out: string[] = [];
+  const candidates = [
+    name,
+    `${name} ♡`,
+    `Mi ${name}`,
+    `Para ${name}`,
+    `${name}.`,
+    `Te quiero, ${name}`,
+    `${name} forever`,
+    `Siempre, ${name}`,
+    `${name} · ♡`,
+  ];
+  for (const c of candidates) {
+    if (fits(c, max)) out.push(c);
+  }
+  return out;
 }
 
 function buildPool(input: PersonalizationDraftInput): string[] {
@@ -83,6 +135,9 @@ function buildPool(input: PersonalizationDraftInput): string[] {
     if (pet) raw.push(pet.slice(0, 1).toUpperCase());
   }
 
+  // Pet name ideas first when we know them.
+  for (const v of petVariants(pet, max)) raw.push(v);
+
   for (const w of STYLE_WORDS) {
     if (fits(w, max)) raw.push(w);
   }
@@ -94,8 +149,6 @@ function buildPool(input: PersonalizationDraftInput): string[] {
       if (fits(p, max)) raw.push(p);
     }
   }
-  if (pet && fits(pet, max)) raw.push(pet);
-  if (pet && fits(`${pet} ♡`, max)) raw.push(`${pet} ♡`);
 
   let filtered = raw.filter((c) => fits(c, max));
   if (b === "tiny" || b === "short") {
@@ -117,7 +170,10 @@ function buildPool(input: PersonalizationDraftInput): string[] {
       const fill = c.length / max;
       const fillScore = fill >= 0.45 ? 2 : fill >= 0.3 ? 1 : 0;
       const phrasePenalty = !isSingleToken(c) && b === "short" ? -1 : 0;
-      return { c, score: fillScore + phrasePenalty };
+      const esBoost = looksSpanish(c) ? 3 : 0;
+      const petBoost =
+        pet && c.toLowerCase().includes(pet.toLowerCase()) ? 4 : 0;
+      return { c, score: fillScore + phrasePenalty + esBoost + petBoost };
     })
     .sort((a, b2) => b2.score - a.score || a.c.localeCompare(b2.c, "es"))
     .map((s) => s.c);
@@ -137,13 +193,23 @@ export function buildPersonalizationTextOptions(
   );
 
   const pool = buildPool(input).filter((c) => !avoid.has(c.toLowerCase()));
-  const source = pool.length ? pool : ["♡", "Amor", "Fiel", "Luz", "Soul"].filter((c) => fits(c, max));
+  const source = pool.length
+    ? pool
+    : FALLBACK_ES.filter((c) => fits(c, max));
   if (!source.length) return [(finalize("♡", max) ?? "♡").slice(0, max)];
+
+  // ~90% español: toma primero del tramo español del pool (ya ordenado).
+  const spanish = source.filter(looksSpanish);
+  const rest = source.filter((c) => !looksSpanish(c));
+  const ordered =
+    spanish.length >= Math.ceil(count * 0.75)
+      ? [...spanish, ...rest]
+      : source;
 
   const out: string[] = [];
   const seen = new Set<string>();
-  for (let i = 0; i < source.length && out.length < count; i++) {
-    const pick = source[(salt - 1 + i) % source.length]!;
+  for (let i = 0; i < ordered.length && out.length < count; i++) {
+    const pick = ordered[(salt - 1 + i) % ordered.length]!;
     const key = pick.toLowerCase();
     if (seen.has(key)) continue;
     const done = finalize(pick, max);
@@ -151,5 +217,19 @@ export function buildPersonalizationTextOptions(
     seen.add(key);
     out.push(done);
   }
+
+  // Si el salt cicló poco, rellena secuencialmente.
+  if (out.length < count) {
+    for (const pick of ordered) {
+      if (out.length >= count) break;
+      const key = pick.toLowerCase();
+      if (seen.has(key)) continue;
+      const done = finalize(pick, max);
+      if (!done) continue;
+      seen.add(key);
+      out.push(done);
+    }
+  }
+
   return out;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 
 import { postWebStorePersonalizationTextDraft } from "@/lib/web-store/api";
@@ -17,7 +17,13 @@ type Props = {
   onGenerated: (text: string) => void;
 };
 
-type PanelPos = { top: number; left: number; width: number };
+type PanelPos = {
+  top: number;
+  left: number;
+  width: number;
+  placement: "above" | "below";
+  arrowLeft: number;
+};
 
 export function TiendaPersonalizationAiButton({
   productName,
@@ -52,18 +58,37 @@ export function TiendaPersonalizationAiButton({
     const width = Math.min(280, window.innerWidth - 24);
     let left = rect.right - width;
     left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
-    let top = rect.bottom + 8;
-    const estimatedHeight = 180;
-    if (top + estimatedHeight > window.innerHeight - 12) {
-      top = Math.max(12, rect.top - estimatedHeight - 8);
+
+    const gap = 12;
+    const measured = panelRef.current?.offsetHeight ?? 0;
+    const height = measured > 0 ? measured : 160;
+    const spaceAbove = rect.top - 12;
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+
+    // Prefer above (tooltip style); flip only if it clearly won't fit.
+    let placement: "above" | "below" = "above";
+    if (spaceAbove < height + gap && spaceBelow > spaceAbove) {
+      placement = "below";
     }
-    setPos({ top, left, width });
+
+    let top =
+      placement === "above"
+        ? rect.top - height - gap
+        : rect.bottom + gap;
+    top = Math.max(12, Math.min(top, window.innerHeight - Math.min(height, 120) - 12));
+
+    const arrowLeft = Math.min(
+      width - 18,
+      Math.max(18, rect.left + rect.width / 2 - left),
+    );
+
+    setPos({ top, left, width, placement, arrowLeft });
   };
 
   useLayoutEffect(() => {
     if (!open) return;
     updatePos();
-  }, [open, options.length]);
+  }, [open, options.length, loading]);
 
   useEffect(() => {
     if (!open) return;
@@ -141,9 +166,10 @@ export function TiendaPersonalizationAiButton({
           merged.unshift(single);
         }
         if (merged.length) {
+          // Prioriza ideas locales (ES / mascota); el API solo rellena huecos.
           const seen = new Set<string>();
           const next: string[] = [];
-          for (const item of [...merged, ...local]) {
+          for (const item of [...local, ...merged]) {
             const key = item.toLowerCase();
             if (seen.has(key)) continue;
             seen.add(key);
@@ -165,16 +191,21 @@ export function TiendaPersonalizationAiButton({
           <div
             ref={panelRef}
             id={listId}
-            className="tienda-ai-panel"
+            className={
+              "tienda-ai-panel" +
+              (pos.placement === "below" ? " tienda-ai-panel--below" : "")
+            }
             role="listbox"
             aria-label="Ideas de texto"
-            style={{
-              top: pos.top,
-              left: pos.left,
-              width: pos.width,
-            }}
+            style={
+              {
+                top: pos.top,
+                left: pos.left,
+                width: pos.width,
+                ["--ai-arrow-left"]: `${pos.arrowLeft}px`,
+              } as CSSProperties
+            }
           >
-            <p className="tienda-ai-panel__hint">Elige una idea:</p>
             <div className="tienda-ai-panel__options">
               {options.map((text) => {
                 const isActive = selected === text || currentValue === text;
