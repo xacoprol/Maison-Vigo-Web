@@ -379,11 +379,19 @@ export default function TiendaCheckoutClient({ legalDocs }: Props) {
             <span>{summaryOpen ? "Ocultar resumen" : "Mostrar resumen"}</span>
             <strong>{formatEuroFromCents(totalCents)}</strong>
           </button>
-          {summaryOpen ? (
-            <div className="tienda-checkout__mobile-summary-body">
-              {summaryBody}
+          <div
+            className={
+              "tienda-checkout__mobile-summary-panel" +
+              (summaryOpen ? " is-open" : "")
+            }
+            aria-hidden={!summaryOpen}
+          >
+            <div className="tienda-checkout__mobile-summary-panel-inner">
+              <div className="tienda-checkout__mobile-summary-body">
+                {summaryBody}
+              </div>
             </div>
-          ) : null}
+          </div>
         </div>
 
         <form className="tienda-checkout__form" onSubmit={onSubmit}>
