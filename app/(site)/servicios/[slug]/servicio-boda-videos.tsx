@@ -146,8 +146,8 @@ export function ServicioBodaVideos() {
             forman parte del día
           </h2>
           <p className="servicio-boda-videos__lead">
-            Presencia serena y cuidado cercano, para que podáis vivir el
-            momento juntos.
+            Presencia serena, cuidado cercano y el vínculo intacto — para que
+            podáis vivir el momento juntos.
           </p>
         </header>
 
