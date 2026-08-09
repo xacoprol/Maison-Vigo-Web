@@ -17,7 +17,9 @@ type ServicioServiciosSectionProps = {
 export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps) {
   const items: ServicioServiciosItem[] = getServicioServiciosItems(slug);
   const rootRef = useRef<HTMLElement>(null);
-  const floatRef = useRef<HTMLDivElement>(null);
+  const floatRef = useRef<HTMLElement>(null);
+  const scissorsRef = useRef<HTMLSpanElement>(null);
+  const hairsRef = useRef<HTMLSpanElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [inView, setInView] = useState(false);
 
@@ -105,6 +107,170 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
     };
   }, []);
 
+  /** Clan-clan sincronizado: cierre de hojas + pelos de perro que saltan y caen. */
+  useEffect(() => {
+    if (!inView) return;
+    const scissors = scissorsRef.current;
+    const hairsHost = hairsRef.current;
+    if (!scissors || !hairsHost) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    const bladeA = scissors.querySelector<HTMLElement>(
+      ".servicio-servicios__blade--a",
+    );
+    const bladeB = scissors.querySelector<HTMLElement>(
+      ".servicio-servicios__blade--b",
+    );
+    if (!bladeA || !bladeB) return;
+
+    let cancelled = false;
+    const timers: number[] = [];
+    const liveHairs = new Set<HTMLElement>();
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const id = window.setTimeout(() => resolve(), ms);
+        timers.push(id);
+      });
+
+    // Colores sólidos; la opacidad la lleva la animación (si no, casi no se ven).
+    const DOG_FUR = [
+      "#f7f4ee",
+      "#efe6d4",
+      "#e2c9a0",
+      "#d4af7a",
+      "#c4a484",
+      "#b08968",
+      "#9a734f",
+      "#7a5a3a",
+    ];
+
+    const setClosed = (closed: boolean) => {
+      bladeA.classList.toggle("is-closed", closed);
+      bladeB.classList.toggle("is-closed", closed);
+    };
+
+    const spawnFurBurst = () => {
+      const count = 14 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("span");
+        el.className = "servicio-servicios__fur";
+
+        // Finos pero visibles (~1–1.6px en pantalla): stroke en user units × caja 14px.
+        const len = 11 + Math.random() * 18;
+        const thick = 1.35 + Math.random() * 1.1;
+        const color = DOG_FUR[Math.floor(Math.random() * DOG_FUR.length)]!;
+        const side = Math.random() > 0.5 ? 1 : -1;
+        const curve = side * (2 + Math.random() * 7);
+        // Origen cerca del cruce de hojas.
+        const startX = 38 + Math.random() * 24;
+        const startY = 54 + Math.random() * 10;
+        // Abanico natural hacia abajo, con algo de lateral.
+        const angle = (-60 + Math.random() * 120) * (Math.PI / 180);
+        const speed = 0.6 + Math.random() * 0.85;
+        const driftX = Math.sin(angle) * (32 + Math.random() * 58) * speed;
+        const fallY = 60 + Math.random() * 85 * speed;
+        const rot0 = -22 + Math.random() * 44;
+        const spin = side * (10 + Math.random() * 28);
+        const rot1 = rot0 + spin;
+        const delay = Math.random() * 80;
+
+        el.style.left = `${startX}%`;
+        el.style.top = `${startY}%`;
+        el.style.setProperty("--fur-len", `${len.toFixed(1)}px`);
+        el.style.setProperty("--fur-color", color);
+        el.innerHTML = `<svg viewBox="0 0 20 48" aria-hidden="true" focusable="false"><path d="M10 0 C ${10 + curve * 0.5} 12, ${10 - curve * 0.4} 28, ${10 + curve * 0.2} 48" fill="none" stroke="currentColor" stroke-width="${thick.toFixed(2)}" stroke-linecap="round"/></svg>`;
+
+        hairsHost.appendChild(el);
+        liveHairs.add(el);
+
+        const fallMs = 1050 + Math.random() * 750;
+        const popX = driftX * 0.14;
+        const popY = -(4 + Math.random() * 9);
+
+        const delayId = window.setTimeout(() => {
+          if (cancelled) {
+            el.remove();
+            liveHairs.delete(el);
+            return;
+          }
+          const anim = el.animate(
+            [
+              {
+                opacity: 0,
+                transform: `translate3d(0px, 1px, 0) rotate(${rot0}deg) scaleY(0.7)`,
+                offset: 0,
+              },
+              {
+                opacity: 1,
+                transform: `translate3d(${popX.toFixed(1)}px, ${popY.toFixed(1)}px, 0) rotate(${(rot0 + spin * 0.15).toFixed(1)}deg) scaleY(1)`,
+                offset: 0.07,
+              },
+              {
+                opacity: 0.92,
+                transform: `translate3d(${(driftX * 0.42).toFixed(1)}px, ${(fallY * 0.32).toFixed(1)}px, 0) rotate(${(rot0 + spin * 0.5).toFixed(1)}deg) scaleY(1)`,
+                offset: 0.4,
+              },
+              {
+                opacity: 0,
+                transform: `translate3d(${driftX.toFixed(1)}px, ${fallY.toFixed(1)}px, 0) rotate(${rot1.toFixed(1)}deg) scaleY(1.02)`,
+                offset: 1,
+              },
+            ],
+            {
+              duration: fallMs,
+              easing: "cubic-bezier(0.22, 0.18, 0.28, 1)",
+              fill: "forwards",
+            },
+          );
+          void anim.finished.then(() => {
+            el.remove();
+            liveHairs.delete(el);
+          });
+        }, delay);
+        timers.push(delayId);
+      }
+    };
+
+    const snip = async () => {
+      setClosed(true);
+      await wait(30);
+      if (cancelled) return;
+      spawnFurBurst();
+      await wait(160);
+      if (cancelled) return;
+      setClosed(false);
+      await wait(90);
+    };
+
+    const loop = async () => {
+      await wait(1400);
+      while (!cancelled) {
+        await snip();
+        if (cancelled) break;
+        await wait(180);
+        await snip();
+        if (cancelled) break;
+        const pause = 5500 + Math.floor(Math.random() * 2000);
+        await wait(pause);
+      }
+    };
+
+    void loop();
+
+    return () => {
+      cancelled = true;
+      for (const id of timers) window.clearTimeout(id);
+      setClosed(false);
+      for (const el of liveHairs) el.remove();
+      liveHairs.clear();
+    };
+  }, [inView]);
+
   const toggle = useCallback((i: number) => {
     setOpenIndex((prev) => (prev === i ? null : i));
   }, []);
@@ -129,13 +295,34 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                 className="servicio-servicios__float"
                 aria-hidden={true}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/images/servicios.png"
-                  alt=""
-                  width={480}
-                  height={686}
-                  decoding="async"
+                <span
+                  ref={scissorsRef}
+                  className="servicio-servicios__scissors"
+                >
+                  <span className="servicio-servicios__blade servicio-servicios__blade--a">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/assets/images/servicios-blade-a.png"
+                      alt=""
+                      width={1100}
+                      height={1100}
+                      decoding="async"
+                    />
+                  </span>
+                  <span className="servicio-servicios__blade servicio-servicios__blade--b">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/assets/images/servicios-blade-b.png"
+                      alt=""
+                      width={1100}
+                      height={1100}
+                      decoding="async"
+                    />
+                  </span>
+                </span>
+                <span
+                  ref={hairsRef}
+                  className="servicio-servicios__hairs"
                 />
               </span>
               <span className="servicio-servicios__title-text">Servicios</span>

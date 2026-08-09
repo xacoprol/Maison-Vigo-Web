@@ -70,11 +70,66 @@
   will-change: transform;
 }
 
-.servicio-servicios__float img {
+.servicio-servicios__scissors {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.servicio-servicios__blade {
+  position: absolute;
+  inset: 0;
+  /* Tornillo central de la foto (≈51% × 52%). */
+  transform-origin: 51% 51.8%;
+  transform: rotate(0deg);
+  transition: transform 0.14s cubic-bezier(0.2, 0.05, 0.15, 1);
+  will-change: transform;
+}
+
+.servicio-servicios__blade img {
   display: block;
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+/* A: mango izq. + hoja dentada der. · B: mango der. + hoja lisa izq. */
+.servicio-servicios__blade--a.is-closed {
+  transform: rotate(12deg);
+}
+
+.servicio-servicios__blade--b.is-closed {
+  transform: rotate(-12deg);
+}
+
+/** Contenedor de pelos de perro (spawn dinámico en cada clan). */
+.servicio-servicios__hairs {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.servicio-servicios__fur {
+  position: absolute;
+  width: 14px;
+  height: var(--fur-len, 16px);
+  margin-left: -7px;
+  color: var(--fur-color, #d4af7a);
+  opacity: 0;
+  transform-origin: 50% 0%;
+  filter: drop-shadow(0 0.5px 0.6px rgba(0, 0, 0, 0.22));
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.servicio-servicios__fur svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
 .servicio-servicios__list {
@@ -403,6 +458,16 @@
         0
       )
       rotate(var(--servicio-servicios-float-tilt, -20deg));
+  }
+
+  .servicio-servicios__blade--a.is-closed,
+  .servicio-servicios__blade--b.is-closed {
+    transform: none;
+    transition: none;
+  }
+
+  .servicio-servicios__fur {
+    display: none;
   }
 }
 
