@@ -18,12 +18,47 @@ import { AcompanamientoDateField } from "./acompanamiento-date-field";
 
 import "./acompanamiento-inquiry-sheet.css";
 
+type EventType = "boda" | "evento_familiar" | "sesion_foto" | "otro";
+
+const EVENT_TYPES: { id: EventType; label: string }[] = [
+  { id: "boda", label: "Boda" },
+  { id: "evento_familiar", label: "Evento familiar" },
+  { id: "sesion_foto", label: "Sesión foto" },
+  { id: "otro", label: "Otro" },
+];
+
 function inquiryApiUrl(): string {
   if (typeof window !== "undefined") {
     return "/api/acompanamientos/inquiry";
   }
   const base = careApiBaseUrl();
   return base ? `${base}/public/acompanamientos/inquiry` : "";
+}
+
+function readLeadSourceFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const origen = new URL(window.location.href).searchParams.get("origen");
+  return origen?.trim() || null;
+}
+
+function shouldAutoOpenFromUrl(): boolean {
+  if (typeof window === "undefined") return false;
+  const url = new URL(window.location.href);
+  if (!url.pathname.includes("/servicios/acompanamiento")) return false;
+  const reserva = url.searchParams.get("reserva");
+  return reserva === "1" || reserva === "true" || reserva === "si";
+}
+
+function clearReservaQuery() {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("reserva") && !url.searchParams.has("origen")) {
+    return;
+  }
+  url.searchParams.delete("reserva");
+  /* Conservamos origen en memoria vía state; lo quitamos de la URL limpia. */
+  url.searchParams.delete("origen");
+  window.history.replaceState(window.history.state, "", url.pathname + url.hash);
 }
 
 export function AcompanamientoInquirySheet() {
@@ -41,11 +76,23 @@ export function AcompanamientoInquirySheet() {
   const [eventDates, setEventDates] = useState<string[]>([]);
   const [venue, setVenue] = useState("");
   const [dogName, setDogName] = useState("");
+  const [dogBreed, setDogBreed] = useState("");
+  const [dogAgeYears, setDogAgeYears] = useState("");
+  const [eventType, setEventType] = useState<EventType | "">("boda");
+  const [needsTransfer, setNeedsTransfer] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [ringBox, setRingBox] = useState(false);
+  const [collarLeash, setCollarLeash] = useState(false);
+  const [hoursEstimate, setHoursEstimate] = useState("");
+  const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
+  const [leadSource, setLeadSource] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const grabberRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | null>(null);
   const closeModalRef = useRef<() => void>(() => {});
+  const autoOpenedRef = useRef(false);
 
   useEffect(() => {
     setPortalReady(true);
@@ -59,6 +106,7 @@ export function AcompanamientoInquirySheet() {
       }
       setDone(false);
       setError(null);
+      setLeadSource((prev) => prev ?? readLeadSourceFromUrl());
       setOpen(true);
     };
     document.body.addEventListener(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT, onOpen);
@@ -68,6 +116,22 @@ export function AcompanamientoInquirySheet() {
         onOpen,
       );
     };
+  }, []);
+
+  /** QR / deep-link: ?reserva=1&origen=vigo-bodas */
+  useEffect(() => {
+    if (autoOpenedRef.current) return;
+    if (!shouldAutoOpenFromUrl()) return;
+    autoOpenedRef.current = true;
+    const origen = readLeadSourceFromUrl();
+    if (origen) setLeadSource(origen);
+    clearReservaQuery();
+    const id = window.setTimeout(() => {
+      document.body.dispatchEvent(
+        new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT),
+      );
+    }, 700);
+    return () => window.clearTimeout(id);
   }, []);
 
   const closeModal = useCallback(() => {
@@ -119,68 +183,39 @@ export function AcompanamientoInquirySheet() {
 
     type DragState = {
       startY: number;
-      lastY: number;
-      lastTs: number;
-      dy: number;
-      velocity: number;
+      currentY: number;
     };
     let drag: DragState | null = null;
 
-    const startDrag = (clientY: number) => {
-      drag = {
-        startY: clientY,
-        lastY: clientY,
-        lastTs: performance.now(),
-        dy: 0,
-        velocity: 0,
-      };
+    const onStart = (clientY: number) => {
+      drag = { startY: clientY, currentY: clientY };
       panel.style.transition = "none";
     };
-    const moveDrag = (clientY: number) => {
+    const onMove = (clientY: number) => {
       if (!drag) return;
-      const now = performance.now();
-      const dt = Math.max(1, now - drag.lastTs);
-      drag.velocity = (clientY - drag.lastY) / dt;
-      drag.lastY = clientY;
-      drag.lastTs = now;
-      drag.dy = Math.max(0, clientY - drag.startY);
-      panel.style.transform = `translate3d(0, ${drag.dy}px, 0)`;
+      drag.currentY = clientY;
+      const dy = Math.max(0, clientY - drag.startY);
+      panel.style.transform = `translate3d(0, ${dy}px, 0)`;
     };
-    const endDrag = () => {
+    const onEnd = () => {
       if (!drag) return;
-      const { dy, velocity } = drag;
+      const dy = Math.max(0, drag.currentY - drag.startY);
       drag = null;
-      const shouldClose = dy > 100 || (dy > 44 && velocity > 0.35);
-      if (shouldClose) {
-        panel.style.transition =
-          "transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)";
-        panel.style.transform = "translate3d(0, 108%, 0)";
-        window.setTimeout(() => {
-          panel.style.transform = "";
-          panel.style.transition = "";
-          closeModalRef.current();
-        }, 420);
-        return;
-      }
-      panel.style.transition =
-        "transform 0.36s cubic-bezier(0.22, 1, 0.36, 1)";
-      panel.style.transform = "translate3d(0, 0, 0)";
-      window.setTimeout(() => {
-        panel.style.transform = "";
-        panel.style.transition = "";
-      }, 380);
+      panel.style.transition = "";
+      panel.style.transform = "";
+      if (dy > 110) closeModalRef.current();
     };
 
-    const onTouchStart = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      startDrag(event.touches[0]!.clientY);
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      onStart(e.touches[0]!.clientY);
     };
-    const onTouchMove = (event: TouchEvent) => {
-      if (!drag || event.touches.length !== 1) return;
-      event.preventDefault();
-      moveDrag(event.touches[0]!.clientY);
+    const onTouchMove = (e: TouchEvent) => {
+      if (!drag || e.touches.length !== 1) return;
+      onMove(e.touches[0]!.clientY);
+      if (drag.currentY - drag.startY > 8) e.preventDefault();
     };
-    const onTouchEnd = () => endDrag();
+    const onTouchEnd = () => onEnd();
 
     handle.addEventListener("touchstart", onTouchStart, { passive: true });
     handle.addEventListener("touchmove", onTouchMove, { passive: false });
@@ -192,11 +227,10 @@ export function AcompanamientoInquirySheet() {
       handle.removeEventListener("touchend", onTouchEnd);
       handle.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [mounted, visible]);
+  }, [mounted]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (pending || done) return;
     setError(null);
 
     const name = contactName.trim();
@@ -204,6 +238,7 @@ export function AcompanamientoInquirySheet() {
     const mail = email.trim();
     const place = venue.trim();
     const dog = dogName.trim();
+    const breed = dogBreed.trim();
     const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!name) {
@@ -220,6 +255,10 @@ export function AcompanamientoInquirySheet() {
     }
     if (mail && !EMAIL_PATTERN.test(mail)) {
       setError("Revisa el formato del email");
+      return;
+    }
+    if (!eventType) {
+      setError("Indica el tipo de evento");
       return;
     }
     if (!eventDates.length) {
@@ -240,6 +279,17 @@ export function AcompanamientoInquirySheet() {
       setError("Indica el nombre del perro");
       return;
     }
+    if (!breed) {
+      setError("Indica la raza o el tamaño");
+      return;
+    }
+
+    const ageRaw = dogAgeYears.trim().replace(",", ".");
+    const ageNum = ageRaw === "" ? null : Number(ageRaw);
+    if (ageNum != null && (!Number.isFinite(ageNum) || ageNum < 0 || ageNum > 30)) {
+      setError("Revisa la edad del perro");
+      return;
+    }
 
     setPending(true);
     try {
@@ -258,7 +308,22 @@ export function AcompanamientoInquirySheet() {
           eventDates: [...eventDates].sort(),
           venue: place,
           dogName: dog,
+          dogBreed: breed,
+          dogAgeYears: ageNum,
+          eventType,
+          needsTransfer,
+          pickupAddress: needsTransfer
+            ? pickupAddress.trim() || null
+            : null,
+          deliveryAddress: needsTransfer
+            ? deliveryAddress.trim() || null
+            : null,
+          ringBox,
+          collarLeash,
+          hoursEstimate: hoursEstimate.trim() || null,
+          petCareNotes: petCareNotes.trim() || null,
           message: message.trim() || null,
+          leadSource: leadSource || null,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
@@ -352,6 +417,8 @@ export function AcompanamientoInquirySheet() {
                 aria-hidden={true}
                 className="acompanamiento-inquiry-sheet__hp"
               />
+
+              <p className="acompanamiento-inquiry-sheet__section">Contacto</p>
               <div className="acompanamiento-inquiry-sheet__field">
                 <input
                   id={`${titleId}-name`}
@@ -363,28 +430,54 @@ export function AcompanamientoInquirySheet() {
                   aria-label="Tu nombre"
                 />
               </div>
-              <div className="acompanamiento-inquiry-sheet__field">
-                <input
-                  id={`${titleId}-phone`}
-                  required
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  autoComplete="tel"
-                  placeholder="Teléfono"
-                  aria-label="Teléfono"
-                />
+              <div className="acompanamiento-inquiry-sheet__row">
+                <div className="acompanamiento-inquiry-sheet__field">
+                  <input
+                    id={`${titleId}-phone`}
+                    required
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    autoComplete="tel"
+                    placeholder="Teléfono"
+                    aria-label="Teléfono"
+                  />
+                </div>
+                <div className="acompanamiento-inquiry-sheet__field">
+                  <input
+                    id={`${titleId}-email`}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    placeholder="Email"
+                    aria-label="Email"
+                  />
+                </div>
               </div>
-              <div className="acompanamiento-inquiry-sheet__field">
-                <input
-                  id={`${titleId}-email`}
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  placeholder="Email (opcional)"
-                  aria-label="Email (opcional)"
-                />
+
+              <p className="acompanamiento-inquiry-sheet__section">Evento</p>
+              <div
+                className="acompanamiento-inquiry-sheet__chips"
+                role="group"
+                aria-label="Tipo de evento"
+              >
+                {EVENT_TYPES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={
+                      "acompanamiento-inquiry-sheet__chip" +
+                      (eventType === t.id
+                        ? " acompanamiento-inquiry-sheet__chip--active"
+                        : "")
+                    }
+                    aria-pressed={eventType === t.id}
+                    onClick={() => setEventType(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
               <AcompanamientoDateField
                 id={`${titleId}-date`}
@@ -398,10 +491,21 @@ export function AcompanamientoInquirySheet() {
                   required
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  placeholder="Lugar"
-                  aria-label="Lugar"
+                  placeholder="Lugar / municipio"
+                  aria-label="Lugar o municipio"
                 />
               </div>
+              <div className="acompanamiento-inquiry-sheet__field">
+                <input
+                  id={`${titleId}-hours`}
+                  value={hoursEstimate}
+                  onChange={(e) => setHoursEstimate(e.target.value)}
+                  placeholder="Horas de presencia (aprox.)"
+                  aria-label="Horas de presencia aproximadas"
+                />
+              </div>
+
+              <p className="acompanamiento-inquiry-sheet__section">Tu perro</p>
               <div className="acompanamiento-inquiry-sheet__field">
                 <input
                   id={`${titleId}-dog`}
@@ -412,6 +516,88 @@ export function AcompanamientoInquirySheet() {
                   aria-label="Nombre del perro"
                 />
               </div>
+              <div className="acompanamiento-inquiry-sheet__row">
+                <div className="acompanamiento-inquiry-sheet__field">
+                  <input
+                    id={`${titleId}-breed`}
+                    required
+                    value={dogBreed}
+                    onChange={(e) => setDogBreed(e.target.value)}
+                    placeholder="Raza o tamaño"
+                    aria-label="Raza o tamaño"
+                  />
+                </div>
+                <div className="acompanamiento-inquiry-sheet__field">
+                  <input
+                    id={`${titleId}-age`}
+                    inputMode="decimal"
+                    value={dogAgeYears}
+                    onChange={(e) => setDogAgeYears(e.target.value)}
+                    placeholder="Edad (años)"
+                    aria-label="Edad en años"
+                  />
+                </div>
+              </div>
+              <div className="acompanamiento-inquiry-sheet__field">
+                <textarea
+                  id={`${titleId}-care`}
+                  rows={2}
+                  value={petCareNotes}
+                  onChange={(e) => setPetCareNotes(e.target.value)}
+                  maxLength={2000}
+                  placeholder="Carácter, miedos o cuidados (opcional)"
+                  aria-label="Notas de cuidado del perro"
+                />
+              </div>
+
+              <p className="acompanamiento-inquiry-sheet__section">Extras</p>
+              <label className="acompanamiento-inquiry-sheet__check">
+                <input
+                  type="checkbox"
+                  checked={needsTransfer}
+                  onChange={(e) => setNeedsTransfer(e.target.checked)}
+                />
+                <span>Necesito recogida / traslado</span>
+              </label>
+              {needsTransfer ? (
+                <>
+                  <div className="acompanamiento-inquiry-sheet__field">
+                    <input
+                      id={`${titleId}-pickup`}
+                      value={pickupAddress}
+                      onChange={(e) => setPickupAddress(e.target.value)}
+                      placeholder="Dirección de recogida"
+                      aria-label="Dirección de recogida"
+                    />
+                  </div>
+                  <div className="acompanamiento-inquiry-sheet__field">
+                    <input
+                      id={`${titleId}-delivery`}
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      placeholder="Dirección de entrega"
+                      aria-label="Dirección de entrega"
+                    />
+                  </div>
+                </>
+              ) : null}
+              <label className="acompanamiento-inquiry-sheet__check">
+                <input
+                  type="checkbox"
+                  checked={ringBox}
+                  onChange={(e) => setRingBox(e.target.checked)}
+                />
+                <span>Portaalianzas</span>
+              </label>
+              <label className="acompanamiento-inquiry-sheet__check">
+                <input
+                  type="checkbox"
+                  checked={collarLeash}
+                  onChange={(e) => setCollarLeash(e.target.checked)}
+                />
+                <span>Collar / correa especial</span>
+              </label>
+
               <div className="acompanamiento-inquiry-sheet__field">
                 <textarea
                   id={`${titleId}-message`}
@@ -419,8 +605,8 @@ export function AcompanamientoInquirySheet() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   maxLength={2000}
-                  placeholder="Mensaje (opcional)"
-                  aria-label="Mensaje (opcional)"
+                  placeholder="Cuéntanos más (opcional)"
+                  aria-label="Mensaje opcional"
                 />
               </div>
               {error ? (
@@ -433,7 +619,7 @@ export function AcompanamientoInquirySheet() {
                 className="acompanamiento-inquiry-sheet__submit"
                 disabled={pending}
               >
-                {pending ? "Enviando…" : "Enviar"}
+                {pending ? "Enviando…" : "Enviar solicitud"}
               </button>
             </form>
           )}

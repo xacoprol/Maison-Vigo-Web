@@ -10,6 +10,8 @@ import { ServicioBodyText } from "./servicio-body-text";
 import { ServicioEffects } from "./servicio-effects";
 import { ServicioHeroBg } from "./servicio-hero-bg";
 import { ServicioAcompanamientoCta } from "./servicio-acompanamiento-cta";
+import { ServicioAcompanamientoHow } from "./servicio-acompanamiento-how";
+import { ServicioBodaVideos } from "./servicio-boda-videos";
 import { ServicioPageClient } from "./servicio-page-client";
 import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
 import { ServicioServiciosSection } from "./servicio-servicios-section";
@@ -152,6 +154,13 @@ export default async function ServicioPage({
         key={servicio.slug}
         slides={getServicioSlideshowSlides(servicio.slug)}
       />
+
+      {servicio.slug === "acompanamiento" ? (
+        <>
+          <ServicioBodaVideos />
+          <ServicioAcompanamientoHow />
+        </>
+      ) : null}
 
       <ServicioServiciosSection slug={servicio.slug} />
     </main>

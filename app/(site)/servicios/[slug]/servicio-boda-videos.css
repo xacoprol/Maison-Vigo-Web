@@ -1,0 +1,248 @@
+/* Carrusel de vídeos de bodas — 3 a la vista, centro destacado */
+
+.servicio-boda-videos {
+  position: relative;
+  background: #141414;
+  color: var(--cream, #f4f4f2);
+  padding: clamp(72px, 10vw, 120px) var(--servicio-body-inset-x, var(--nav-pad-x, 48px));
+  overflow: hidden;
+}
+
+.servicio-boda-videos__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.servicio-boda-videos__eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold-lt, #d4af7a);
+}
+
+.servicio-boda-videos__title {
+  margin: 0 0 14px;
+  font-family: var(--ff-serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: var(--cream, #f4f4f2);
+}
+
+.servicio-boda-videos__lead {
+  margin: 0 auto 40px;
+  max-width: 42ch;
+  font-family: var(--ff-sans);
+  font-size: clamp(13px, 1.5vw, 15px);
+  line-height: 1.55;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.62);
+}
+
+.servicio-boda-videos__stage {
+  --card-w: clamp(160px, 22vw, 240px);
+  --card-h: calc(var(--card-w) * 1.35);
+  --center-scale: 1.32;
+  position: relative;
+  height: calc(var(--card-h) * var(--center-scale) + 48px);
+  margin: 0 auto 28px;
+  perspective: 1200px;
+}
+
+.servicio-boda-videos__card {
+  appearance: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(187, 149, 93, 0.28);
+  border-radius: 4px;
+  background: #0a0a0a;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease,
+    filter 0.5s ease,
+    border-color 0.4s ease;
+  z-index: 2;
+}
+
+.servicio-boda-videos__card.is-left {
+  transform: translate3d(
+      calc(-50% - clamp(150px, 26vw, 280px)),
+      -50%,
+      0
+    )
+    scale(0.82);
+  opacity: 0.55;
+  filter: brightness(0.72);
+  z-index: 2;
+}
+
+.servicio-boda-videos__card.is-right {
+  transform: translate3d(
+      calc(-50% + clamp(150px, 26vw, 280px)),
+      -50%,
+      0
+    )
+    scale(0.82);
+  opacity: 0.55;
+  filter: brightness(0.72);
+  z-index: 2;
+}
+
+.servicio-boda-videos__card.is-center {
+  border-color: rgba(212, 175, 122, 0.55);
+  transform: translate3d(-50%, -50%, 0) scale(var(--center-scale));
+  opacity: 1;
+  filter: brightness(1);
+  z-index: 5;
+  cursor: default;
+}
+
+.servicio-boda-videos__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.servicio-boda-videos__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 28px 12px 12px;
+  background: linear-gradient(transparent, rgba(5, 5, 5, 0.78));
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.88);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.servicio-boda-videos__card.is-center .servicio-boda-videos__caption {
+  opacity: 1;
+}
+
+.servicio-boda-videos__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.servicio-boda-videos__arrow {
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(187, 149, 93, 0.4);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cream, #f4f4f2);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.servicio-boda-videos__arrow:hover,
+.servicio-boda-videos__arrow:focus-visible {
+  border-color: var(--gold-lt, #d4af7a);
+  background: rgba(212, 175, 122, 0.1);
+  outline: none;
+}
+
+.servicio-boda-videos__dots {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.servicio-boda-videos__dot {
+  appearance: none;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(244, 244, 242, 0.28);
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.servicio-boda-videos__dot.is-active {
+  background: var(--gold-lt, #d4af7a);
+  transform: scale(1.25);
+}
+
+.servicio-boda-videos__cta {
+  appearance: none;
+  display: inline-block;
+  margin: 0 auto;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--cream, #f4f4f2);
+  font-family: var(--ff-sans);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.servicio-boda-videos__cta:hover,
+.servicio-boda-videos__cta:focus-visible {
+  color: var(--gold-lt, #d4af7a);
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .servicio-boda-videos {
+    padding-top: clamp(56px, 12vw, 80px);
+    padding-bottom: clamp(64px, 14vw, 96px);
+  }
+
+  .servicio-boda-videos__stage {
+    --card-w: min(72vw, 280px);
+    --center-scale: 1;
+    height: calc(var(--card-h) + 24px);
+  }
+
+  .servicio-boda-videos__card.is-left,
+  .servicio-boda-videos__card.is-right {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(-50%, -50%, 0) scale(0.92);
+  }
+
+  .servicio-boda-videos__card.is-center {
+    transform: translate3d(-50%, -50%, 0) scale(1);
+  }
+
+  .servicio-boda-videos__lead {
+    margin-bottom: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .servicio-boda-videos__card {
+    transition: none;
+  }
+}
