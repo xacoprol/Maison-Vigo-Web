@@ -13,6 +13,10 @@ type BodaVideo = {
 
 const VIDEOS: BodaVideo[] = [
   {
+    src: "/assets/videos/acompanamiento/boda-4.webm",
+    label: "Cuidado en el evento",
+  },
+  {
     src: "/assets/videos/acompanamiento/boda-1.webm",
     label: "Presencia en el día",
   },
@@ -23,10 +27,6 @@ const VIDEOS: BodaVideo[] = [
   {
     src: "/assets/videos/acompanamiento/boda-3.webm",
     label: "Momentos juntos",
-  },
-  {
-    src: "/assets/videos/acompanamiento/boda-4.webm",
-    label: "Cuidado en el evento",
   },
 ];
 
@@ -39,7 +39,7 @@ function slotFor(index: number, active: number, total: number) {
 }
 
 export function ServicioBodaVideos() {
-  const [active, setActive] = useState(1);
+  const [active, setActive] = useState(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const syncPlayback = useCallback((index: number) => {
