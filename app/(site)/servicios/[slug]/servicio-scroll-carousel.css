@@ -352,7 +352,8 @@
     width: 100%;
     height: auto;
     min-height: auto;
-    padding: clamp(32px, 5vw, 48px) var(--nav-pad-x) 32px;
+    padding: clamp(32px, 5vw, 48px) var(--servicio-body-inset-x, var(--nav-pad-x))
+      32px;
   }
 
   /**
@@ -427,7 +428,7 @@
     bottom: auto;
     transform: none;
     width: 100%;
-    padding: 32px 24px 48px;
+    padding: 32px var(--servicio-body-inset-x, var(--nav-pad-x)) 48px;
     background: #1a1a1a;
   }
 
@@ -633,7 +634,7 @@
     bottom: auto;
     transform: none;
     width: 100%;
-    padding: 8px var(--nav-pad-x) 48px;
+    padding: 8px var(--servicio-body-inset-x, var(--nav-pad-x)) 48px;
     background: #1a1a1a;
   }
 

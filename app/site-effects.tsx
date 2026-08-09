@@ -506,6 +506,109 @@ export function SiteEffects() {
       event.stopPropagation();
       openReservaPanelFn();
     };
+    /**
+     * En táctil, activar en el primer toque y cancelar el click sintético
+     * (evita que el sticky :hover se coma el primer tap en reserva y menú).
+     */
+    type TouchTapStart = { x: number; y: number; el: Element };
+    let touchTapStart: TouchTapStart | null = null;
+    const TAP_SLOP_PX = 12;
+
+    const findMenuTouchTarget = (target: Element | null) => {
+      if (!target || !mobileMenu?.classList.contains("open")) return null;
+      return (
+        target.closest(
+          [
+            ".js-open-reserva-panel",
+            ".js-open-care-assist",
+            "#closeMenu",
+            ".mobile-menu a.mob-link",
+          ].join(", "),
+        ) ?? null
+      );
+    };
+
+    const onMenuOrReservaTouchStart = (event: TouchEvent) => {
+      const target = event.target as Element | null;
+      const reserva = target?.closest(".js-open-reserva-panel");
+      const el =
+        reserva instanceof Element
+          ? reserva
+          : findMenuTouchTarget(target);
+      if (!(el instanceof Element)) {
+        touchTapStart = null;
+        return;
+      }
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      touchTapStart = { x: touch.clientX, y: touch.clientY, el };
+    };
+
+    const onMenuOrReservaTouchEnd = (event: TouchEvent) => {
+      if (!touchTapStart) return;
+      const start = touchTapStart;
+      touchTapStart = null;
+      const target = event.target as Element | null;
+      const el =
+        (target?.closest(
+          [
+            ".js-open-reserva-panel",
+            ".js-open-care-assist",
+            "#closeMenu",
+            ".mobile-menu a.mob-link",
+          ].join(", "),
+        ) as Element | null) ?? null;
+      if (!el || el !== start.el) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      if (
+        Math.abs(touch.clientX - start.x) > TAP_SLOP_PX ||
+        Math.abs(touch.clientY - start.y) > TAP_SLOP_PX
+      ) {
+        return;
+      }
+
+      if (el instanceof HTMLElement && el.closest(".js-open-reserva-panel")) {
+        event.preventDefault();
+        event.stopPropagation();
+        openReservaPanelFn();
+        return;
+      }
+
+      if (el instanceof HTMLElement && el.closest(".js-open-care-assist")) {
+        event.preventDefault();
+        event.stopPropagation();
+        const prompt = el.dataset.carePrompt?.trim();
+        openCareAssistFromMenu(prompt || undefined);
+        return;
+      }
+
+      if (el instanceof HTMLElement && el.id === "closeMenu") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeMenuFn();
+        return;
+      }
+
+      if (!(el instanceof HTMLAnchorElement)) return;
+      if (!mobileMenu?.classList.contains("open")) return;
+
+      const sectionId = resolveHomeSectionId(el.getAttribute("href") ?? "");
+      if (sectionId) {
+        event.preventDefault();
+        event.stopPropagation();
+        navigateToHomeSection(sectionId);
+        return;
+      }
+
+      if (isInternalPageLink(el)) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeMenuFn();
+        const href = el.getAttribute("href");
+        if (href) router.push(href);
+      }
+    };
 
     /**
      * Enlaces /#seccion: un solo hash y scroll (evita #concepto#servicios en la home).
@@ -568,9 +671,12 @@ export function SiteEffects() {
       l.addEventListener("click", onMobLinkClick);
     });
     menuPrimaryLinks.forEach((link) => {
-      link.addEventListener("mouseenter", onPrimaryHover);
+      // Solo hover de imagen en dispositivos con puntero fino (evita 1.er tap “vacío”).
+      if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        link.addEventListener("mouseenter", onPrimaryHover);
+        link.addEventListener("mouseleave", onPrimaryLeave);
+      }
       link.addEventListener("focus", onPrimaryHover);
-      link.addEventListener("mouseleave", onPrimaryLeave);
       link.addEventListener("blur", onPrimaryLeave);
     });
     mobileMenu?.addEventListener("click", onMenuOverlayClick);
@@ -584,6 +690,14 @@ export function SiteEffects() {
     openReservaPanel?.addEventListener("click", onOpenReservaClick);
     openReservaPanelFromMenu?.addEventListener("click", onOpenReservaClick);
     document.addEventListener("click", onOpenReservaDelegated);
+    document.addEventListener("touchstart", onMenuOrReservaTouchStart, {
+      passive: true,
+      capture: true,
+    });
+    document.addEventListener("touchend", onMenuOrReservaTouchEnd, {
+      passive: false,
+      capture: true,
+    });
     closeReservaPanel?.addEventListener("click", onCloseReservaClick);
     careAssistTriggers.forEach((el) => {
       el.addEventListener("click", onOpenCareAssistClick);
@@ -643,6 +757,8 @@ export function SiteEffects() {
       openReservaPanel?.removeEventListener("click", onOpenReservaClick);
       openReservaPanelFromMenu?.removeEventListener("click", onOpenReservaClick);
       document.removeEventListener("click", onOpenReservaDelegated);
+      document.removeEventListener("touchstart", onMenuOrReservaTouchStart, true);
+      document.removeEventListener("touchend", onMenuOrReservaTouchEnd, true);
       closeReservaPanel?.removeEventListener("click", onCloseReservaClick);
       careAssistTriggers.forEach((el) => {
         el.removeEventListener("click", onOpenCareAssistClick);

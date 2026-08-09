@@ -422,11 +422,13 @@ nav#navbar.scrolled .nav-cta {
   background: transparent;
   box-shadow: none;
 }
-nav#navbar.scrolled .nav-cta:hover {
-  background: transparent;
-  border-color: transparent;
-  color: var(--gold-lt);
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  nav#navbar.scrolled .nav-cta:hover {
+    background: transparent;
+    border-color: transparent;
+    color: var(--gold-lt);
+    box-shadow: none;
+  }
 }
 nav#navbar.nav-hidden {
   transform: translateY(calc(-100% - 12px));
@@ -561,8 +563,15 @@ nav#navbar.scrolled .nav-brand-piece--one {
   cursor: pointer;
   text-decoration: none;
   transition: color 0.35s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.nav-cta:hover {
+@media (hover: hover) and (pointer: fine) {
+  .nav-cta:hover {
+    color: var(--gold-lt);
+  }
+}
+.nav-cta:active {
   color: var(--gold-lt);
 }
 
@@ -575,6 +584,8 @@ nav#navbar.scrolled .nav-brand-piece--one {
   background: none;
   padding: 4px;
   color: var(--cream);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .hamburger-icon {
   width: 18px;
@@ -674,6 +685,8 @@ nav#navbar.scrolled .nav-brand-piece--one {
 .mob-link {
   color: var(--cream);
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .mob-link--primary {
   font-family: var(--ff-serif);
@@ -686,7 +699,12 @@ nav#navbar.scrolled .nav-brand-piece--one {
   text-wrap: balance;
   transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.mob-link--primary:hover {
+@media (hover: hover) and (pointer: fine) {
+  .mob-link--primary:hover {
+    color: var(--cream);
+  }
+}
+.mob-link--primary:active {
   color: var(--cream);
 }
 .mobile-menu-secondary {
@@ -734,17 +752,31 @@ nav#navbar.scrolled .nav-brand-piece--one {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background 0.25s ease,
     color 0.25s ease,
     border-color 0.25s ease;
 }
-.mobile-menu-assist-cta:hover,
 .mobile-menu-assist-cta:focus-visible {
   background: rgba(212, 175, 122, 0.2);
   border-color: var(--gold-lt);
   color: var(--cream);
   outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .mobile-menu-assist-cta:hover {
+    background: rgba(212, 175, 122, 0.2);
+    border-color: var(--gold-lt);
+    color: var(--cream);
+    outline: none;
+  }
+}
+.mobile-menu-assist-cta:active {
+  background: rgba(212, 175, 122, 0.2);
+  border-color: var(--gold-lt);
+  color: var(--cream);
 }
 .mob-link--secondary {
   font-size: 20px;
@@ -753,12 +785,18 @@ nav#navbar.scrolled .nav-brand-piece--one {
   color: rgba(244, 244, 242, 0.88);
   transition: color 0.35s ease;
 }
-.mob-link--secondary:hover {
+@media (hover: hover) and (pointer: fine) {
+  .mob-link--secondary:hover {
+    color: var(--gold);
+  }
+}
+.mob-link--secondary:active {
   color: var(--gold);
 }
 .mob-link--wave {
   display: inline-block;
   overflow: hidden;
+  touch-action: manipulation;
 }
 .mob-wave-text {
   display: inline-flex;
@@ -782,30 +820,44 @@ nav#navbar.scrolled .nav-brand-piece--one {
   top: 100%;
   color: var(--gold);
 }
-.mob-link--wave:hover .mob-wave-char--top,
-.mob-link--wave:focus-visible .mob-wave-char--top {
-  transform: translateY(-102%);
+/* Solo hover real (ratón). En táctil el 1.er tap no debe “gastarse” en :hover. */
+@media (hover: hover) and (pointer: fine) {
+  .mob-link--wave:hover .mob-wave-char--top {
+    transform: translateY(-102%);
+  }
+  .mob-link--wave:hover .mob-wave-char--bottom {
+    transform: translateY(-102%);
+  }
+  /* Carrusel servicios: misma ola al hover del orbe entero (no solo del texto) */
+  .servicios-carousel__orb:hover .mob-wave-char--top,
+  .servicios-carousel__orb:hover .mob-wave-char--bottom {
+    transform: translateY(-102%);
+  }
+  .contact-form-section__submit:hover .mob-wave-char--top,
+  .contact-form-section__submit:hover .mob-wave-char--bottom,
+  .contact-form-section__success-link:hover .mob-wave-char--top,
+  .contact-form-section__success-link:hover .mob-wave-char--bottom {
+    transform: translateY(-102%);
+  }
 }
-.mob-link--wave:hover .mob-wave-char--bottom,
-.mob-link--wave:focus-visible .mob-wave-char--bottom {
-  transform: translateY(-102%);
-}
-/* Carrusel servicios: misma ola al hover del orbe entero (no solo del texto) */
-.servicios-carousel__orb:hover .mob-wave-char--top,
+.mob-link--wave:focus-visible .mob-wave-char--top,
 .servicios-carousel__orb:focus-visible .mob-wave-char--top,
-.servicios-carousel__orb:hover .mob-wave-char--bottom,
-.servicios-carousel__orb:focus-visible .mob-wave-char--bottom {
+.contact-form-section__submit:focus-visible .mob-wave-char--top,
+.contact-form-section__success-link:focus-visible .mob-wave-char--top {
   transform: translateY(-102%);
 }
-.contact-form-section__submit:hover .mob-wave-char--top,
-.contact-form-section__submit:focus-visible .mob-wave-char--top,
-.contact-form-section__submit:hover .mob-wave-char--bottom,
+.mob-link--wave:focus-visible .mob-wave-char--bottom,
+.servicios-carousel__orb:focus-visible .mob-wave-char--bottom,
 .contact-form-section__submit:focus-visible .mob-wave-char--bottom,
-.contact-form-section__success-link:hover .mob-wave-char--top,
-.contact-form-section__success-link:focus-visible .mob-wave-char--top,
-.contact-form-section__success-link:hover .mob-wave-char--bottom,
 .contact-form-section__success-link:focus-visible .mob-wave-char--bottom {
   transform: translateY(-102%);
+}
+/* Feedback táctil inmediato (sin sticky hover). */
+@media (hover: none), (pointer: coarse) {
+  .mob-link--wave:active .mob-wave-char--top,
+  .mob-link--wave:active .mob-wave-char--bottom {
+    transform: translateY(-102%);
+  }
 }
 .mob-wave-sr {
   position: absolute;
@@ -955,6 +1007,8 @@ nav#navbar.scrolled .nav-brand-piece--one {
   z-index: 50;
   opacity: 0;
   pointer-events: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     opacity 0.38s ease,
     border-color 0.35s ease,
@@ -969,11 +1023,19 @@ nav#navbar.scrolled .nav-brand-piece--one {
     var(--panel-reveal-duration) + var(--panel-reveal-delay) + 0.08s
   );
 }
-.mobile-menu-book:hover {
-  border-color: rgba(187, 149, 93, 0.52);
-  background: transparent;
-  color: var(--cream);
-  transform: translate(-50%, -50%) scale(var(--mobile-menu-book-scale));
+@media (hover: hover) and (pointer: fine) {
+  .mobile-menu-book:hover {
+    border-color: rgba(187, 149, 93, 0.52);
+    background: transparent;
+    color: var(--cream);
+    transform: translate(-50%, -50%) scale(var(--mobile-menu-book-scale));
+  }
+  .mobile-menu-book:hover .mobile-menu-book-ring-path {
+    stroke-dashoffset: 0;
+  }
+}
+.mobile-menu-book:focus-visible .mobile-menu-book-ring-path {
+  stroke-dashoffset: 0;
 }
 .mobile-menu-book-label {
   position: relative;
@@ -1002,10 +1064,6 @@ nav#navbar.scrolled .nav-brand-piece--one {
   stroke-dasharray: 311;
   stroke-dashoffset: 311;
   transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.mobile-menu-book:hover .mobile-menu-book-ring-path,
-.mobile-menu-book:focus-visible .mobile-menu-book-ring-path {
-  stroke-dashoffset: 0;
 }
 
 .reserva-panel {

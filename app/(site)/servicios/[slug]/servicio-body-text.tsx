@@ -65,7 +65,7 @@ export function ServicioBodyText({ children }: ServicioBodyTextProps) {
 
       return {
         opacity: servicioBodyOpacityFromProgress(progress, { mobile }),
-        parallaxPx: -scrolled * 0.05,
+        parallaxPx: -scrolled * (mobile ? 0.028 : 0.05),
       };
     };
 

@@ -3,6 +3,11 @@
   min-height: 100svh;
   background: #050505;
   color: var(--cream);
+  /**
+   * Inset lateral del editorial (hero body) — el slideshow lo reutiliza en móvil
+   * para alinear captions con el mismo margen.
+   */
+  --servicio-body-inset-x: var(--nav-pad-x, 48px);
 }
 
 .servicio__hero {
@@ -14,6 +19,11 @@
   --servicio-hero-lift: clamp(12px, 1.8vh, 22px);
   /** Separación fija entre subtítulo (lead) y texto editorial (body). */
   --servicio-lead-body-gap: 350px;
+  /**
+   * Con CTA de acompañamiento: aire bajo el botón (más corto que el gap del lead,
+   * porque ya anclamos al CTA y no al wrap entero).
+   */
+  --servicio-cta-body-gap: 88px;
   /** Franja negra bajo el viewport (scroll para verla). */
   --servicio-hero-extra-black: 250px;
   position: relative;
@@ -538,6 +548,7 @@
 @media (min-width: 901px) and (max-width: 1600px) {
   .servicio__hero {
     --servicio-lead-body-gap: 220px;
+    --servicio-cta-body-gap: 72px;
   }
 
   .servicio__hero-title {
@@ -642,6 +653,10 @@
 }
 
 @media (max-width: 900px) {
+  .servicio {
+    --servicio-body-inset-x: clamp(28px, 7vw, 42px);
+  }
+
   .servicio__hero {
     /**
      * En móvil 250px de negro se veía como un hueco vacío largo.
@@ -649,6 +664,7 @@
      */
     --servicio-hero-extra-black: 100px;
     --servicio-lead-body-gap: 140px;
+    --servicio-cta-body-gap: 52px;
   }
 
   /* Degradado más corto para no alargar el “negro” bajo la foto. */
@@ -657,7 +673,6 @@
   }
 
   .servicio__hero-body {
-    --servicio-body-inset-x: clamp(28px, 7vw, 42px);
     left: var(--servicio-body-inset-x);
     width: calc(100% - 2 * var(--servicio-body-inset-x));
     max-width: none;
