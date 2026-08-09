@@ -24,9 +24,13 @@ const VIDEOS: BodaVideo[] = [
     src: "/assets/videos/acompanamiento/boda-3.webm",
     label: "Momentos juntos",
   },
+  {
+    src: "/assets/videos/acompanamiento/boda-4.webm",
+    label: "Cuidado en el evento",
+  },
 ];
 
-/** -1 izquierda, 0 centro, 1 derecha (3 vídeos). */
+/** Distancia circular; visibles solo −1 / 0 / 1 (3 a la vista). */
 function slotFor(index: number, active: number, total: number) {
   let d = index - active;
   if (d > total / 2) d -= total;
@@ -104,6 +108,7 @@ export function ServicioBodaVideos() {
           {VIDEOS.map((item, index) => {
             const slot = slotFor(index, active, VIDEOS.length);
             const isCenter = slot === 0;
+            const isVisible = Math.abs(slot) <= 1;
             return (
               <button
                 key={item.src}
@@ -111,13 +116,16 @@ export function ServicioBodaVideos() {
                 className={
                   "servicio-boda-videos__card" +
                   (isCenter ? " is-center" : "") +
-                  (slot < 0 ? " is-left" : "") +
-                  (slot > 0 ? " is-right" : "")
+                  (slot === -1 ? " is-left" : "") +
+                  (slot === 1 ? " is-right" : "") +
+                  (!isVisible ? " is-hidden" : "")
                 }
+                tabIndex={isVisible ? 0 : -1}
                 onClick={() => {
                   if (!isCenter) setActive(index);
                 }}
                 aria-label={item.label}
+                aria-hidden={!isVisible}
                 aria-current={isCenter ? "true" : undefined}
               >
                 <video

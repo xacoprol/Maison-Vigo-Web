@@ -109,6 +109,13 @@
   cursor: default;
 }
 
+.servicio-boda-videos__card.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-50%, -50%, 0) scale(0.7);
+  z-index: 1;
+}
+
 .servicio-boda-videos__video {
   display: block;
   width: 100%;
