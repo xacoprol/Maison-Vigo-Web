@@ -1,7 +1,7 @@
 .servicio-acompanamiento-how {
-  background: #0c0c0c;
+  background: #121212;
   color: var(--cream, #f4f4f2);
-  padding: clamp(64px, 9vw, 110px) var(--servicio-body-inset-x, var(--nav-pad-x, 48px));
+  padding: clamp(72px, 10vw, 120px) var(--nav-pad-x, 48px);
 }
 
 .servicio-acompanamiento-how__inner {
@@ -23,8 +23,10 @@
   margin: 0 0 36px;
   font-family: var(--ff-serif);
   font-weight: 400;
-  font-size: clamp(26px, 4vw, 42px);
-  line-height: 1.08;
+  font-size: clamp(28px, 4.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 .servicio-acompanamiento-how__list {
