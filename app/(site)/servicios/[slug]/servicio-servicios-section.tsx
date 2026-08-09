@@ -290,7 +290,10 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
       <div className="servicio-servicios__inner">
         <div className="servicio-servicios__title-zone">
           <h2
-            className="servicio-servicios__title"
+            className={
+              "servicio-servicios__title mv-title-display" +
+              (inView ? " is-revealed" : "")
+            }
             id="servicio-servicios-heading"
           >
             <span className="servicio-servicios__title-anchor">
@@ -329,7 +332,9 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
                   className="servicio-servicios__hairs"
                 />
               </span>
-              <span className="servicio-servicios__title-text">Servicios</span>
+              <span className="servicio-servicios__title-text mv-title-reveal">
+                Servicios
+              </span>
             </span>
           </h2>
         </div>

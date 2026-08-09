@@ -493,6 +493,13 @@
 }
 
 @media (max-width: 900px) {
+  .servicio-servicios {
+    padding-top: clamp(96px, 12vw, 160px);
+    padding-bottom: clamp(96px, 12vw, 160px);
+    padding-left: var(--servicio-body-inset-x, var(--nav-pad-x, 42px));
+    padding-right: var(--servicio-body-inset-x, var(--nav-pad-x, 42px));
+  }
+
   .servicio-servicios__title-zone {
     margin-bottom: clamp(72px, 16vw, 120px);
     max-width: 100%;

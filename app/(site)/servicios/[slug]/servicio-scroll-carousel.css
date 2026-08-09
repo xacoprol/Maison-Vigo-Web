@@ -222,7 +222,7 @@
   /**
    * Más arriba: invade un poco la foto (panel derecho al 70% de alto).
    */
-  bottom: clamp(148px, 19.5vh, 268px);
+  bottom: clamp(128px, 17vh, 232px);
   z-index: 10;
   transform: translateX(-50%);
   width: min(94vw, 1200px);
@@ -233,7 +233,7 @@
 /** Portátil (901px–1600px). */
 @media (min-width: 901px) and (max-width: 1600px) {
   .servicio-slideshow__headline {
-    bottom: clamp(124px, 17vh, 232px);
+    bottom: clamp(108px, 14.5vh, 200px);
   }
 }
 
@@ -634,7 +634,8 @@
     bottom: auto;
     transform: none;
     width: 100%;
-    padding: 8px var(--servicio-body-inset-x, var(--nav-pad-x)) 48px;
+    padding: 8px var(--servicio-body-inset-x, var(--nav-pad-x))
+      clamp(88px, 16vw, 128px);
     background: #1a1a1a;
   }
 

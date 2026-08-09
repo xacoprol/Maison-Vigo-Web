@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"] as const;
 
@@ -98,6 +99,7 @@ type Props = {
   value: string[];
   onChange: (next: string[]) => void;
   required?: boolean;
+  error?: string | null;
 };
 
 export function AcompanamientoDateField({
@@ -105,12 +107,12 @@ export function AcompanamientoDateField({
   value,
   onChange,
   required,
+  error,
 }: Props) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [panelHeight, setPanelHeight] = useState<number | null>(null);
+  const [panelHost, setPanelHost] = useState<HTMLElement | null>(null);
   const min = useMemo(() => todayKey(), []);
   const max = useMemo(() => maxKey(), []);
   const selected = useMemo(
@@ -135,60 +137,25 @@ export function AcompanamientoDateField({
 
   useEffect(() => {
     if (!open) {
-      setPanelHeight(null);
+      setPanelHost(null);
       return;
     }
-    const syncHeight = () => {
-      const root = rootRef.current;
-      const trigger = root?.querySelector<HTMLElement>(
-        ".acompanamiento-inquiry-sheet__date-trigger",
-      );
-      const form = root?.closest("form");
-      if (!root || !trigger || !form) return;
-      const gap = 4;
-      const top = trigger.getBoundingClientRect().bottom + gap;
-      const bottom = form.getBoundingClientRect().bottom;
-      setPanelHeight(Math.max(220, Math.round(bottom - top)));
-    };
-    syncHeight();
-    const frame = window.requestAnimationFrame(syncHeight);
-    window.addEventListener("resize", syncHeight);
-    const form = rootRef.current?.closest("form");
-    const body = rootRef.current?.closest(
-      ".acompanamiento-inquiry-sheet__body",
+    const panel = rootRef.current?.closest(
+      ".acompanamiento-inquiry-sheet__panel",
     );
-    body?.addEventListener("scroll", syncHeight, { passive: true });
-    const ro =
-      typeof ResizeObserver !== "undefined" && form
-        ? new ResizeObserver(syncHeight)
-        : null;
-    if (form && ro) ro.observe(form);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", syncHeight);
-      body?.removeEventListener("scroll", syncHeight);
-      ro?.disconnect();
-    };
-  }, [open, viewY, viewM0, value]);
+    setPanelHost(panel instanceof HTMLElement ? panel : null);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const onDoc = (event: MouseEvent) => {
-      const el = rootRef.current;
-      if (!el) return;
-      if (event.target instanceof Node && !el.contains(event.target)) {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
         setOpen(false);
       }
     };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
   const cells = useMemo(() => {
@@ -233,7 +200,6 @@ export function AcompanamientoDateField({
     const rangeStart = sorted[0]!;
     const rangeEnd = sorted[sorted.length - 1]!;
 
-    // Solo extremos se pueden quitar (así no quedan huecos).
     if (selected.has(key)) {
       if (key === rangeStart && key === rangeEnd) {
         onChange([]);
@@ -250,7 +216,6 @@ export function AcompanamientoDateField({
       return;
     }
 
-    // Ampliar siempre en bloque continuo (rellena días intermedios).
     const nextStart = key < rangeStart ? key : rangeStart;
     const nextEnd = key > rangeEnd ? key : rangeEnd;
     onChange(
@@ -258,12 +223,106 @@ export function AcompanamientoDateField({
     );
   };
 
+  const errorId = error ? `${id}-error` : undefined;
+  const selectionLabel = selected.size
+    ? formatTriggerLabel([...selected])
+    : null;
+
+  const calendar = open ? (
+    <div
+      id={listboxId}
+      className="acompanamiento-date acompanamiento-date--sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Elegir fechas del evento"
+    >
+      <div className="acompanamiento-date__head">
+        <p className="acompanamiento-date__eyebrow">Evento</p>
+        <h3 className="acompanamiento-date__title">Fechas del evento</h3>
+        <p className="acompanamiento-date__hint">
+          Puedes marcar varias fechas seguidas
+        </p>
+        {selectionLabel ? (
+          <p className="acompanamiento-date__selection">{selectionLabel}</p>
+        ) : null}
+      </div>
+
+      <div className="acompanamiento-date__nav">
+        <button
+          type="button"
+          className="acompanamiento-date__nav-btn"
+          aria-label="Mes anterior"
+          disabled={!canPrev}
+          onClick={() => shiftMonth(-1)}
+        >
+          ‹
+        </button>
+        <p className="acompanamiento-date__month">
+          {MONTHS[viewM0]} {viewY}
+        </p>
+        <button
+          type="button"
+          className="acompanamiento-date__nav-btn"
+          aria-label="Mes siguiente"
+          disabled={!canNext}
+          onClick={() => shiftMonth(1)}
+        >
+          ›
+        </button>
+      </div>
+
+      <div className="acompanamiento-date__weekdays" aria-hidden={true}>
+        {WEEKDAYS.map((w) => (
+          <span key={w}>{w}</span>
+        ))}
+      </div>
+
+      <div className="acompanamiento-date__grid">
+        {cells.map((cell, index) =>
+          cell ? (
+            <button
+              key={cell.key}
+              type="button"
+              className={
+                "acompanamiento-date__day" +
+                (selected.has(cell.key) ? " is-selected" : "") +
+                (cell.key === min ? " is-today" : "")
+              }
+              disabled={cell.disabled}
+              aria-pressed={selected.has(cell.key)}
+              onClick={() => {
+                if (cell.disabled) return;
+                toggleDay(cell.key);
+              }}
+            >
+              {cell.day}
+            </button>
+          ) : (
+            <span
+              key={`e-${index}`}
+              className="acompanamiento-date__day acompanamiento-date__day--empty"
+            />
+          ),
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="acompanamiento-date__ok"
+        onClick={() => setOpen(false)}
+      >
+        Listo
+      </button>
+    </div>
+  ) : null;
+
   return (
     <div
       ref={rootRef}
       className={
-        "acompanamiento-inquiry-sheet__field acompanamiento-inquiry-sheet__field--date" +
-        (open ? " is-open" : "")
+        "acompanamiento-inquiry-sheet__field acompanamiento-inquiry-sheet__field--date acompanamiento-inquiry-sheet__field--float" +
+        (open ? " is-open" : "") +
+        (error ? " acompanamiento-inquiry-sheet__field--error" : "")
       }
     >
       <button
@@ -278,88 +337,26 @@ export function AcompanamientoDateField({
         aria-controls={listboxId}
         aria-label="Fechas del evento"
         aria-required={required ? true : undefined}
-        onClick={() => setOpen((v) => !v)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={errorId}
+        onClick={() => setOpen(true)}
       >
-        {formatTriggerLabel([...selected])}
+        {selected.size
+          ? formatTriggerLabel([...selected])
+          : "Fechas del evento"}
       </button>
-
-      {open ? (
-        <div
-          ref={calendarRef}
-          id={listboxId}
-          className="acompanamiento-date"
-          role="dialog"
-          aria-label="Elegir fechas del evento"
-          style={panelHeight != null ? { height: panelHeight } : undefined}
+      <label htmlFor={id}>Fechas del evento</label>
+      {error ? (
+        <p
+          id={errorId}
+          className="acompanamiento-inquiry-sheet__field-error"
+          role="alert"
         >
-          <div className="acompanamiento-date__nav">
-            <button
-              type="button"
-              className="acompanamiento-date__nav-btn"
-              aria-label="Mes anterior"
-              disabled={!canPrev}
-              onClick={() => shiftMonth(-1)}
-            >
-              ‹
-            </button>
-            <p className="acompanamiento-date__month">
-              {MONTHS[viewM0]} {viewY}
-            </p>
-            <button
-              type="button"
-              className="acompanamiento-date__nav-btn"
-              aria-label="Mes siguiente"
-              disabled={!canNext}
-              onClick={() => shiftMonth(1)}
-            >
-              ›
-            </button>
-          </div>
-          <p className="acompanamiento-date__hint">
-            Varias fechas seguidas
-          </p>
-          <div className="acompanamiento-date__weekdays" aria-hidden={true}>
-            {WEEKDAYS.map((w) => (
-              <span key={w}>{w}</span>
-            ))}
-          </div>
-          <div className="acompanamiento-date__grid">
-            {cells.map((cell, index) =>
-              cell ? (
-                <button
-                  key={cell.key}
-                  type="button"
-                  className={
-                    "acompanamiento-date__day" +
-                    (selected.has(cell.key) ? " is-selected" : "") +
-                    (cell.key === min ? " is-today" : "")
-                  }
-                  disabled={cell.disabled}
-                  aria-pressed={selected.has(cell.key)}
-                  onClick={() => {
-                    if (cell.disabled) return;
-                    toggleDay(cell.key);
-                  }}
-                >
-                  {cell.day}
-                </button>
-              ) : (
-                <span
-                  key={`e-${index}`}
-                  className="acompanamiento-date__day acompanamiento-date__day--empty"
-                />
-              ),
-            )}
-          </div>
-          <button
-            type="button"
-            className="acompanamiento-date__ok"
-            onClick={() => setOpen(false)}
-          >
-            Ok
-          </button>
-        </div>
+          {error}
+        </p>
       ) : null}
+
+      {open && panelHost ? createPortal(calendar, panelHost) : null}
     </div>
   );
 }
