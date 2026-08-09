@@ -149,62 +149,10 @@ export function ServicioBodaVideos() {
           </p>
         </header>
 
-        <div
-          ref={stageRef}
-          className="servicio-boda-videos__stage"
-          aria-live="polite"
-        >
-          {VIDEOS.map((item, index) => {
-            const slot = slotFor(index, active, VIDEOS.length);
-            const isCenter = slot === 0;
-            const isVisible = Math.abs(slot) <= 1;
-            return (
-              <button
-                key={item.src}
-                type="button"
-                className={
-                  "servicio-boda-videos__frame" +
-                  (isCenter ? " is-center" : "") +
-                  (slot === -1 ? " is-left" : "") +
-                  (slot === 1 ? " is-right" : "") +
-                  (!isVisible ? " is-hidden" : "")
-                }
-                tabIndex={isVisible ? 0 : -1}
-                onClick={() => {
-                  if (!isCenter) setActive(index);
-                }}
-                aria-label={item.label}
-                aria-hidden={!isVisible}
-                aria-current={isCenter ? "true" : undefined}
-              >
-                <video
-                  ref={(el) => {
-                    videoRefs.current[index] = el;
-                  }}
-                  className="servicio-boda-videos__video"
-                  src={item.src}
-                  muted
-                  playsInline
-                  loop
-                  preload={isVisible ? "metadata" : "none"}
-                  aria-hidden={true}
-                />
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="servicio-boda-videos__meta">
-          <p className="servicio-boda-videos__index" aria-hidden={true}>
-            {indexLabel}
-          </p>
-          <p className="servicio-boda-videos__caption">{activeLabel}</p>
-        </div>
-
-        <div className="servicio-boda-videos__nav">
+        <div className="servicio-boda-videos__stage-wrap">
           <button
             type="button"
-            className="servicio-boda-videos__arrow"
+            className="servicio-boda-videos__arrow servicio-boda-videos__arrow--prev"
             onClick={prev}
             aria-label="Vídeo anterior"
           >
@@ -218,9 +166,55 @@ export function ServicioBodaVideos() {
               aria-hidden={true}
             />
           </button>
+
+          <div
+            ref={stageRef}
+            className="servicio-boda-videos__stage"
+            aria-live="polite"
+          >
+            {VIDEOS.map((item, index) => {
+              const slot = slotFor(index, active, VIDEOS.length);
+              const isCenter = slot === 0;
+              const isVisible = Math.abs(slot) <= 1;
+              return (
+                <button
+                  key={item.src}
+                  type="button"
+                  className={
+                    "servicio-boda-videos__frame" +
+                    (isCenter ? " is-center" : "") +
+                    (slot === -1 ? " is-left" : "") +
+                    (slot === 1 ? " is-right" : "") +
+                    (!isVisible ? " is-hidden" : "")
+                  }
+                  tabIndex={isVisible ? 0 : -1}
+                  onClick={() => {
+                    if (!isCenter) setActive(index);
+                  }}
+                  aria-label={item.label}
+                  aria-hidden={!isVisible}
+                  aria-current={isCenter ? "true" : undefined}
+                >
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[index] = el;
+                    }}
+                    className="servicio-boda-videos__video"
+                    src={item.src}
+                    muted
+                    playsInline
+                    loop
+                    preload={isVisible ? "metadata" : "none"}
+                    aria-hidden={true}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
           <button
             type="button"
-            className="servicio-boda-videos__arrow"
+            className="servicio-boda-videos__arrow servicio-boda-videos__arrow--next"
             onClick={next}
             aria-label="Vídeo siguiente"
           >
@@ -234,6 +228,13 @@ export function ServicioBodaVideos() {
               aria-hidden={true}
             />
           </button>
+        </div>
+
+        <div className="servicio-boda-videos__meta">
+          <p className="servicio-boda-videos__index" aria-hidden={true}>
+            {indexLabel}
+          </p>
+          <p className="servicio-boda-videos__caption">{activeLabel}</p>
         </div>
 
         <button
