@@ -39,7 +39,7 @@ export function layoutServicioHeroOnce() {
   let anchorBottom = anchor.offsetTop + anchor.offsetHeight;
   let node: HTMLElement | null = anchor;
   while (node && node !== hero) {
-    const parent = node.offsetParent;
+    const parent: Element | null = node.offsetParent;
     if (!(parent instanceof HTMLElement) || parent === hero) break;
     anchorBottom += parent.offsetTop;
     node = parent;
