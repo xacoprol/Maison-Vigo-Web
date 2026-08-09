@@ -46,6 +46,60 @@ export function MvcareEffects() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
+    const startSection = document.getElementById("mvcare-empezar");
+    let startParallaxRaf = 0;
+    let startParallaxTarget = 0;
+    let startParallaxCurrent = 0;
+
+    const updateStartBgParallaxTarget = () => {
+      if (!startSection || prefersReducedMotion) return;
+      const rect = startSection.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const center = rect.top + rect.height * 0.5;
+      const raw = (vh * 0.5 - center) / (vh + rect.height * 0.5);
+      startParallaxTarget = Math.min(1, Math.max(-1, raw * 1.35));
+    };
+
+    const tickStartBgParallax = () => {
+      if (!startSection) {
+        startParallaxRaf = 0;
+        return;
+      }
+      const diff = startParallaxTarget - startParallaxCurrent;
+      if (Math.abs(diff) < 0.001) {
+        startParallaxCurrent = startParallaxTarget;
+      } else {
+        startParallaxCurrent += diff * 0.12;
+      }
+      startSection.style.setProperty(
+        "--mvcare-start-bg-parallax",
+        startParallaxCurrent.toFixed(3),
+      );
+      if (Math.abs(startParallaxTarget - startParallaxCurrent) > 0.001) {
+        startParallaxRaf = window.requestAnimationFrame(tickStartBgParallax);
+      } else {
+        startParallaxRaf = 0;
+      }
+    };
+
+    const scheduleStartBgParallax = () => {
+      if (!startSection || prefersReducedMotion) return;
+      updateStartBgParallaxTarget();
+      if (!startParallaxRaf) {
+        startParallaxRaf = window.requestAnimationFrame(tickStartBgParallax);
+      }
+    };
+
+    if (startSection) {
+      if (prefersReducedMotion) {
+        startSection.style.setProperty("--mvcare-start-bg-parallax", "0");
+      } else {
+        scheduleStartBgParallax();
+        window.addEventListener("mv-scroll", scheduleStartBgParallax);
+        window.addEventListener("resize", scheduleStartBgParallax);
+      }
+    }
+
     let observer: IntersectionObserver | undefined;
 
     if (revealNodes.length || titleDisplays.length) {
@@ -91,6 +145,10 @@ export function MvcareEffects() {
 
     return () => {
       window.removeEventListener("mv-scroll", onMvScroll);
+      window.removeEventListener("mv-scroll", scheduleStartBgParallax);
+      window.removeEventListener("resize", scheduleStartBgParallax);
+      if (startParallaxRaf) window.cancelAnimationFrame(startParallaxRaf);
+      startSection?.style.removeProperty("--mvcare-start-bg-parallax");
       observer?.disconnect();
       revealNodes.forEach((el) => el.classList.remove("is-visible"));
       titleDisplays.forEach((el) => el.classList.remove("is-revealed"));

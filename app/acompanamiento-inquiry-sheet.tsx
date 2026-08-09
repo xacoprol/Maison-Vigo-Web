@@ -20,11 +20,23 @@ import { AcompanamientoDateField } from "./acompanamiento-date-field";
 import "./acompanamiento-inquiry-sheet.css";
 
 type EventType = "boda" | "evento_familiar" | "otro";
+type DogSex = "male" | "female";
+type RingBoxColor = "white" | "brown";
 
 const EVENT_TYPES: { id: EventType; label: string }[] = [
   { id: "boda", label: "Boda" },
   { id: "evento_familiar", label: "Evento familiar" },
   { id: "otro", label: "Otro" },
+];
+
+const DOG_SEX_OPTIONS: { id: DogSex; label: string }[] = [
+  { id: "male", label: "Macho" },
+  { id: "female", label: "Hembra" },
+];
+
+const RING_COLOR_OPTIONS: { id: RingBoxColor; label: string }[] = [
+  { id: "white", label: "Blanco" },
+  { id: "brown", label: "Marrón" },
 ];
 
 const STEPS = [
@@ -70,6 +82,163 @@ function clearReservaQuery() {
   window.history.replaceState(window.history.state, "", url.pathname + url.hash);
 }
 
+const INQUIRY_SENT_COOKIE = "mv_acomp_inquiry_sent";
+const INQUIRY_SUMMARY_KEY = "mv_acomp_inquiry_summary";
+/** 90 días: evita reenvíos accidentales al reabrir el sheet. */
+const INQUIRY_SENT_MAX_AGE_SEC = 60 * 60 * 24 * 90;
+
+type InquirySummary = {
+  contactName: string;
+  phone: string;
+  email: string | null;
+  eventType: EventType | "";
+  eventDates: string[];
+  venue: string;
+  dogName: string;
+  dogBreed: string;
+  dogAgeYears: number | null;
+  dogSex: DogSex | null;
+  dogSterilized: boolean | null;
+  needsTransfer: boolean;
+  pickupAddress: string | null;
+  deliveryAddress: string | null;
+  ringBox: boolean;
+  ringBoxColor: RingBoxColor | null;
+  collarLeash: boolean;
+  hoursEstimate: string | null;
+  petCareNotes: string | null;
+  message: string | null;
+};
+
+function readInquirySentCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .some((part) => part === `${INQUIRY_SENT_COOKIE}=1`);
+}
+
+function markInquirySentCookie() {
+  document.cookie = `${INQUIRY_SENT_COOKIE}=1; Max-Age=${INQUIRY_SENT_MAX_AGE_SEC}; Path=/; SameSite=Lax`;
+}
+
+function clearInquirySentCookie() {
+  document.cookie = `${INQUIRY_SENT_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
+}
+
+function saveInquirySummary(summary: InquirySummary) {
+  try {
+    window.localStorage.setItem(INQUIRY_SUMMARY_KEY, JSON.stringify(summary));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function readInquirySummary(): InquirySummary | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(INQUIRY_SUMMARY_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as InquirySummary;
+    if (!parsed || typeof parsed.contactName !== "string") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function clearInquirySummary() {
+  try {
+    window.localStorage.removeItem(INQUIRY_SUMMARY_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function formatSummaryDate(key: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return key;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(y, mo - 1, d));
+}
+
+function eventTypeLabel(id: EventType | ""): string {
+  if (!id) return "—";
+  return EVENT_TYPES.find((t) => t.id === id)?.label ?? id;
+}
+
+function summaryRows(summary: InquirySummary): { label: string; value: string }[] {
+  const extras = [
+    summary.needsTransfer ? "Traslado" : null,
+    summary.ringBox
+      ? summary.ringBoxColor === "white"
+        ? "Portaalianzas (blanco)"
+        : summary.ringBoxColor === "brown"
+          ? "Portaalianzas (marrón)"
+          : "Portaalianzas"
+      : null,
+    summary.collarLeash ? "Collar / Biothane" : null,
+  ].filter(Boolean) as string[];
+
+  const rows: { label: string; value: string }[] = [
+    { label: "Contacto", value: summary.contactName },
+    { label: "Teléfono", value: summary.phone },
+  ];
+  if (summary.email) rows.push({ label: "Email", value: summary.email });
+  rows.push(
+    { label: "Evento", value: eventTypeLabel(summary.eventType) },
+    {
+      label: summary.eventDates.length > 1 ? "Fechas" : "Fecha",
+      value: summary.eventDates.length
+        ? summary.eventDates.map(formatSummaryDate).join(" · ")
+        : "—",
+    },
+    { label: "Lugar", value: summary.venue },
+    { label: "Perro", value: summary.dogName },
+    { label: "Raza / tamaño", value: summary.dogBreed },
+  );
+  if (summary.dogAgeYears != null) {
+    rows.push({ label: "Edad", value: `${summary.dogAgeYears} años` });
+  }
+  if (summary.dogSex) {
+    rows.push({
+      label: "Sexo",
+      value: summary.dogSex === "male" ? "Macho" : "Hembra",
+    });
+  }
+  if (summary.dogSterilized != null) {
+    rows.push({
+      label: "Esterilizado",
+      value: summary.dogSterilized ? "Sí" : "No",
+    });
+  }
+  if (summary.hoursEstimate) {
+    rows.push({ label: "Horas", value: summary.hoursEstimate });
+  }
+  if (extras.length) {
+    rows.push({ label: "Extras", value: extras.join(" · ") });
+  }
+  if (summary.needsTransfer && summary.pickupAddress) {
+    rows.push({ label: "Recogida", value: summary.pickupAddress });
+  }
+  if (summary.needsTransfer && summary.deliveryAddress) {
+    rows.push({ label: "Entrega", value: summary.deliveryAddress });
+  }
+  if (summary.petCareNotes) {
+    rows.push({ label: "Cuidados", value: summary.petCareNotes });
+  }
+  if (summary.message) {
+    rows.push({ label: "Mensaje", value: summary.message });
+  }
+  return rows;
+}
+
 type FloatFieldProps = {
   id: string;
   label: string;
@@ -100,6 +269,57 @@ function InquiryFloatField({ id, label, error, children }: FloatFieldProps) {
   );
 }
 
+function InquirySuccessHeart() {
+  const uid = useId().replace(/:/g, "");
+  const fillId = `acomp-inquiry-heart-fill-${uid}`;
+  const sheenId = `acomp-inquiry-heart-sheen-${uid}`;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden={true}
+      className="acompanamiento-inquiry-sheet__success-heart"
+    >
+      <defs>
+        <linearGradient
+          id={fillId}
+          x1="4"
+          y1="3"
+          x2="18"
+          y2="22"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#f0d78a" />
+          <stop offset="55%" stopColor="#e0b85a" />
+          <stop offset="100%" stopColor="#bb955d" />
+        </linearGradient>
+        <linearGradient
+          id={sheenId}
+          x1="8"
+          y1="5"
+          x2="14"
+          y2="14"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#fff8e8" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#fff8e8" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 20.35c-.35 0-.7-.1-1-.3C7.4 17.55 3.5 14.15 3.5 10.1A4.55 4.55 0 0 1 8.05 5.5c1.35 0 2.6.55 3.45 1.5A4.55 4.55 0 0 1 15.95 5.5 4.55 4.55 0 0 1 20.5 10.1c0 4.05-3.9 7.45-7.5 9.95-.3.2-.65.3-1 .3Z"
+        fill={`url(#${fillId})`}
+      />
+      <path
+        d="M12 7.85c.55-.7 1.45-1.45 2.7-1.55 1.55-.1 2.85.9 3.15 2.25.15.7.05 1.4-.25 2.05"
+        stroke={`url(#${sheenId})`}
+        strokeWidth="1.15"
+        strokeLinecap="round"
+        opacity="0.9"
+      />
+    </svg>
+  );
+}
+
 export function AcompanamientoInquirySheet() {
   const titleId = useId();
   const [portalReady, setPortalReady] = useState(false);
@@ -108,6 +328,9 @@ export function AcompanamientoInquirySheet() {
   const [visible, setVisible] = useState(false);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
+  /** Reabrimos con cookie: mensaje “ya enviada” + CTA para otra. */
+  const [alreadySent, setAlreadySent] = useState(false);
+  const [summary, setSummary] = useState<InquirySummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState<StepIndex>(0);
@@ -119,12 +342,14 @@ export function AcompanamientoInquirySheet() {
   const [dogName, setDogName] = useState("");
   const [dogBreed, setDogBreed] = useState("");
   const [dogAgeYears, setDogAgeYears] = useState("");
+  const [dogSex, setDogSex] = useState<DogSex | null>(null);
   const [dogSterilized, setDogSterilized] = useState<boolean | null>(null);
   const [eventType, setEventType] = useState<EventType | "">("boda");
   const [needsTransfer, setNeedsTransfer] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [ringBox, setRingBox] = useState(false);
+  const [ringBoxColor, setRingBoxColor] = useState<RingBoxColor | null>(null);
   const [collarLeash, setCollarLeash] = useState(false);
   const [hoursEstimate, setHoursEstimate] = useState("");
   const [petCareNotes, setPetCareNotes] = useState("");
@@ -136,6 +361,33 @@ export function AcompanamientoInquirySheet() {
   const closeModalRef = useRef<() => void>(() => {});
   const autoOpenedRef = useRef(false);
 
+  const resetFormFields = useCallback(() => {
+    setContactName("");
+    setPhone("");
+    setEmail("");
+    setEventDates([]);
+    setVenue("");
+    setDogName("");
+    setDogBreed("");
+    setDogAgeYears("");
+    setDogSex(null);
+    setDogSterilized(null);
+    setEventType("boda");
+    setNeedsTransfer(false);
+    setPickupAddress("");
+    setDeliveryAddress("");
+    setRingBox(false);
+    setRingBoxColor(null);
+    setCollarLeash(false);
+    setHoursEstimate("");
+    setPetCareNotes("");
+    setMessage("");
+    setStep(0);
+    setFieldErrors({});
+    setError(null);
+    setPending(false);
+  }, []);
+
   useEffect(() => {
     setPortalReady(true);
   }, []);
@@ -146,10 +398,12 @@ export function AcompanamientoInquirySheet() {
         window.clearTimeout(closeTimer.current);
         closeTimer.current = null;
       }
-      setDone(false);
-      setError(null);
-      setFieldErrors({});
-      setStep(0);
+      resetFormFields();
+      const sent = readInquirySentCookie();
+      const stored = sent ? readInquirySummary() : null;
+      setSummary(stored);
+      setAlreadySent(sent);
+      setDone(sent);
       setLeadSource((prev) => prev ?? readLeadSourceFromUrl());
       setOpen(true);
     };
@@ -160,7 +414,7 @@ export function AcompanamientoInquirySheet() {
         onOpen,
       );
     };
-  }, []);
+  }, [resetFormFields]);
 
   /** QR / deep-link: ?reserva=1&origen=vigo-bodas */
   useEffect(() => {
@@ -294,10 +548,14 @@ export function AcompanamientoInquirySheet() {
         "dog",
         "breed",
         "age",
+        "sex",
+        "ringColor",
       ] as const;
       const firstKey = focusOrder.find((k) => nextErrors[k]);
       const focusId =
-        firstKey === "eventType"
+        firstKey === "eventType" ||
+        firstKey === "sex" ||
+        firstKey === "ringColor"
           ? null
           : firstKey === "dates"
             ? `${titleId}-date`
@@ -314,6 +572,14 @@ export function AcompanamientoInquirySheet() {
         } else if (firstKey === "eventType") {
           document
             .getElementById(`${titleId}-event-type`)
+            ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } else if (firstKey === "sex") {
+          document
+            .getElementById(`${titleId}-sex`)
+            ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } else if (firstKey === "ringColor") {
+          document
+            .getElementById(`${titleId}-ring-color`)
             ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
       });
@@ -335,6 +601,7 @@ export function AcompanamientoInquirySheet() {
       const checkContact = forStep == null || forStep === 0;
       const checkEvent = forStep == null || forStep === 1;
       const checkDog = forStep == null || forStep === 2;
+      const checkExtras = forStep == null || forStep === 3;
 
       if (checkContact) {
         if (!name) nextErrors.name = "Indica tu nombre";
@@ -373,6 +640,11 @@ export function AcompanamientoInquirySheet() {
         ) {
           nextErrors.age = "Revisa la edad del perro";
         }
+        if (!dogSex) nextErrors.sex = "Indica el sexo del perro";
+      }
+
+      if (checkExtras && ringBox && !ringBoxColor) {
+        nextErrors.ringColor = "Indica el color del portaalianzas";
       }
 
       return nextErrors;
@@ -387,6 +659,9 @@ export function AcompanamientoInquirySheet() {
       dogName,
       dogBreed,
       dogAgeYears,
+      dogSex,
+      ringBox,
+      ringBoxColor,
     ],
   );
 
@@ -435,6 +710,7 @@ export function AcompanamientoInquirySheet() {
         ) {
           return 1;
         }
+        if (key === "ringColor") return 3;
         return 2;
       };
       const firstKey = Object.keys(nextErrors)[0]!;
@@ -471,6 +747,7 @@ export function AcompanamientoInquirySheet() {
           dogName: dog,
           dogBreed: breed,
           dogAgeYears: ageNum,
+          dogSex,
           dogSterilized,
           eventType,
           needsTransfer,
@@ -481,6 +758,7 @@ export function AcompanamientoInquirySheet() {
             ? deliveryAddress.trim() || null
             : null,
           ringBox,
+          ringBoxColor: ringBox ? ringBoxColor : null,
           collarLeash,
           hoursEstimate: hoursEstimate.trim() || null,
           petCareNotes: petCareNotes.trim() || null,
@@ -499,6 +777,37 @@ export function AcompanamientoInquirySheet() {
         );
         return;
       }
+      const nextSummary: InquirySummary = {
+        contactName: name,
+        phone: tel,
+        email: mail || null,
+        eventType,
+        eventDates: [...eventDates].sort(),
+        venue: place,
+        dogName: dog,
+        dogBreed: breed,
+        dogAgeYears: ageNum,
+        dogSex,
+        dogSterilized,
+        needsTransfer,
+        pickupAddress: needsTransfer
+          ? pickupAddress.trim() || null
+          : null,
+        deliveryAddress: needsTransfer
+          ? deliveryAddress.trim() || null
+          : null,
+        ringBox,
+        ringBoxColor: ringBox ? ringBoxColor : null,
+        collarLeash,
+        hoursEstimate: hoursEstimate.trim() || null,
+        petCareNotes: petCareNotes.trim() || null,
+        message: message.trim() || null,
+      };
+      markInquirySentCookie();
+      saveInquirySummary(nextSummary);
+      setSummary(nextSummary);
+      resetFormFields();
+      setAlreadySent(false);
       setDone(true);
     } catch {
       setError(
@@ -508,6 +817,20 @@ export function AcompanamientoInquirySheet() {
       setPending(false);
     }
   };
+
+  const startAnotherInquiry = () => {
+    clearInquirySentCookie();
+    clearInquirySummary();
+    setSummary(null);
+    resetFormFields();
+    setAlreadySent(false);
+    setDone(false);
+    panelRef.current
+      ?.querySelector(".acompanamiento-inquiry-sheet__body")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const summaryItems = summary ? summaryRows(summary) : [];
 
   if (!portalReady || !mounted) return null;
 
@@ -545,32 +868,86 @@ export function AcompanamientoInquirySheet() {
           ×
         </button>
         <div className="acompanamiento-inquiry-sheet__body">
-          <p className="acompanamiento-inquiry-sheet__eyebrow">
-            Acompañamiento
-          </p>
-          <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
-            {done ? "Solicitud enviada" : "Pide tu propuesta"}
-          </h2>
           {done ? (
-            <div className="acompanamiento-inquiry-sheet__success">
-              <p>
-                Gracias. Hemos recibido tu solicitud y el equipo de Maison Vigo
-                se pondrá en contacto contigo.
-              </p>
-              <button
-                type="button"
-                className="acompanamiento-inquiry-sheet__submit"
-                onClick={closeModal}
+            <div
+              className="acompanamiento-inquiry-sheet__success"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="acompanamiento-inquiry-sheet__success-icon"
+                aria-hidden={true}
               >
-                Cerrar
-              </button>
+                <InquirySuccessHeart />
+              </div>
+              <p className="acompanamiento-inquiry-sheet__success-eyebrow">
+                {alreadySent ? "Solicitud enviada" : "Solicitud recibida"}
+              </p>
+              <h2
+                id={titleId}
+                className="acompanamiento-inquiry-sheet__success-title"
+              >
+                {alreadySent ? "Ya la tienes" : "¡Gracias!"}
+              </h2>
+              <p className="acompanamiento-inquiry-sheet__success-lead">
+                {alreadySent
+                  ? "Ya has enviado una solicitud de propuesta. El equipo de Maison Vigo te contactará; si necesitas actualizar algo, puedes enviar otra."
+                  : "Hemos recibido tu solicitud. El equipo de Maison Vigo se pondrá en contacto contigo para afinar la propuesta."}
+              </p>
+              {summaryItems.length > 0 ? (
+                <div className="acompanamiento-inquiry-sheet__summary">
+                  <p className="acompanamiento-inquiry-sheet__summary-title">
+                    Resumen
+                  </p>
+                  <dl className="acompanamiento-inquiry-sheet__summary-list">
+                    {summaryItems.map((row) => (
+                      <div
+                        key={row.label}
+                        className="acompanamiento-inquiry-sheet__summary-row"
+                      >
+                        <dt>{row.label}</dt>
+                        <dd>{row.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
+              <div className="acompanamiento-inquiry-sheet__success-actions">
+                {alreadySent ? (
+                  <button
+                    type="button"
+                    className="acompanamiento-inquiry-sheet__submit"
+                    onClick={startAnotherInquiry}
+                  >
+                    Enviar otra solicitud
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={
+                    alreadySent
+                      ? "acompanamiento-inquiry-sheet__submit acompanamiento-inquiry-sheet__submit--ghost"
+                      : "acompanamiento-inquiry-sheet__submit"
+                  }
+                  onClick={closeModal}
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           ) : (
-            <form
-              className="acompanamiento-inquiry-sheet__form"
-              onSubmit={onSubmit}
-              noValidate
-            >
+            <>
+              <p className="acompanamiento-inquiry-sheet__eyebrow">
+                Acompañamiento
+              </p>
+              <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
+                Pide tu propuesta
+              </h2>
+              <form
+                className="acompanamiento-inquiry-sheet__form"
+                onSubmit={onSubmit}
+                noValidate
+              >
               <input
                 type="text"
                 name="website"
@@ -838,6 +1215,55 @@ export function AcompanamientoInquirySheet() {
                     </InquiryFloatField>
                   </div>
                   <div
+                    id={`${titleId}-sex`}
+                    className={
+                      "acompanamiento-inquiry-sheet__choice" +
+                      (fieldErrors.sex
+                        ? " acompanamiento-inquiry-sheet__choice--error"
+                        : "")
+                    }
+                    role="group"
+                    aria-label="Sexo"
+                    aria-invalid={fieldErrors.sex ? true : undefined}
+                    aria-describedby={
+                      fieldErrors.sex ? `${titleId}-sex-error` : undefined
+                    }
+                  >
+                    <p className="acompanamiento-inquiry-sheet__choice-label">
+                      Sexo
+                    </p>
+                    <div className="acompanamiento-inquiry-sheet__chips">
+                      {DOG_SEX_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          className={
+                            "acompanamiento-inquiry-sheet__chip" +
+                            (dogSex === opt.id
+                              ? " acompanamiento-inquiry-sheet__chip--active"
+                              : "")
+                          }
+                          aria-pressed={dogSex === opt.id}
+                          onClick={() => {
+                            setDogSex(opt.id);
+                            clearFieldError("sex");
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {fieldErrors.sex ? (
+                      <p
+                        id={`${titleId}-sex-error`}
+                        className="acompanamiento-inquiry-sheet__field-error"
+                        role="alert"
+                      >
+                        {fieldErrors.sex}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div
                     className="acompanamiento-inquiry-sheet__choice"
                     role="group"
                     aria-label="Esterilizado"
@@ -955,7 +1381,14 @@ export function AcompanamientoInquirySheet() {
                       <input
                         type="checkbox"
                         checked={ringBox}
-                        onChange={(e) => setRingBox(e.target.checked)}
+                        onChange={(e) => {
+                          const on = e.target.checked;
+                          setRingBox(on);
+                          if (!on) {
+                            setRingBoxColor(null);
+                            clearFieldError("ringColor");
+                          }
+                        }}
                       />
                       <span className="acompanamiento-inquiry-sheet__check-text">
                         Portaalianzas
@@ -983,6 +1416,61 @@ export function AcompanamientoInquirySheet() {
                         </button>
                       </span>
                     </label>
+                    {ringBox ? (
+                      <div
+                        id={`${titleId}-ring-color`}
+                        className={
+                          "acompanamiento-inquiry-sheet__choice" +
+                          (fieldErrors.ringColor
+                            ? " acompanamiento-inquiry-sheet__choice--error"
+                            : "")
+                        }
+                        role="group"
+                        aria-label="Color del portaalianzas"
+                        aria-invalid={
+                          fieldErrors.ringColor ? true : undefined
+                        }
+                        aria-describedby={
+                          fieldErrors.ringColor
+                            ? `${titleId}-ringColor-error`
+                            : undefined
+                        }
+                      >
+                        <p className="acompanamiento-inquiry-sheet__choice-label">
+                          Color
+                        </p>
+                        <div className="acompanamiento-inquiry-sheet__chips">
+                          {RING_COLOR_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              className={
+                                "acompanamiento-inquiry-sheet__chip" +
+                                (ringBoxColor === opt.id
+                                  ? " acompanamiento-inquiry-sheet__chip--active"
+                                  : "")
+                              }
+                              aria-pressed={ringBoxColor === opt.id}
+                              onClick={() => {
+                                setRingBoxColor(opt.id);
+                                clearFieldError("ringColor");
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        {fieldErrors.ringColor ? (
+                          <p
+                            id={`${titleId}-ringColor-error`}
+                            className="acompanamiento-inquiry-sheet__field-error"
+                            role="alert"
+                          >
+                            {fieldErrors.ringColor}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <label className="acompanamiento-inquiry-sheet__check">
                       <input
                         type="checkbox"
@@ -1075,6 +1563,7 @@ export function AcompanamientoInquirySheet() {
                 )}
               </div>
             </form>
+            </>
           )}
         </div>
       </div>

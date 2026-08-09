@@ -1820,6 +1820,7 @@ body.intro-complete .mvcare .mvcare-hero__title {
 
 /* —— Start (pasos + FAQ) —— */
 .mvcare-start.mvcare-section {
+  --mvcare-start-bg-parallax: 0;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -1831,11 +1832,29 @@ body.intro-complete .mvcare .mvcare-hero__title {
 .mvcare-start.mvcare-section::before {
   content: "";
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: -18%;
+  bottom: -18%;
   z-index: 0;
   background: url("/assets/images/bg-pelos.webp") center / cover no-repeat;
   opacity: 0.03;
   pointer-events: none;
+  transform: translate3d(
+    0,
+    calc(var(--mvcare-start-bg-parallax) * 10%),
+    0
+  );
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mvcare-start.mvcare-section::before {
+    top: 0;
+    bottom: 0;
+    transform: none;
+    will-change: auto;
+  }
 }
 
 .mvcare-start__inner {
