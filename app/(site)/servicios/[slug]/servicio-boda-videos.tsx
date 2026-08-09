@@ -141,9 +141,7 @@ export function ServicioBodaVideos() {
             id="servicio-boda-videos-heading"
             className="servicio-boda-videos__title"
           >
-            Ellos también
-            <br />
-            forman parte del día
+            Ellos también forman parte del día
           </h2>
           <p className="servicio-boda-videos__lead">
             Presencia serena, cuidado cercano y el vínculo intacto — para que

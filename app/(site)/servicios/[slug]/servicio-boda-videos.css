@@ -16,7 +16,7 @@
 
 .servicio-boda-videos__header {
   margin: 0 auto clamp(40px, 6vw, 64px);
-  max-width: 18em;
+  max-width: min(920px, 100%);
 }
 
 .servicio-boda-videos__eyebrow {
@@ -38,11 +38,12 @@
   letter-spacing: 0.01em;
   text-transform: uppercase;
   color: var(--cream);
+  max-width: none;
 }
 
 .servicio-boda-videos__lead {
   margin: 0 auto;
-  max-width: 36ch;
+  max-width: 42ch;
   font-family: var(--ff-sans);
   font-size: clamp(13px, 1.45vw, 16px);
   line-height: 1.55;
