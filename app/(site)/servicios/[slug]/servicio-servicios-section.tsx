@@ -160,12 +160,15 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
         const el = document.createElement("span");
         el.className = "servicio-servicios__fur";
 
-        // Finos pero visibles (~1–1.6px en pantalla): stroke en user units × caja 14px.
-        const len = 11 + Math.random() * 18;
-        const thick = 1.35 + Math.random() * 1.1;
+        // Finos pero visibles; curva marcada tipo pelo suelto (no recto).
+        const len = 12 + Math.random() * 20;
+        const thick = 1.25 + Math.random() * 1.15;
         const color = DOG_FUR[Math.floor(Math.random() * DOG_FUR.length)]!;
         const side = Math.random() > 0.5 ? 1 : -1;
-        const curve = side * (2 + Math.random() * 7);
+        // Arco en C (mismo lado) + punta que se enrolla un poco más.
+        const bend = side * (7 + Math.random() * 11);
+        const tip = bend * (0.55 + Math.random() * 0.55);
+        const midY = 14 + Math.random() * 10;
         // Origen cerca del cruce de hojas.
         const startX = 38 + Math.random() * 24;
         const startY = 54 + Math.random() * 10;
@@ -174,8 +177,8 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
         const speed = 0.6 + Math.random() * 0.85;
         const driftX = Math.sin(angle) * (32 + Math.random() * 58) * speed;
         const fallY = 60 + Math.random() * 85 * speed;
-        const rot0 = -22 + Math.random() * 44;
-        const spin = side * (10 + Math.random() * 28);
+        const rot0 = -28 + Math.random() * 56;
+        const spin = side * (14 + Math.random() * 34);
         const rot1 = rot0 + spin;
         const delay = Math.random() * 80;
 
@@ -183,7 +186,8 @@ export function ServicioServiciosSection({ slug }: ServicioServiciosSectionProps
         el.style.top = `${startY}%`;
         el.style.setProperty("--fur-len", `${len.toFixed(1)}px`);
         el.style.setProperty("--fur-color", color);
-        el.innerHTML = `<svg viewBox="0 0 20 48" aria-hidden="true" focusable="false"><path d="M10 0 C ${10 + curve * 0.5} 12, ${10 - curve * 0.4} 28, ${10 + curve * 0.2} 48" fill="none" stroke="currentColor" stroke-width="${thick.toFixed(2)}" stroke-linecap="round"/></svg>`;
+        // viewBox ancho para que el arco no se recorte.
+        el.innerHTML = `<svg viewBox="0 0 36 48" aria-hidden="true" focusable="false"><path d="M18 0 C ${18 + bend} ${midY.toFixed(1)}, ${18 + bend * 1.15} 34, ${18 + tip} 48" fill="none" stroke="currentColor" stroke-width="${thick.toFixed(2)}" stroke-linecap="round"/></svg>`;
 
         hairsHost.appendChild(el);
         liveHairs.add(el);

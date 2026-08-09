@@ -114,9 +114,9 @@
 
 .servicio-servicios__fur {
   position: absolute;
-  width: 14px;
+  width: 22px;
   height: var(--fur-len, 16px);
-  margin-left: -7px;
+  margin-left: -11px;
   color: var(--fur-color, #d4af7a);
   opacity: 0;
   transform-origin: 50% 0%;
