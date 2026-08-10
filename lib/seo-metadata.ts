@@ -75,7 +75,7 @@ export function rootMetadata(): Metadata {
         {
           url: defaultOgImage,
           width: 1200,
-          height: 1600,
+          height: 630,
           alt: siteConfig.shortName,
         },
       ],

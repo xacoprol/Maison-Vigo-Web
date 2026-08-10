@@ -15,8 +15,8 @@ export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
   "https://www.maisonvigo.es";
 
-/** Imagen social por defecto (Open Graph / Twitter). */
-export const defaultOgImage = "/foto1.jpg";
+/** Imagen social por defecto (Open Graph / Twitter). JPEG ligero ≤300KB. */
+export const defaultOgImage = "/og/default.jpg";
 
 /**
  * Indexación activa salvo que se desactive explícitamente
