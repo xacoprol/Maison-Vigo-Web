@@ -1060,3 +1060,51 @@
     opacity: 1;
   }
 }
+
+.acompanamiento-inquiry-sheet__jewelry {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.acompanamiento-inquiry-sheet__jewelry-list {
+  display: grid;
+  gap: 12px;
+}
+
+.acompanamiento-inquiry-sheet__jewelry-card {
+  border: 1px solid rgba(244, 244, 242, 0.14);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.acompanamiento-inquiry-sheet__jewelry-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.acompanamiento-inquiry-sheet__jewelry-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.acompanamiento-inquiry-sheet__jewelry-remove {
+  border: 0;
+  background: transparent;
+  color: rgba(244, 244, 242, 0.7);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.acompanamiento-inquiry-sheet__jewelry-qty {
+  display: grid;
+  gap: 8px;
+}

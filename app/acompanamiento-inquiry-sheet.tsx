@@ -16,6 +16,11 @@ import { careApiBaseUrl } from "@/lib/web-store/utils";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 import { AcompanamientoDateField } from "./acompanamiento-date-field";
+import {
+  AcompanamientoInquiryJewelry,
+  validateInquiryJewelryItems,
+  type InquiryJewelryItem,
+} from "./acompanamiento-inquiry-jewelry";
 
 import "./acompanamiento-inquiry-sheet.css";
 
@@ -105,6 +110,7 @@ type InquirySummary = {
   ringBox: boolean;
   ringBoxColor: RingBoxColor | null;
   collarLeash: boolean;
+  jewelryItems: InquiryJewelryItem[];
   hoursEstimate: string | null;
   petCareNotes: string | null;
   message: string | null;
@@ -184,6 +190,9 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
           : "Portaalianzas"
       : null,
     summary.collarLeash ? "Collar / Biothane" : null,
+    ...(summary.jewelryItems?.length
+      ? summary.jewelryItems.map((j) => `Joya: ${j.name}${j.optionLabel ? ` (${j.optionLabel})` : ""}`)
+      : []),
   ].filter(Boolean) as string[];
 
   const rows: { label: string; value: string }[] = [
@@ -351,6 +360,7 @@ export function AcompanamientoInquirySheet() {
   const [ringBox, setRingBox] = useState(false);
   const [ringBoxColor, setRingBoxColor] = useState<RingBoxColor | null>(null);
   const [collarLeash, setCollarLeash] = useState(false);
+  const [jewelryItems, setJewelryItems] = useState<InquiryJewelryItem[]>([]);
   const [hoursEstimate, setHoursEstimate] = useState("");
   const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
@@ -379,6 +389,7 @@ export function AcompanamientoInquirySheet() {
     setRingBox(false);
     setRingBoxColor(null);
     setCollarLeash(false);
+    setJewelryItems([]);
     setHoursEstimate("");
     setPetCareNotes("");
     setMessage("");
@@ -646,6 +657,10 @@ export function AcompanamientoInquirySheet() {
       if (checkExtras && ringBox && !ringBoxColor) {
         nextErrors.ringColor = "Indica el color del portaalianzas";
       }
+      if (checkExtras) {
+        const jewelryErr = validateInquiryJewelryItems(jewelryItems);
+        if (jewelryErr) nextErrors.jewelry = jewelryErr;
+      }
 
       return nextErrors;
     },
@@ -662,6 +677,7 @@ export function AcompanamientoInquirySheet() {
       dogSex,
       ringBox,
       ringBoxColor,
+      jewelryItems,
     ],
   );
 
@@ -760,6 +776,16 @@ export function AcompanamientoInquirySheet() {
           ringBox,
           ringBoxColor: ringBox ? ringBoxColor : null,
           collarLeash,
+          jewelryItems: jewelryItems.map((j) => ({
+            productId: j.productId,
+            name: j.name,
+            imageUrl: j.imageUrl,
+            optionLabel: j.optionLabel,
+            variantKey: j.variantKey,
+            quantity: j.quantity,
+            unitPriceCents: j.unitPriceCents,
+            customization: j.customization,
+          })),
           hoursEstimate: hoursEstimate.trim() || null,
           petCareNotes: petCareNotes.trim() || null,
           message: message.trim() || null,
@@ -799,6 +825,7 @@ export function AcompanamientoInquirySheet() {
         ringBox,
         ringBoxColor: ringBox ? ringBoxColor : null,
         collarLeash,
+        jewelryItems,
         hoursEstimate: hoursEstimate.trim() || null,
         petCareNotes: petCareNotes.trim() || null,
         message: message.trim() || null,
@@ -1501,6 +1528,11 @@ export function AcompanamientoInquirySheet() {
                         </button>
                       </span>
                     </label>
+                    <AcompanamientoInquiryJewelry
+                      titleId={titleId}
+                      value={jewelryItems}
+                      onChange={setJewelryItems}
+                    />
                   </div>
 
                   <InquiryFloatField
