@@ -17,6 +17,10 @@ import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 import { AcompanamientoDateField } from "./acompanamiento-date-field";
 import {
+  AcompanamientoInquiryBreedField,
+  titleCaseBreedLabel,
+} from "./acompanamiento-inquiry-breed-field";
+import {
   AcompanamientoInquiryJewelry,
   validateInquiryJewelryItems,
   type InquiryJewelryItem,
@@ -411,6 +415,7 @@ export function AcompanamientoInquirySheet() {
   const [eventDates, setEventDates] = useState<string[]>([]);
   const [venue, setVenue] = useState("");
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
+  const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
   const [eventType, setEventType] = useState<EventType | "">("boda");
   const [needsTransfer, setNeedsTransfer] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
@@ -456,6 +461,39 @@ export function AcompanamientoInquirySheet() {
   useEffect(() => {
     setPortalReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!open && !mounted) return;
+    let cancelled = false;
+    void fetch("/api/acompanamientos/breed-presets?species=dog", {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: { items?: unknown }) => {
+        if (cancelled) return;
+        const items = Array.isArray(data.items)
+          ? data.items
+              .map((x) => titleCaseBreedLabel(String(x ?? "")))
+              .filter(Boolean)
+          : [];
+        const seen = new Set<string>();
+        const out: string[] = [];
+        for (const t of ["Mestizo", ...items]) {
+          const k = t.toLowerCase();
+          if (seen.has(k)) continue;
+          seen.add(k);
+          out.push(t);
+        }
+        setBreedOptions(out);
+      })
+      .catch(() => {
+        if (!cancelled) setBreedOptions(["Mestizo"]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, mounted]);
 
   useEffect(() => {
     const onOpen = () => {
@@ -821,7 +859,7 @@ export function AcompanamientoInquirySheet() {
       const ageNum = ageRaw === "" ? null : Number(ageRaw);
       return {
         name: dog.name.trim(),
-        breed: dog.breed.trim(),
+        breed: titleCaseBreedLabel(dog.breed),
         ageYears:
           ageNum == null || !Number.isFinite(ageNum) ? null : ageNum,
         sex: dog.sex,
@@ -1324,25 +1362,17 @@ export function AcompanamientoInquirySheet() {
                             />
                           </InquiryFloatField>
                           <div className="acompanamiento-inquiry-sheet__row">
-                            <InquiryFloatField
+                            <AcompanamientoInquiryBreedField
                               id={breedId}
                               label="Raza o tamaño"
+                              value={dog.breed}
+                              options={breedOptions}
                               error={breedErr}
-                            >
-                              <input
-                                id={breedId}
-                                value={dog.breed}
-                                onChange={(e) => {
-                                  updateDog(idx, { breed: e.target.value });
-                                  clearFieldError(`dog${idx}-breed`);
-                                }}
-                                placeholder="Raza o tamaño"
-                                aria-invalid={breedErr ? true : undefined}
-                                aria-describedby={
-                                  breedErr ? `${breedId}-error` : undefined
-                                }
-                              />
-                            </InquiryFloatField>
+                              onChange={(next) => {
+                                updateDog(idx, { breed: next });
+                                clearFieldError(`dog${idx}-breed`);
+                              }}
+                            />
                             <InquiryFloatField
                               id={ageId}
                               label="Edad (años)"

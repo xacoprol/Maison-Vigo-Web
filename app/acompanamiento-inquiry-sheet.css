@@ -508,6 +508,51 @@
   padding-bottom: 8px;
 }
 
+.acompanamiento-inquiry-sheet__breed-panel {
+  position: fixed;
+  z-index: 12050;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(244, 244, 242, 0.12);
+  background: #141414;
+  box-shadow: 0 18px 48px -16px rgba(0, 0, 0, 0.75);
+}
+
+.acompanamiento-inquiry-sheet__breed-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.acompanamiento-inquiry-sheet__breed-option {
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: var(--ff-sans);
+  font-size: 14px;
+  color: rgba(244, 244, 242, 0.92);
+}
+
+.acompanamiento-inquiry-sheet__breed-option.is-active,
+.acompanamiento-inquiry-sheet__breed-option:hover {
+  background: rgba(187, 149, 93, 0.18);
+}
+
+.acompanamiento-inquiry-sheet__breed-option.is-value {
+  color: #e0b85a;
+}
+
+.acompanamiento-inquiry-sheet__breed-option--add {
+  color: #e0b85a;
+  font-weight: 500;
+}
+
+.acompanamiento-inquiry-sheet__breed-empty {
+  padding: 12px;
+  font-size: 13px;
+  color: rgba(244, 244, 242, 0.45);
+}
+
 .acompanamiento-inquiry-sheet__field--float
   > input:not(:placeholder-shown)
   ~ label,
