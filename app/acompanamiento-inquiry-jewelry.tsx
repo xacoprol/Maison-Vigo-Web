@@ -7,9 +7,8 @@ import { formatQuantityTextSlotLabel } from "@/lib/web-store/personalization";
 import type {
   WebStoreCartCustomization,
   WebStorePersonalization,
-  WebStoreProduct,
 } from "@/lib/web-store/types";
-import { careApiBaseUrl } from "@/lib/web-store/utils";
+import { careApiBaseUrl, webStoreFileUrl } from "@/lib/web-store/utils";
 
 export const MAX_INQUIRY_JEWELRY = 2;
 
@@ -24,7 +23,12 @@ export type InquiryJewelryItem = {
   customization: WebStoreCartCustomization | null;
 };
 
-type CatalogProduct = WebStoreProduct & {
+type CatalogProduct = {
+  id: string;
+  name: string;
+  description: string | null;
+  photos: { url: string }[];
+  variants: { id: string; optionValues: Record<string, string> }[];
   personalization: WebStorePersonalization;
 };
 
@@ -46,10 +50,6 @@ function optionLabel(optionValues: Record<string, string>): string {
     .map((v) => String(v).trim())
     .filter(Boolean)
     .join(" · ");
-}
-
-function formatEur(cents: number): string {
-  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
 function emptyCustomization(pers: WebStorePersonalization): WebStoreCartCustomization {
@@ -84,7 +84,6 @@ export function AcompanamientoInquiryJewelry({
   const [catalog, setCatalog] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [wantJewelry, setWantJewelry] = useState(value.length > 0);
-  const [pickerId, setPickerId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -104,9 +103,9 @@ export function AcompanamientoInquiryJewelry({
     };
   }, []);
 
-  const available = useMemo(() => {
+  const availableToAdd = useMemo(() => {
     const taken = new Set(value.map((v) => v.productId));
-    return catalog.filter((p) => !taken.has(p.id) || value.some((v) => v.productId === p.id));
+    return catalog.filter((p) => !taken.has(p.id));
   }, [catalog, value]);
 
   const addProduct = (productId: string) => {
@@ -122,13 +121,12 @@ export function AcompanamientoInquiryJewelry({
       optionLabel: first ? optionLabel(first.optionValues) : null,
       variantKey: first ? variantKey(first.optionValues) : null,
       quantity: 1,
-      unitPriceCents: first?.salePriceCents ?? product.salePriceCents,
+      unitPriceCents: null,
       customization: product.personalization?.enabled
         ? emptyCustomization(product.personalization)
         : null,
     };
     onChange([...value, next]);
-    setPickerId("");
   };
 
   const updateItem = (index: number, patch: Partial<InquiryJewelryItem>) => {
@@ -175,7 +173,7 @@ export function AcompanamientoInquiryJewelry({
               className="acompanamiento-inquiry-sheet__tip-bubble"
             >
               Piezas del catálogo de Maison Vigo para los novios (grabado, foto…). Máximo{" "}
-              {MAX_INQUIRY_JEWELRY}. Es una solicitud; el precio es orientativo.
+              {MAX_INQUIRY_JEWELRY}.
             </span>
           </button>
         </span>
@@ -187,10 +185,23 @@ export function AcompanamientoInquiryJewelry({
             const product = catalog.find((p) => p.id === item.productId);
             if (!product) return null;
             const pers = product.personalization;
+            const img = webStoreFileUrl(item.imageUrl || product.photos?.[0]?.url);
             return (
               <div key={item.productId} className="acompanamiento-inquiry-sheet__jewelry-card">
                 <div className="acompanamiento-inquiry-sheet__jewelry-card-head">
-                  <p className="acompanamiento-inquiry-sheet__jewelry-name">{product.name}</p>
+                  <div className="acompanamiento-inquiry-sheet__jewelry-card-title">
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img}
+                        alt=""
+                        className="acompanamiento-inquiry-sheet__jewelry-thumb"
+                      />
+                    ) : (
+                      <span className="acompanamiento-inquiry-sheet__jewelry-thumb acompanamiento-inquiry-sheet__jewelry-thumb--empty" />
+                    )}
+                    <p className="acompanamiento-inquiry-sheet__jewelry-name">{product.name}</p>
+                  </div>
                   <button
                     type="button"
                     className="acompanamiento-inquiry-sheet__jewelry-remove"
@@ -199,9 +210,6 @@ export function AcompanamientoInquiryJewelry({
                     Quitar
                   </button>
                 </div>
-                <p className="acompanamiento-inquiry-sheet__hint">
-                  {formatEur(item.unitPriceCents ?? product.salePriceCents)} · referencia
-                </p>
                 {product.variants.length > 0 ? (
                   <label className="acompanamiento-inquiry-sheet__field">
                     <span>Variante</span>
@@ -214,7 +222,7 @@ export function AcompanamientoInquiryJewelry({
                         updateItem(index, {
                           variantKey: key,
                           optionLabel: optionLabel(v.optionValues),
-                          unitPriceCents: v.salePriceCents,
+                          unitPriceCents: null,
                         });
                       }}
                     >
@@ -222,7 +230,7 @@ export function AcompanamientoInquiryJewelry({
                         const key = variantKey(v.optionValues);
                         return (
                           <option key={key} value={key}>
-                            {optionLabel(v.optionValues)} · {formatEur(v.salePriceCents)}
+                            {optionLabel(v.optionValues)}
                           </option>
                         );
                       })}
@@ -372,23 +380,34 @@ export function AcompanamientoInquiryJewelry({
             );
           })}
 
-          {value.length < MAX_INQUIRY_JEWELRY ? (
-            <label className="acompanamiento-inquiry-sheet__field">
-              <span>Añadir joya</span>
-              <select
-                value={pickerId}
-                onChange={(e) => addProduct(e.target.value)}
-              >
-                <option value="">— Elegir —</option>
-                {available
-                  .filter((p) => !value.some((v) => v.productId === p.id))
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} · {formatEur(p.salePriceCents)}
-                    </option>
-                  ))}
-              </select>
-            </label>
+          {value.length < MAX_INQUIRY_JEWELRY && availableToAdd.length > 0 ? (
+            <div className="acompanamiento-inquiry-sheet__jewelry-picker" role="listbox" aria-label="Elegir joya">
+              <p className="acompanamiento-inquiry-sheet__choice-label">
+                {value.length ? "Añadir otra joya" : "Elige una joya"}
+              </p>
+              <div className="acompanamiento-inquiry-sheet__jewelry-grid">
+                {availableToAdd.map((p) => {
+                  const img = webStoreFileUrl(p.photos?.[0]?.url);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="option"
+                      className="acompanamiento-inquiry-sheet__jewelry-pick"
+                      onClick={() => addProduct(p.id)}
+                    >
+                      {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={img} alt="" className="acompanamiento-inquiry-sheet__jewelry-pick-img" />
+                      ) : (
+                        <span className="acompanamiento-inquiry-sheet__jewelry-pick-img acompanamiento-inquiry-sheet__jewelry-pick-img--empty" />
+                      )}
+                      <span className="acompanamiento-inquiry-sheet__jewelry-pick-name">{p.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ) : null}
         </div>
       ) : null}
