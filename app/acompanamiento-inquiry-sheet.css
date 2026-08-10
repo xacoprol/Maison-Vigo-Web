@@ -231,6 +231,67 @@
   min-width: 0;
 }
 
+.acompanamiento-inquiry-sheet__dogs {
+  display: grid;
+  gap: 18px;
+}
+
+.acompanamiento-inquiry-sheet__dog {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(244, 244, 242, 0.1);
+}
+
+.acompanamiento-inquiry-sheet__dog:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.acompanamiento-inquiry-sheet__dog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.acompanamiento-inquiry-sheet__dog-title {
+  margin: 0;
+  font-family: var(--ff-sans);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 244, 242, 0.55);
+}
+
+.acompanamiento-inquiry-sheet__dog-remove,
+.acompanamiento-inquiry-sheet__dog-add {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(224, 184, 90, 0.95);
+  font-family: var(--ff-sans);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.acompanamiento-inquiry-sheet__dog-remove:hover,
+.acompanamiento-inquiry-sheet__dog-remove:focus-visible,
+.acompanamiento-inquiry-sheet__dog-add:hover,
+.acompanamiento-inquiry-sheet__dog-add:focus-visible {
+  color: #f0d78a;
+  outline: none;
+}
+
+.acompanamiento-inquiry-sheet__dog-add {
+  margin: 2px 0 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .acompanamiento-inquiry-sheet__choice {
   display: grid;
   gap: 10px;

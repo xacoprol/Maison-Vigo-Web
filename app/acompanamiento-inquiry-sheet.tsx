@@ -47,11 +47,33 @@ const RING_COLOR_OPTIONS: { id: RingBoxColor; label: string }[] = [
 const STEPS = [
   { key: "contacto", label: "Contacto" },
   { key: "evento", label: "Evento" },
-  { key: "perro", label: "Tu perro" },
+  { key: "perro", label: "Mascotas" },
   { key: "extras", label: "Extras" },
 ] as const;
 
 type StepIndex = 0 | 1 | 2 | 3;
+
+const MAX_INQUIRY_DOGS = 5;
+
+type InquiryDogDraft = {
+  name: string;
+  breed: string;
+  ageYears: string;
+  sex: DogSex | null;
+  sterilized: boolean | null;
+};
+
+type InquiryDogSummary = {
+  name: string;
+  breed: string;
+  ageYears: number | null;
+  sex: DogSex | null;
+  sterilized: boolean | null;
+};
+
+function emptyDogDraft(): InquiryDogDraft {
+  return { name: "", breed: "", ageYears: "", sex: null, sterilized: null };
+}
 
 function inquiryApiUrl(): string {
   if (typeof window !== "undefined") {
@@ -99,11 +121,13 @@ type InquirySummary = {
   eventType: EventType | "";
   eventDates: string[];
   venue: string;
-  dogName: string;
-  dogBreed: string;
-  dogAgeYears: number | null;
-  dogSex: DogSex | null;
-  dogSterilized: boolean | null;
+  dogs: InquiryDogSummary[];
+  /** Compat resúmenes antiguos (un solo perro). */
+  dogName?: string;
+  dogBreed?: string;
+  dogAgeYears?: number | null;
+  dogSex?: DogSex | null;
+  dogSterilized?: boolean | null;
   needsTransfer: boolean;
   pickupAddress: string | null;
   deliveryAddress: string | null;
@@ -115,6 +139,40 @@ type InquirySummary = {
   petCareNotes: string | null;
   message: string | null;
 };
+
+function dogsFromSummary(summary: InquirySummary): InquiryDogSummary[] {
+  if (Array.isArray(summary.dogs) && summary.dogs.length) {
+    return summary.dogs
+      .map((d) => ({
+        name: String(d?.name ?? "").trim(),
+        breed: String(d?.breed ?? "").trim(),
+        ageYears:
+          d?.ageYears == null || Number.isNaN(Number(d.ageYears))
+            ? null
+            : Number(d.ageYears),
+        sex: d?.sex === "male" || d?.sex === "female" ? d.sex : null,
+        sterilized:
+          d?.sterilized === true ? true : d?.sterilized === false ? false : null,
+      }))
+      .filter((d) => d.name);
+  }
+  const legacyName = String(summary.dogName ?? "").trim();
+  if (!legacyName) return [];
+  return [
+    {
+      name: legacyName,
+      breed: String(summary.dogBreed ?? "").trim(),
+      ageYears: summary.dogAgeYears ?? null,
+      sex: summary.dogSex === "male" || summary.dogSex === "female" ? summary.dogSex : null,
+      sterilized:
+        summary.dogSterilized === true
+          ? true
+          : summary.dogSterilized === false
+            ? false
+            : null,
+    },
+  ];
+}
 
 function readInquirySentCookie(): boolean {
   if (typeof document === "undefined") return false;
@@ -209,24 +267,28 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
         : "—",
     },
     { label: "Lugar", value: summary.venue },
-    { label: "Perro", value: summary.dogName },
-    { label: "Raza / tamaño", value: summary.dogBreed },
   );
-  if (summary.dogAgeYears != null) {
-    rows.push({ label: "Edad", value: `${summary.dogAgeYears} años` });
-  }
-  if (summary.dogSex) {
-    rows.push({
-      label: "Sexo",
-      value: summary.dogSex === "male" ? "Macho" : "Hembra",
-    });
-  }
-  if (summary.dogSterilized != null) {
-    rows.push({
-      label: "Esterilizado",
-      value: summary.dogSterilized ? "Sí" : "No",
-    });
-  }
+  const dogs = dogsFromSummary(summary);
+  dogs.forEach((dog, idx) => {
+    const prefix = dogs.length > 1 ? `Perro ${idx + 1}` : "Perro";
+    rows.push({ label: prefix, value: dog.name });
+    if (dog.breed) rows.push({ label: `${prefix} · raza`, value: dog.breed });
+    if (dog.ageYears != null) {
+      rows.push({ label: `${prefix} · edad`, value: `${dog.ageYears} años` });
+    }
+    if (dog.sex) {
+      rows.push({
+        label: `${prefix} · sexo`,
+        value: dog.sex === "male" ? "Macho" : "Hembra",
+      });
+    }
+    if (dog.sterilized != null) {
+      rows.push({
+        label: `${prefix} · esterilizado`,
+        value: dog.sterilized ? "Sí" : "No",
+      });
+    }
+  });
   if (summary.hoursEstimate) {
     rows.push({ label: "Horas", value: summary.hoursEstimate });
   }
@@ -348,11 +410,7 @@ export function AcompanamientoInquirySheet() {
   const [email, setEmail] = useState("");
   const [eventDates, setEventDates] = useState<string[]>([]);
   const [venue, setVenue] = useState("");
-  const [dogName, setDogName] = useState("");
-  const [dogBreed, setDogBreed] = useState("");
-  const [dogAgeYears, setDogAgeYears] = useState("");
-  const [dogSex, setDogSex] = useState<DogSex | null>(null);
-  const [dogSterilized, setDogSterilized] = useState<boolean | null>(null);
+  const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [eventType, setEventType] = useState<EventType | "">("boda");
   const [needsTransfer, setNeedsTransfer] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
@@ -377,11 +435,7 @@ export function AcompanamientoInquirySheet() {
     setEmail("");
     setEventDates([]);
     setVenue("");
-    setDogName("");
-    setDogBreed("");
-    setDogAgeYears("");
-    setDogSex(null);
-    setDogSterilized(null);
+    setDogs([emptyDogDraft()]);
     setEventType("boda");
     setNeedsTransfer(false);
     setPickupAddress("");
@@ -538,6 +592,15 @@ export function AcompanamientoInquirySheet() {
     };
   }, [mounted]);
 
+  const updateDog = useCallback(
+    (index: number, patch: Partial<InquiryDogDraft>) => {
+      setDogs((prev) =>
+        prev.map((dog, i) => (i === index ? { ...dog, ...patch } : dog)),
+      );
+    },
+    [],
+  );
+
   const clearFieldError = useCallback((key: string) => {
     setFieldErrors((prev) => {
       if (!prev[key]) return prev;
@@ -556,23 +619,30 @@ export function AcompanamientoInquirySheet() {
         "eventType",
         "dates",
         "venue",
-        "dog",
-        "breed",
-        "age",
-        "sex",
+        ...dogs.flatMap((_, i) => [
+          `dog${i}-name`,
+          `dog${i}-breed`,
+          `dog${i}-age`,
+          `dog${i}-sex`,
+        ]),
         "ringColor",
-      ] as const;
+      ];
       const firstKey = focusOrder.find((k) => nextErrors[k]);
       const focusId =
         firstKey === "eventType" ||
-        firstKey === "sex" ||
-        firstKey === "ringColor"
+        firstKey === "ringColor" ||
+        (firstKey?.endsWith("-sex") ?? false)
           ? null
           : firstKey === "dates"
             ? `${titleId}-date`
-            : firstKey
+            : firstKey === "name" ||
+                firstKey === "phone" ||
+                firstKey === "email" ||
+                firstKey === "venue"
               ? `${titleId}-${firstKey}`
-              : null;
+              : firstKey
+                ? `${titleId}-${firstKey}`
+                : null;
       window.requestAnimationFrame(() => {
         const body = panelRef.current?.querySelector(
           ".acompanamiento-inquiry-sheet__body",
@@ -584,9 +654,9 @@ export function AcompanamientoInquirySheet() {
           document
             .getElementById(`${titleId}-event-type`)
             ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        } else if (firstKey === "sex") {
+        } else if (firstKey?.endsWith("-sex")) {
           document
-            .getElementById(`${titleId}-sex`)
+            .getElementById(`${titleId}-${firstKey}`)
             ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         } else if (firstKey === "ringColor") {
           document
@@ -595,7 +665,7 @@ export function AcompanamientoInquirySheet() {
         }
       });
     },
-    [titleId],
+    [dogs, titleId],
   );
 
   const collectErrors = useCallback(
@@ -604,8 +674,6 @@ export function AcompanamientoInquirySheet() {
       const tel = phone.trim();
       const mail = email.trim();
       const place = venue.trim();
-      const dog = dogName.trim();
-      const breed = dogBreed.trim();
       const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const nextErrors: Record<string, string> = {};
 
@@ -641,17 +709,29 @@ export function AcompanamientoInquirySheet() {
       }
 
       if (checkDog) {
-        if (!dog) nextErrors.dog = "Indica el nombre del perro";
-        if (!breed) nextErrors.breed = "Indica la raza o el tamaño";
-        const ageRaw = dogAgeYears.trim().replace(",", ".");
-        const ageNum = ageRaw === "" ? null : Number(ageRaw);
-        if (
-          ageNum != null &&
-          (!Number.isFinite(ageNum) || ageNum < 0 || ageNum > 30)
-        ) {
-          nextErrors.age = "Revisa la edad del perro";
+        if (!dogs.length) {
+          nextErrors["dog0-name"] = "Indica al menos un perro";
         }
-        if (!dogSex) nextErrors.sex = "Indica el sexo del perro";
+        dogs.forEach((dog, idx) => {
+          const label = dogs.length > 1 ? `del perro ${idx + 1}` : "del perro";
+          if (!dog.name.trim()) {
+            nextErrors[`dog${idx}-name`] = `Indica el nombre ${label}`;
+          }
+          if (!dog.breed.trim()) {
+            nextErrors[`dog${idx}-breed`] = `Indica la raza o el tamaño ${label}`;
+          }
+          const ageRaw = dog.ageYears.trim().replace(",", ".");
+          const ageNum = ageRaw === "" ? null : Number(ageRaw);
+          if (
+            ageNum != null &&
+            (!Number.isFinite(ageNum) || ageNum < 0 || ageNum > 30)
+          ) {
+            nextErrors[`dog${idx}-age`] = `Revisa la edad ${label}`;
+          }
+          if (!dog.sex) {
+            nextErrors[`dog${idx}-sex`] = `Indica el sexo ${label}`;
+          }
+        });
       }
 
       if (checkExtras && ringBox && !ringBoxColor) {
@@ -671,10 +751,7 @@ export function AcompanamientoInquirySheet() {
       eventType,
       eventDates,
       venue,
-      dogName,
-      dogBreed,
-      dogAgeYears,
-      dogSex,
+      dogs,
       ringBox,
       ringBoxColor,
       jewelryItems,
@@ -739,10 +816,18 @@ export function AcompanamientoInquirySheet() {
     const tel = phone.trim();
     const mail = email.trim();
     const place = venue.trim();
-    const dog = dogName.trim();
-    const breed = dogBreed.trim();
-    const ageRaw = dogAgeYears.trim().replace(",", ".");
-    const ageNum = ageRaw === "" ? null : Number(ageRaw);
+    const dogsPayload: InquiryDogSummary[] = dogs.map((dog) => {
+      const ageRaw = dog.ageYears.trim().replace(",", ".");
+      const ageNum = ageRaw === "" ? null : Number(ageRaw);
+      return {
+        name: dog.name.trim(),
+        breed: dog.breed.trim(),
+        ageYears:
+          ageNum == null || !Number.isFinite(ageNum) ? null : ageNum,
+        sex: dog.sex,
+        sterilized: dog.sterilized,
+      };
+    });
 
     setPending(true);
     try {
@@ -760,11 +845,13 @@ export function AcompanamientoInquirySheet() {
           email: mail || null,
           eventDates: [...eventDates].sort(),
           venue: place,
-          dogName: dog,
-          dogBreed: breed,
-          dogAgeYears: ageNum,
-          dogSex,
-          dogSterilized,
+          dogs: dogsPayload.map((d) => ({
+            name: d.name,
+            breed: d.breed || null,
+            ageYears: d.ageYears,
+            sex: d.sex,
+            sterilized: d.sterilized,
+          })),
           eventType,
           needsTransfer,
           pickupAddress: needsTransfer
@@ -810,11 +897,7 @@ export function AcompanamientoInquirySheet() {
         eventType,
         eventDates: [...eventDates].sort(),
         venue: place,
-        dogName: dog,
-        dogBreed: breed,
-        dogAgeYears: ageNum,
-        dogSex,
-        dogSterilized,
+        dogs: dogsPayload,
         needsTransfer,
         pickupAddress: needsTransfer
           ? pickupAddress.trim() || null
@@ -1177,155 +1260,213 @@ export function AcompanamientoInquirySheet() {
 
               {step === 2 ? (
                 <>
-                  <InquiryFloatField
-                    id={`${titleId}-dog`}
-                    label="Nombre del perro"
-                    error={fieldErrors.dog}
-                  >
-                    <input
-                      id={`${titleId}-dog`}
-                      value={dogName}
-                      onChange={(e) => {
-                        setDogName(e.target.value);
-                        clearFieldError("dog");
-                      }}
-                      placeholder="Nombre del perro"
-                      aria-invalid={fieldErrors.dog ? true : undefined}
-                      aria-describedby={
-                        fieldErrors.dog ? `${titleId}-dog-error` : undefined
+                  <div className="acompanamiento-inquiry-sheet__dogs">
+                    {dogs.map((dog, idx) => {
+                      const nameId = `${titleId}-dog${idx}-name`;
+                      const breedId = `${titleId}-dog${idx}-breed`;
+                      const ageId = `${titleId}-dog${idx}-age`;
+                      const sexId = `${titleId}-dog${idx}-sex`;
+                      const nameErr = fieldErrors[`dog${idx}-name`];
+                      const breedErr = fieldErrors[`dog${idx}-breed`];
+                      const ageErr = fieldErrors[`dog${idx}-age`];
+                      const sexErr = fieldErrors[`dog${idx}-sex`];
+                      return (
+                        <div
+                          key={idx}
+                          className="acompanamiento-inquiry-sheet__dog"
+                        >
+                          <div className="acompanamiento-inquiry-sheet__dog-head">
+                            <p className="acompanamiento-inquiry-sheet__dog-title">
+                              {dogs.length > 1
+                                ? `Perro ${idx + 1}`
+                                : "Tu perro"}
+                            </p>
+                            {dogs.length > 1 ? (
+                              <button
+                                type="button"
+                                className="acompanamiento-inquiry-sheet__dog-remove"
+                                onClick={() => {
+                                  setDogs((prev) =>
+                                    prev.filter((_, i) => i !== idx),
+                                  );
+                                  setFieldErrors((prev) => {
+                                    const next = { ...prev };
+                                    for (const key of Object.keys(next)) {
+                                      if (key.startsWith(`dog${idx}-`)) {
+                                        delete next[key];
+                                      }
+                                    }
+                                    return next;
+                                  });
+                                }}
+                              >
+                                Quitar
+                              </button>
+                            ) : null}
+                          </div>
+                          <InquiryFloatField
+                            id={nameId}
+                            label="Nombre del perro"
+                            error={nameErr}
+                          >
+                            <input
+                              id={nameId}
+                              value={dog.name}
+                              onChange={(e) => {
+                                updateDog(idx, { name: e.target.value });
+                                clearFieldError(`dog${idx}-name`);
+                              }}
+                              placeholder="Nombre del perro"
+                              aria-invalid={nameErr ? true : undefined}
+                              aria-describedby={
+                                nameErr ? `${nameId}-error` : undefined
+                              }
+                            />
+                          </InquiryFloatField>
+                          <div className="acompanamiento-inquiry-sheet__row">
+                            <InquiryFloatField
+                              id={breedId}
+                              label="Raza o tamaño"
+                              error={breedErr}
+                            >
+                              <input
+                                id={breedId}
+                                value={dog.breed}
+                                onChange={(e) => {
+                                  updateDog(idx, { breed: e.target.value });
+                                  clearFieldError(`dog${idx}-breed`);
+                                }}
+                                placeholder="Raza o tamaño"
+                                aria-invalid={breedErr ? true : undefined}
+                                aria-describedby={
+                                  breedErr ? `${breedId}-error` : undefined
+                                }
+                              />
+                            </InquiryFloatField>
+                            <InquiryFloatField
+                              id={ageId}
+                              label="Edad (años)"
+                              error={ageErr}
+                            >
+                              <input
+                                id={ageId}
+                                inputMode="decimal"
+                                value={dog.ageYears}
+                                onChange={(e) => {
+                                  updateDog(idx, { ageYears: e.target.value });
+                                  clearFieldError(`dog${idx}-age`);
+                                }}
+                                placeholder="Edad (años)"
+                                aria-invalid={ageErr ? true : undefined}
+                                aria-describedby={
+                                  ageErr ? `${ageId}-error` : undefined
+                                }
+                              />
+                            </InquiryFloatField>
+                          </div>
+                          <div
+                            id={sexId}
+                            className={
+                              "acompanamiento-inquiry-sheet__choice" +
+                              (sexErr
+                                ? " acompanamiento-inquiry-sheet__choice--error"
+                                : "")
+                            }
+                            role="group"
+                            aria-label="Sexo"
+                            aria-invalid={sexErr ? true : undefined}
+                            aria-describedby={
+                              sexErr ? `${sexId}-error` : undefined
+                            }
+                          >
+                            <p className="acompanamiento-inquiry-sheet__choice-label">
+                              Sexo
+                            </p>
+                            <div className="acompanamiento-inquiry-sheet__chips">
+                              {DOG_SEX_OPTIONS.map((opt) => (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  className={
+                                    "acompanamiento-inquiry-sheet__chip" +
+                                    (dog.sex === opt.id
+                                      ? " acompanamiento-inquiry-sheet__chip--active"
+                                      : "")
+                                  }
+                                  aria-pressed={dog.sex === opt.id}
+                                  onClick={() => {
+                                    updateDog(idx, { sex: opt.id });
+                                    clearFieldError(`dog${idx}-sex`);
+                                  }}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                            {sexErr ? (
+                              <p
+                                id={`${sexId}-error`}
+                                className="acompanamiento-inquiry-sheet__field-error"
+                                role="alert"
+                              >
+                                {sexErr}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div
+                            className="acompanamiento-inquiry-sheet__choice"
+                            role="group"
+                            aria-label="Esterilizado"
+                          >
+                            <p className="acompanamiento-inquiry-sheet__choice-label">
+                              Esterilizado
+                            </p>
+                            <div className="acompanamiento-inquiry-sheet__chips">
+                              {(
+                                [
+                                  { value: true, label: "Sí" },
+                                  { value: false, label: "No" },
+                                ] as const
+                              ).map((opt) => (
+                                <button
+                                  key={opt.label}
+                                  type="button"
+                                  className={
+                                    "acompanamiento-inquiry-sheet__chip" +
+                                    (dog.sterilized === opt.value
+                                      ? " acompanamiento-inquiry-sheet__chip--active"
+                                      : "")
+                                  }
+                                  aria-pressed={dog.sterilized === opt.value}
+                                  onClick={() =>
+                                    updateDog(idx, {
+                                      sterilized:
+                                        dog.sterilized === opt.value
+                                          ? null
+                                          : opt.value,
+                                    })
+                                  }
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {dogs.length < MAX_INQUIRY_DOGS ? (
+                    <button
+                      type="button"
+                      className="acompanamiento-inquiry-sheet__dog-add"
+                      onClick={() =>
+                        setDogs((prev) => [...prev, emptyDogDraft()])
                       }
-                    />
-                  </InquiryFloatField>
-                  <div className="acompanamiento-inquiry-sheet__row">
-                    <InquiryFloatField
-                      id={`${titleId}-breed`}
-                      label="Raza o tamaño"
-                      error={fieldErrors.breed}
                     >
-                      <input
-                        id={`${titleId}-breed`}
-                        value={dogBreed}
-                        onChange={(e) => {
-                          setDogBreed(e.target.value);
-                          clearFieldError("breed");
-                        }}
-                        placeholder="Raza o tamaño"
-                        aria-invalid={fieldErrors.breed ? true : undefined}
-                        aria-describedby={
-                          fieldErrors.breed
-                            ? `${titleId}-breed-error`
-                            : undefined
-                        }
-                      />
-                    </InquiryFloatField>
-                    <InquiryFloatField
-                      id={`${titleId}-age`}
-                      label="Edad (años)"
-                      error={fieldErrors.age}
-                    >
-                      <input
-                        id={`${titleId}-age`}
-                        inputMode="decimal"
-                        value={dogAgeYears}
-                        onChange={(e) => {
-                          setDogAgeYears(e.target.value);
-                          clearFieldError("age");
-                        }}
-                        placeholder="Edad (años)"
-                        aria-invalid={fieldErrors.age ? true : undefined}
-                        aria-describedby={
-                          fieldErrors.age
-                            ? `${titleId}-age-error`
-                            : undefined
-                        }
-                      />
-                    </InquiryFloatField>
-                  </div>
-                  <div
-                    id={`${titleId}-sex`}
-                    className={
-                      "acompanamiento-inquiry-sheet__choice" +
-                      (fieldErrors.sex
-                        ? " acompanamiento-inquiry-sheet__choice--error"
-                        : "")
-                    }
-                    role="group"
-                    aria-label="Sexo"
-                    aria-invalid={fieldErrors.sex ? true : undefined}
-                    aria-describedby={
-                      fieldErrors.sex ? `${titleId}-sex-error` : undefined
-                    }
-                  >
-                    <p className="acompanamiento-inquiry-sheet__choice-label">
-                      Sexo
-                    </p>
-                    <div className="acompanamiento-inquiry-sheet__chips">
-                      {DOG_SEX_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          className={
-                            "acompanamiento-inquiry-sheet__chip" +
-                            (dogSex === opt.id
-                              ? " acompanamiento-inquiry-sheet__chip--active"
-                              : "")
-                          }
-                          aria-pressed={dogSex === opt.id}
-                          onClick={() => {
-                            setDogSex(opt.id);
-                            clearFieldError("sex");
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                    {fieldErrors.sex ? (
-                      <p
-                        id={`${titleId}-sex-error`}
-                        className="acompanamiento-inquiry-sheet__field-error"
-                        role="alert"
-                      >
-                        {fieldErrors.sex}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div
-                    className="acompanamiento-inquiry-sheet__choice"
-                    role="group"
-                    aria-label="Esterilizado"
-                  >
-                    <p className="acompanamiento-inquiry-sheet__choice-label">
-                      Esterilizado
-                    </p>
-                    <div className="acompanamiento-inquiry-sheet__chips">
-                      {(
-                        [
-                          { value: true, label: "Sí" },
-                          { value: false, label: "No" },
-                        ] as const
-                      ).map((opt) => (
-                        <button
-                          key={opt.label}
-                          type="button"
-                          className={
-                            "acompanamiento-inquiry-sheet__chip" +
-                            (dogSterilized === opt.value
-                              ? " acompanamiento-inquiry-sheet__chip--active"
-                              : "")
-                          }
-                          aria-pressed={dogSterilized === opt.value}
-                          onClick={() =>
-                            setDogSterilized((prev) =>
-                              prev === opt.value ? null : opt.value,
-                            )
-                          }
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                      Añadir otro perro
+                    </button>
+                  ) : null}
                   <InquiryFloatField
                     id={`${titleId}-care`}
                     label="Carácter, miedos o cuidados (opcional)"
@@ -1437,7 +1578,7 @@ export function AcompanamientoInquirySheet() {
                             className="acompanamiento-inquiry-sheet__tip-bubble"
                           >
                             Lo lleva el perrito. Irá grabado con las iniciales
-                            de la pareja, el nombre del perro y la fecha del
+                            de la pareja, el nombre de la mascota y la fecha del
                             evento.
                           </span>
                         </button>
