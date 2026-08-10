@@ -1,12 +1,80 @@
 .legal-page {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   padding: clamp(148px, 17vw, 200px) var(--nav-pad-x, 42px)
     clamp(64px, 8vw, 96px);
-  background: var(--black, #0b0b0b);
+  /* Mismo ambiente que The Selection (tienda). */
+  background:
+    radial-gradient(
+      100% 58% at 50% -6%,
+      rgba(232, 199, 107, 0.14) 0%,
+      rgba(187, 149, 93, 0.06) 36%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 42% 28% at 8% 16%,
+      rgba(159, 119, 112, 0.14),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 38% 24% at 94% 20%,
+      rgba(187, 149, 93, 0.09),
+      transparent 74%
+    ),
+    #050505;
   color: rgba(244, 244, 242, 0.88);
+  overflow-x: clip;
+}
+
+.legal-page::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 0;
+  height: min(92vh, 980px);
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    linear-gradient(rgba(244, 244, 242, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 244, 242, 0.02) 1px, transparent 1px);
+  background-size: 88px 88px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.35) 48%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.35) 48%,
+    transparent 100%
+  );
+}
+
+.legal-page::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 0;
+  height: min(88vh, 860px);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 85% 70% at 50% 0%,
+    rgba(232, 199, 107, 0.1) 0%,
+    rgba(187, 149, 93, 0.045) 42%,
+    transparent 78%
+  );
 }
 
 .legal-page__inner {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: min(1040px, 100%);
   margin: 0 auto;
@@ -53,16 +121,6 @@
   margin-bottom: clamp(36px, 5vw, 56px);
   padding-bottom: clamp(24px, 3vw, 36px);
   border-bottom: 1px solid rgba(187, 149, 93, 0.22);
-}
-
-.legal-document__brand {
-  margin: 0 0 12px;
-  font-family: var(--ff-sans);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--gold-lt, #d4af7a);
 }
 
 .legal-document__title {

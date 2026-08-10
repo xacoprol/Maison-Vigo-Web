@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import { ORDER_TRACK_OPEN_EVENT } from "@/lib/care-assist";
+import { bookingUrl } from "@/lib/site-config";
 import {
   postWebStoreOrderLookup,
   WebStoreRequestError,
@@ -23,6 +24,9 @@ import {
   webStoreFileUrl,
 } from "@/lib/web-store/utils";
 
+import { useWebStoreMvCareSession } from "@/app/(site)/tienda/use-web-store-mvcare-session";
+import { TiendaVatRows } from "@/app/(site)/tienda/tienda-vat-rows";
+
 import { WaveText } from "./wave-text";
 
 import "./tienda-order-track-banner.css";
@@ -31,6 +35,15 @@ const EXIT_MS = 520;
 
 function isTiendaPath(pathname: string) {
   return pathname === "/tienda" || pathname.startsWith("/tienda/");
+}
+
+/** Abre Mis pedidos en MV Care (sesión de cliente). */
+function misPedidosHref(storeOrderRef?: string | null) {
+  const url = new URL(bookingUrl);
+  url.searchParams.set("pedidos", "1");
+  const ref = String(storeOrderRef ?? "").trim();
+  if (ref) url.searchParams.set("storeOrderRef", ref);
+  return url.toString();
 }
 
 /** Normaliza a `MVxxxxxx` (acepta con o sin prefijo). */
@@ -127,6 +140,7 @@ function TiendaOrderTrackBannerInner() {
   const titleId = useId();
   const orderId = useId();
   const phoneId = useId();
+  const { loggedIn } = useWebStoreMvCareSession();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -558,27 +572,49 @@ function TiendaOrderTrackBannerInner() {
                       </p>
                     ) : null}
 
+                    <div className="tienda-order-track-result__vat">
+                      <TiendaVatRows
+                        lines={tracked.lines}
+                        shippingCents={tracked.shippingCents}
+                        rowClassName="tienda-order-track-result__vat-row"
+                        showNote={false}
+                      />
+                    </div>
+
                     <div className="tienda-order-track-result__total">
                       <span>Total</span>
                       <strong>
                         {formatEuroFromCents(tracked.totalCents)}
                       </strong>
                     </div>
+                    <p className="tienda-order-track-result__vat-note">
+                      Precios con IVA incluido.
+                    </p>
 
-                    <button
-                      type="button"
-                      className="tienda-order-track-modal__submit mob-link--wave"
-                      onClick={() => {
-                        setTracked(null);
-                        setError(null);
-                        window.setTimeout(
-                          () => orderInputRef.current?.focus(),
-                          40,
-                        );
-                      }}
-                    >
-                      <WaveText text="Consultar otro" />
-                    </button>
+                    <div className="tienda-order-track-modal__actions">
+                      <button
+                        type="button"
+                        className="tienda-order-track-modal__submit mob-link--wave"
+                        onClick={() => {
+                          setTracked(null);
+                          setError(null);
+                          window.setTimeout(
+                            () => orderInputRef.current?.focus(),
+                            40,
+                          );
+                        }}
+                      >
+                        <WaveText text="Consultar otro" />
+                      </button>
+                      <a
+                        className="tienda-order-track-modal__care-link"
+                        href={misPedidosHref(tracked.storeOrderRef)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Abrir en Mis pedidos
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -588,6 +624,11 @@ function TiendaOrderTrackBannerInner() {
                     >
                       Seguir tu pedido
                     </h2>
+                    <p className="tienda-order-track-modal__lead">
+                      Introduce la referencia y el teléfono de la compra. Si
+                      tienes cuenta MV Care, también puedes ver tus pedidos
+                      allí.
+                    </p>
                     <form
                       className="tienda-order-track-modal__form"
                       onSubmit={onSubmit}
@@ -657,6 +698,14 @@ function TiendaOrderTrackBannerInner() {
                           text={pending ? "Consultando…" : "Consultar"}
                         />
                       </button>
+                      <a
+                        className="tienda-order-track-modal__care-link"
+                        href={misPedidosHref()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Tengo cuenta — Mis pedidos
+                      </a>
                     </form>
                   </>
                 )}
@@ -666,6 +715,41 @@ function TiendaOrderTrackBannerInner() {
           document.body,
         )
       : null;
+
+  const openConsultModal = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setOpen(true);
+  };
+
+  const consultCta = (
+    <button
+      type="button"
+      className={
+        "tienda-order-track__cta mob-link--wave" +
+        (loggedIn ? " tienda-order-track__cta--ghost" : "")
+      }
+      onClick={openConsultModal}
+    >
+      <WaveText text="Consultar pedido" />
+    </button>
+  );
+
+  const careCta = (
+    <a
+      className={
+        "tienda-order-track__cta mob-link--wave" +
+        (loggedIn ? "" : " tienda-order-track__cta--ghost")
+      }
+      href={misPedidosHref()}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <WaveText text="Mis pedidos" />
+    </a>
+  );
 
   return (
     <>
@@ -684,23 +768,24 @@ function TiendaOrderTrackBannerInner() {
               ¿Quieres seguir tu pedido?
             </h2>
             <p className="tienda-order-track__text">
-              Consulta el estado de tu pedido introduciendo el número de
-              referencia y el teléfono asociado a la compra.
+              {loggedIn
+                ? "Con tu cuenta MV Care puedes ver todos tus pedidos, o consultar uno concreto con la referencia y el teléfono de la compra."
+                : "Si compraste como invitado, consulta con tu número de pedido y el teléfono. Si tienes cuenta MV Care, entra en Mis pedidos."}
             </p>
           </div>
-          <button
-            type="button"
-            className="tienda-order-track__cta mob-link--wave"
-            onClick={() => {
-              if (closeTimer.current != null) {
-                window.clearTimeout(closeTimer.current);
-                closeTimer.current = null;
-              }
-              setOpen(true);
-            }}
-          >
-            <WaveText text="Consultar pedido" />
-          </button>
+          <div className="tienda-order-track__actions">
+            {loggedIn ? (
+              <>
+                {careCta}
+                {consultCta}
+              </>
+            ) : (
+              <>
+                {consultCta}
+                {careCta}
+              </>
+            )}
+          </div>
         </div>
       </section>
       {modal}

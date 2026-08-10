@@ -29,6 +29,7 @@ import { useTiendaLegal } from "../../../tienda-legal-provider";
 
 import { useWebStoreCart } from "../web-store-cart";
 import { TiendaLogoLoader } from "../tienda-logo-loader";
+import { TiendaVatRows } from "../tienda-vat-rows";
 
 const PICKUP_ADDRESS = `${legalCompany.address}. ${legalCompany.postalCode}, ${legalCompany.city}`;
 
@@ -345,10 +346,18 @@ export default function TiendaCheckoutClient() {
               : "Gratis"}
           </span>
         </div>
+        <TiendaVatRows
+          lines={lines}
+          shippingCents={needsAddress ? shippingCents : 0}
+          rowClassName="tienda-checkout__total-row"
+          mutedRowClassName="tienda-checkout__total-row--vat"
+          showNote={false}
+        />
         <div className="tienda-checkout__total-row tienda-checkout__total-row--grand">
           <span>Total</span>
           <strong>{formatEuroFromCents(totalCents)}</strong>
         </div>
+        <p className="tienda-checkout__vat-note">Precios con IVA incluido.</p>
       </div>
     </>
   );

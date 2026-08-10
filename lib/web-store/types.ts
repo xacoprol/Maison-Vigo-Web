@@ -159,6 +159,7 @@ export type WebStoreOrderTrackLine = {
   optionLabel: string | null;
   imageUrl: string | null;
   isReservation: boolean;
+  productKind?: WebStoreProductKind;
 };
 
 export type WebStoreOrderTrack = {

@@ -46,7 +46,6 @@ export function LegalDocumentBody({
   return (
     <article className="legal-document">
       <header className="legal-document__header">
-        <p className="legal-document__brand">Maison Vigo</p>
         <HeadingTag className="legal-document__title">{title}</HeadingTag>
         <p className="legal-document__updated">
           Última actualización: 2 de junio de 2026

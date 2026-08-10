@@ -15,6 +15,7 @@ import {
 
 import { useWebStoreCart } from "../web-store-cart";
 import { TiendaLogoLoader } from "../tienda-logo-loader";
+import { TiendaVatRows } from "../tienda-vat-rows";
 
 const PAID_STATUSES = new Set([
   "paid",
@@ -43,6 +44,7 @@ type OrderLine = {
   salePriceCents?: number;
   optionLabel?: string | null;
   imageUrl?: string | null;
+  productKind?: string | null;
 };
 
 function statusLabel(status: string) {
@@ -313,16 +315,32 @@ function PedidoOkInner() {
 
           {order ? (
             <div className="tienda-pago-ok__totals">
+              <div className="tienda-pago-ok__total-row">
+                <span>Subtotal</span>
+                <span>{formatEuroFromCents(order.subtotalCents)}</span>
+              </div>
               {order.shippingCents > 0 ? (
                 <div className="tienda-pago-ok__total-row">
                   <span>Envío</span>
                   <span>{formatEuroFromCents(order.shippingCents)}</span>
                 </div>
               ) : null}
+              <TiendaVatRows
+                lines={lines.map((line) => ({
+                  productKind: line.productKind,
+                  salePriceCents: Number(line.salePriceCents) || 0,
+                  quantity: Math.max(1, Math.round(Number(line.quantity) || 1)),
+                }))}
+                shippingCents={order.shippingCents}
+                rowClassName="tienda-pago-ok__total-row"
+                mutedRowClassName="tienda-pago-ok__total-row--vat"
+                showNote={false}
+              />
               <div className="tienda-pago-ok__total-row tienda-pago-ok__total-row--grand">
                 <span>Total</span>
                 <strong>{formatEuroFromCents(order.totalCents)}</strong>
               </div>
+              <p className="tienda-pago-ok__vat-note">Precios con IVA incluido.</p>
             </div>
           ) : null}
         </div>

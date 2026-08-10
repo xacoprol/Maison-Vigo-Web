@@ -61,7 +61,15 @@
   font-size: 14px;
   line-height: 1.55;
   color: rgba(244, 244, 242, 0.62);
-  max-width: 38ch;
+  max-width: 42ch;
+}
+
+.tienda-order-track__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 12px;
 }
 
 .tienda-order-track__cta {
@@ -81,6 +89,7 @@
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  text-decoration: none;
   cursor: pointer;
   transition:
     background 0.3s ease,
@@ -94,6 +103,18 @@
   border-color: var(--gold-lt, #d4af7a);
   color: var(--cream, #f4f4f2);
   outline: none;
+}
+
+.tienda-order-track__cta--ghost {
+  border-color: rgba(244, 244, 242, 0.22);
+  color: rgba(244, 244, 242, 0.78);
+}
+
+.tienda-order-track__cta--ghost:hover,
+.tienda-order-track__cta--ghost:focus-visible {
+  background: rgba(244, 244, 242, 0.06);
+  border-color: rgba(244, 244, 242, 0.4);
+  color: var(--cream, #f4f4f2);
 }
 
 .tienda-order-track__cta .mob-wave-text,
@@ -248,10 +269,48 @@
   color: var(--cream, #f4f4f2);
 }
 
+.tienda-order-track-modal__lead {
+  margin: -8px 0 18px;
+  font-family: var(--ff-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(244, 244, 242, 0.58);
+}
+
 .tienda-order-track-modal__form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.tienda-order-track-modal__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tienda-order-track-modal__care-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  padding: 4px 8px;
+  font-family: var(--ff-sans);
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(212, 175, 122, 0.88);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(212, 175, 122, 0.35);
+  transition: color 0.25s ease;
+}
+
+.tienda-order-track-modal__care-link:hover,
+.tienda-order-track-modal__care-link:focus-visible {
+  color: var(--gold-lt, #d4af7a);
+  outline: none;
 }
 
 .tienda-order-track-modal__field {
@@ -584,6 +643,28 @@
 .tienda-order-track-result__tracking strong {
   color: var(--cream, #f4f4f2);
   font-weight: 500;
+}
+
+.tienda-order-track-result__vat {
+  display: grid;
+  gap: 6px;
+}
+
+.tienda-order-track-result__vat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--ff-sans);
+  font-size: 12px;
+  color: rgba(244, 244, 242, 0.42);
+}
+
+.tienda-order-track-result__vat-note {
+  margin: 0;
+  font-family: var(--ff-sans);
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(244, 244, 242, 0.38);
 }
 
 .tienda-order-track-result__total {

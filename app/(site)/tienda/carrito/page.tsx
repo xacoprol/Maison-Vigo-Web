@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatEuroFromCents, webStoreFileUrl } from "@/lib/web-store/utils";
 
 import { TiendaLogoLoader } from "../tienda-logo-loader";
+import { TiendaVatRows } from "../tienda-vat-rows";
 import { useWebStoreCart } from "../web-store-cart";
 
 export default function TiendaCarritoPage() {
@@ -170,8 +171,18 @@ export default function TiendaCarritoPage() {
           </ul>
 
           <div className="tienda-summary">
-            <div className="tienda-summary__row tienda-summary__row--total">
+            <div className="tienda-summary__row">
               <span>Subtotal</span>
+              <span>{formatEuroFromCents(subtotalCents)}</span>
+            </div>
+            <TiendaVatRows
+              lines={lines}
+              rowClassName="tienda-summary__row"
+              mutedRowClassName="tienda-summary__row--vat"
+              noteClassName="tienda-summary__hint"
+            />
+            <div className="tienda-summary__row tienda-summary__row--total">
+              <span>Total</span>
               <strong>{formatEuroFromCents(subtotalCents)}</strong>
             </div>
             <p className="tienda-summary__hint">

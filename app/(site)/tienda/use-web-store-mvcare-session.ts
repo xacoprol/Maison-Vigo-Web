@@ -26,7 +26,7 @@ export function useWebStoreMvCareSession(): SessionState {
         if (cancelled) return;
         const petName = String(ctx.petName ?? "").trim() || null;
         setState({
-          loggedIn: Boolean(ctx.loggedIn && petName),
+          loggedIn: Boolean(ctx.loggedIn),
           petName: ctx.loggedIn ? petName : null,
         });
       })
