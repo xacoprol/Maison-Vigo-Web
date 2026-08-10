@@ -16,7 +16,7 @@ export default function TiendaCarritoPage() {
   }
 
   return (
-    <>
+    <div className="tienda-cart">
       <p className="tienda-eyebrow">The Selection</p>
       <h1 className="tienda-title">Carrito</h1>
 
@@ -193,6 +193,6 @@ export default function TiendaCarritoPage() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

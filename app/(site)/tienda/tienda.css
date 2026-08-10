@@ -578,7 +578,8 @@
   --tienda-editorial-gutter: clamp(20px, 2.8vw, 36px);
   width: 100%;
   min-width: 0;
-  max-width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
 }
 
 .tienda-editorial__columns {
@@ -2180,6 +2181,12 @@
 
 .tienda-empty .tienda-status {
   margin: 0;
+}
+
+.tienda-cart {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
 }
 
 .tienda-cart-list {
