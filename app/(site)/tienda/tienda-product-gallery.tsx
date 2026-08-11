@@ -381,9 +381,6 @@ export function TiendaProductGallery({ photos, alt }: Props) {
             </figure>
           );
         })}
-        {multi ? (
-          <span className="tienda-sheet__gallery-spacer" aria-hidden />
-        ) : null}
       </div>
 
       {multi && !carouselLocked ? (

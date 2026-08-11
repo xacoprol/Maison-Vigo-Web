@@ -1301,7 +1301,8 @@
   display: none;
 }
 
-/* ~85% dominante + asomo de la siguiente (patrón Care peek) */
+/* ~85% dominante + asomo de la siguiente (patrón Care peek).
+   La última foto llena el ancho: sin hueco negro a la derecha. */
 .tienda-sheet__gallery-slide {
   position: relative;
   flex: 0 0 85%;
@@ -1312,6 +1313,11 @@
   scroll-snap-align: start;
 }
 
+.tienda-sheet__gallery-slide:last-child {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
 .tienda-sheet__gallery-slide--solo {
   flex: 0 0 100%;
   width: 100%;
@@ -1319,13 +1325,6 @@
 
 .tienda-sheet__gallery-slide.is-inert {
   pointer-events: none;
-}
-
-.tienda-sheet__gallery-spacer {
-  flex: 0 0 15%;
-  width: 15%;
-  height: 100%;
-  scroll-snap-align: none;
 }
 
 .tienda-sheet__zoom {
