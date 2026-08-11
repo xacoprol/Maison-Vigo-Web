@@ -1105,10 +1105,12 @@ export function AcompanamientoInquirySheet() {
               <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
                 Pide tu propuesta
               </h2>
-              <p className="acompanamiento-inquiry-sheet__lead">
-                Cuéntanos el evento y a vuestro perro; os preparamos una
-                propuesta a medida, sin compromiso.
-              </p>
+              {step === 0 ? (
+                <p className="acompanamiento-inquiry-sheet__lead">
+                  Cuéntanos el evento y a vuestro perro; os preparamos una
+                  propuesta a medida, sin compromiso.
+                </p>
+              ) : null}
               <form
                 className="acompanamiento-inquiry-sheet__form"
                 onSubmit={onSubmit}
