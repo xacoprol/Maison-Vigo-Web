@@ -215,7 +215,7 @@
   width: 40px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(244, 244, 242, 0.36);
+  background: var(--gold-lt, #d4af7a);
 }
 
 .tienda-order-track-modal__close {

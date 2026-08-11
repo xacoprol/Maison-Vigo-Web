@@ -569,7 +569,7 @@ body.reserva-open .care-assist-dock {
     width: 42px;
     height: 4px;
     border-radius: 999px;
-    background: rgba(244, 244, 242, 0.32);
+    background: var(--gold-lt, #d4af7a);
   }
 
   .care-assist-close {
