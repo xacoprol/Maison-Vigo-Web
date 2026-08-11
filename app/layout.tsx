@@ -13,6 +13,7 @@ const GA_MEASUREMENT_ID = "G-SMQNTFF93S";
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 

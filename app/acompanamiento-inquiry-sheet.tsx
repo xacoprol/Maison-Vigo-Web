@@ -236,6 +236,13 @@ function formatSummaryDate(key: string) {
   }).format(new Date(y, mo - 1, d));
 }
 
+function formatCoupleName(first: string, second: string): string {
+  const a = first.trim();
+  const b = second.trim();
+  if (a && b) return `${a} y ${b}`;
+  return a || b;
+}
+
 function eventTypeLabel(id: EventType | ""): string {
   if (!id) return "—";
   return EVENT_TYPES.find((t) => t.id === id)?.label ?? id;
@@ -409,7 +416,8 @@ export function AcompanamientoInquirySheet() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState<StepIndex>(0);
-  const [contactName, setContactName] = useState("");
+  const [partnerNameA, setPartnerNameA] = useState("");
+  const [partnerNameB, setPartnerNameB] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [eventDates, setEventDates] = useState<string[]>([]);
@@ -435,7 +443,8 @@ export function AcompanamientoInquirySheet() {
   const autoOpenedRef = useRef(false);
 
   const resetFormFields = useCallback(() => {
-    setContactName("");
+    setPartnerNameA("");
+    setPartnerNameB("");
     setPhone("");
     setEmail("");
     setEventDates([]);
@@ -651,7 +660,8 @@ export function AcompanamientoInquirySheet() {
   const focusFirstError = useCallback(
     (nextErrors: Record<string, string>) => {
       const focusOrder = [
-        "name",
+        "nameA",
+        "nameB",
         "phone",
         "email",
         "eventType",
@@ -673,7 +683,8 @@ export function AcompanamientoInquirySheet() {
           ? null
           : firstKey === "dates"
             ? `${titleId}-date`
-            : firstKey === "name" ||
+            : firstKey === "nameA" ||
+                firstKey === "nameB" ||
                 firstKey === "phone" ||
                 firstKey === "email" ||
                 firstKey === "venue"
@@ -708,7 +719,8 @@ export function AcompanamientoInquirySheet() {
 
   const collectErrors = useCallback(
     (forStep?: StepIndex): Record<string, string> => {
-      const name = contactName.trim();
+      const nameA = partnerNameA.trim();
+      const nameB = partnerNameB.trim();
       const tel = phone.trim();
       const mail = email.trim();
       const place = venue.trim();
@@ -721,7 +733,8 @@ export function AcompanamientoInquirySheet() {
       const checkExtras = forStep == null || forStep === 3;
 
       if (checkContact) {
-        if (!name) nextErrors.name = "Indica el nombre de la pareja";
+        if (!nameA) nextErrors.nameA = "Indica este nombre";
+        if (!nameB) nextErrors.nameB = "Indica este nombre";
         if (!tel) nextErrors.phone = "Indica tu teléfono";
         else if (tel.replace(/\D/g, "").length < 7) {
           nextErrors.phone = "Indica un teléfono válido";
@@ -783,7 +796,8 @@ export function AcompanamientoInquirySheet() {
       return nextErrors;
     },
     [
-      contactName,
+      partnerNameA,
+      partnerNameB,
       phone,
       email,
       eventType,
@@ -833,7 +847,7 @@ export function AcompanamientoInquirySheet() {
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       const stepForKey = (key: string): StepIndex => {
-        if (key === "name" || key === "phone" || key === "email") return 0;
+        if (key === "nameA" || key === "nameB" || key === "phone" || key === "email") return 0;
         if (
           key === "eventType" ||
           key === "dates" ||
@@ -850,7 +864,7 @@ export function AcompanamientoInquirySheet() {
       return;
     }
 
-    const name = contactName.trim();
+    const name = formatCoupleName(partnerNameA, partnerNameB);
     const tel = phone.trim();
     const mail = email.trim();
     const place = venue.trim();
@@ -1139,26 +1153,58 @@ export function AcompanamientoInquirySheet() {
 
               {step === 0 ? (
                 <>
-                  <InquiryFloatField
-                    id={`${titleId}-name`}
-                    label="Nombre de la pareja"
-                    error={fieldErrors.name}
-                  >
-                    <input
-                      id={`${titleId}-name`}
-                      value={contactName}
-                      onChange={(e) => {
-                        setContactName(e.target.value);
-                        clearFieldError("name");
-                      }}
-                      autoComplete="name"
-                      placeholder="Nombre de la pareja"
-                      aria-invalid={fieldErrors.name ? true : undefined}
-                      aria-describedby={
-                        fieldErrors.name ? `${titleId}-name-error` : undefined
-                      }
-                    />
-                  </InquiryFloatField>
+                  <div className="acompanamiento-inquiry-sheet__row acompanamiento-inquiry-sheet__row--couple">
+                    <InquiryFloatField
+                      id={`${titleId}-nameA`}
+                      label="Nombre"
+                      error={fieldErrors.nameA}
+                    >
+                      <input
+                        id={`${titleId}-nameA`}
+                        value={partnerNameA}
+                        onChange={(e) => {
+                          setPartnerNameA(e.target.value);
+                          clearFieldError("nameA");
+                        }}
+                        autoComplete="off"
+                        placeholder="Nombre"
+                        aria-invalid={fieldErrors.nameA ? true : undefined}
+                        aria-describedby={
+                          fieldErrors.nameA
+                            ? `${titleId}-nameA-error`
+                            : undefined
+                        }
+                      />
+                    </InquiryFloatField>
+                    <span
+                      className="acompanamiento-inquiry-sheet__couple-and"
+                      aria-hidden={true}
+                    >
+                      y
+                    </span>
+                    <InquiryFloatField
+                      id={`${titleId}-nameB`}
+                      label="Nombre"
+                      error={fieldErrors.nameB}
+                    >
+                      <input
+                        id={`${titleId}-nameB`}
+                        value={partnerNameB}
+                        onChange={(e) => {
+                          setPartnerNameB(e.target.value);
+                          clearFieldError("nameB");
+                        }}
+                        autoComplete="off"
+                        placeholder="Nombre"
+                        aria-invalid={fieldErrors.nameB ? true : undefined}
+                        aria-describedby={
+                          fieldErrors.nameB
+                            ? `${titleId}-nameB-error`
+                            : undefined
+                        }
+                      />
+                    </InquiryFloatField>
+                  </div>
                   <InquiryFloatField
                     id={`${titleId}-phone`}
                     label="Teléfono"

@@ -246,6 +246,28 @@
   min-width: 0;
 }
 
+.acompanamiento-inquiry-sheet__row--couple {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 8px;
+}
+
+.acompanamiento-inquiry-sheet__couple-and {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 4px;
+  font-family: var(--font-playfair), var(--ff-serif);
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--gold-lt, #d4af7a);
+  user-select: none;
+}
+
 .acompanamiento-inquiry-sheet__dogs {
   display: grid;
   gap: 18px;
@@ -1136,6 +1158,10 @@
 @media (max-width: 900px) {
   .acompanamiento-inquiry-sheet__row {
     grid-template-columns: 1fr;
+  }
+
+  .acompanamiento-inquiry-sheet__row--couple {
+    grid-template-columns: 1fr auto 1fr;
   }
 
   .acompanamiento-inquiry-sheet__grabber {
