@@ -258,7 +258,7 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
   ].filter(Boolean) as string[];
 
   const rows: { label: string; value: string }[] = [
-    { label: "Contacto", value: summary.contactName },
+    { label: "Pareja", value: summary.contactName },
     { label: "Teléfono", value: summary.phone },
   ];
   if (summary.email) rows.push({ label: "Email", value: summary.email });
@@ -542,7 +542,7 @@ export function AcompanamientoInquirySheet() {
       setOpen(false);
       setMounted(false);
       closeTimer.current = null;
-    }, 420);
+    }, 520);
   }, []);
   closeModalRef.current = closeModal;
 
@@ -721,7 +721,7 @@ export function AcompanamientoInquirySheet() {
       const checkExtras = forStep == null || forStep === 3;
 
       if (checkContact) {
-        if (!name) nextErrors.name = "Indica tu nombre";
+        if (!name) nextErrors.name = "Indica el nombre de la pareja";
         if (!tel) nextErrors.phone = "Indica tu teléfono";
         else if (tel.replace(/\D/g, "").length < 7) {
           nextErrors.phone = "Indica un teléfono válido";
@@ -1091,6 +1091,10 @@ export function AcompanamientoInquirySheet() {
               <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
                 Pide tu propuesta
               </h2>
+              <p className="acompanamiento-inquiry-sheet__lead">
+                Cuéntanos el evento y a vuestro perro; os preparamos una
+                propuesta a medida, sin compromiso.
+              </p>
               <form
                 className="acompanamiento-inquiry-sheet__form"
                 onSubmit={onSubmit}
@@ -1137,7 +1141,7 @@ export function AcompanamientoInquirySheet() {
                 <>
                   <InquiryFloatField
                     id={`${titleId}-name`}
-                    label="Tu nombre"
+                    label="Nombre de la pareja"
                     error={fieldErrors.name}
                   >
                     <input
@@ -1148,7 +1152,7 @@ export function AcompanamientoInquirySheet() {
                         clearFieldError("name");
                       }}
                       autoComplete="name"
-                      placeholder="Tu nombre"
+                      placeholder="Nombre de la pareja"
                       aria-invalid={fieldErrors.name ? true : undefined}
                       aria-describedby={
                         fieldErrors.name ? `${titleId}-name-error` : undefined
