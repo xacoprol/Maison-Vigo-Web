@@ -11,20 +11,20 @@ import {
 export function SeoJsonLd() {
   if (!allowIndexing) return null;
 
-  const telephone = `+34${legalCompany.phone.replace(/\s/g, "")}`;
+  const streetAddress = `${legalCompany.address}, ${legalCompany.postalCode} ${legalCompany.city}, ${legalCompany.province}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": ["LocalBusiness", "PetGroomer"],
+        "@type": ["PetGroomer", "LocalBusiness"],
         "@id": `${siteUrl}/#business`,
         name: siteConfig.shortName,
         legalName: legalCompany.legalName,
         description: siteConfig.defaultDescription,
         url: siteUrl,
         image: `${siteUrl}${defaultOgImage}`,
-        telephone,
+        telephone: [...siteConfig.phones],
         address: {
           "@type": "PostalAddress",
           streetAddress: legalCompany.address,
@@ -33,12 +33,24 @@ export function SeoJsonLd() {
           postalCode: legalCompany.postalCode,
           addressCountry: "ES",
         },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: siteConfig.geo.latitude,
+          longitude: siteConfig.geo.longitude,
+        },
+        openingHoursSpecification: siteConfig.openingHours.map((slot) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [...slot.days],
+          opens: slot.opens,
+          closes: slot.closes,
+        })),
+        sameAs: [...siteConfig.sameAs],
         areaServed: {
           "@type": "City",
           name: "Vigo",
         },
         inLanguage: "es",
-        priceRange: "€€",
+        priceRange: siteConfig.priceRange,
         knowsAbout: [
           "Peluquería canina",
           "Grooming canino",
@@ -54,6 +66,8 @@ export function SeoJsonLd() {
             urlTemplate: bookingUrl,
           },
         },
+        // Referencia legible de la dirección completa para consumidores de schema.
+        hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(streetAddress)}`,
       },
       {
         "@type": "WebSite",

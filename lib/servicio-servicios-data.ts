@@ -17,21 +17,21 @@ const GROOMING_SERVICIOS: ServicioServiciosItem[] = [
   {
     title: "Baño y mantenimiento",
     desc: [
-      "El cuidado regular del manto es fundamental para mantener una piel sana y prevenir problemas futuros. Nuestros servicios de baño y mantenimiento ayudan a conservar el pelo limpio, hidratado y libre de nudos, mejorando tanto el confort como la apariencia del perro.",
+      "El cuidado regular del manto es fundamental para mantener una piel sana y prevenir problemas futuros. En la peluquería canina Vigo de Maison Vigo, el baño y el mantenimiento ayudan a conservar el pelo limpio, hidratado y libre de nudos, mejorando confort y apariencia.",
       "Cada sesión se adapta a las necesidades de cada manto para garantizar resultados saludables y duraderos entre visitas.",
     ],
   },
   {
     title: "Corte comercial",
     desc: [
-      "Realizamos cortes funcionales y equilibrados pensados para facilitar el mantenimiento diario y adaptarse al estilo de vida de cada familia.",
+      "Realizamos cortes funcionales y equilibrados pensados para facilitar el mantenimiento diario y adaptarse al estilo de vida de cada familia — un corte de perros en Vigo pensado para el día a día.",
       "Buscamos un resultado natural, cómodo y armonioso, respetando siempre la estructura del perro y priorizando su bienestar por encima de criterios puramente estéticos.",
     ],
   },
   {
     title: "Corte de raza",
     desc: [
-      "Respetamos los estándares y características propias de cada raza, adaptando el trabajo a la morfología, el tipo de pelo y las necesidades individuales de cada perro.",
+      "Respetamos los estándares y características propias de cada raza, adaptando el trabajo a la morfología, el tipo de pelo y las necesidades individuales de cada perro dentro de nuestra estética canina Vigo.",
       "Nuestro objetivo es conservar la identidad y belleza natural del manto, combinando técnica, conocimiento y cuidado personalizado.",
     ],
   },

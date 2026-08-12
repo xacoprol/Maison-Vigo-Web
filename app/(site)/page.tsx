@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     description: siteConfig.defaultDescription,
     url: "/",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.defaultTitle,
+    description: siteConfig.defaultDescription,
+  },
 };
 
 export default function Home() {
@@ -136,6 +141,13 @@ export default function Home() {
                   integral
                 </span>
               </h2>
+              <h2 className="servicios-heading__seo">
+                Tu peluquería canina en Vigo, con calma y técnica
+              </h2>
+              <p className="servicios-heading__lead">
+                Grooming, bienestar, guardería familiar, educación y
+                acompañamiento en un mismo espacio de cuidado.
+              </p>
             </header>
           </div>
         </div>

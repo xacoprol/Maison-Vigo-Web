@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { groomingFaq } from "@/lib/grooming-faq";
 import { getServicioSlideshowSlides } from "@/lib/servicio-slideshow-data";
 import { getServicio, servicioSlugs } from "@/lib/servicios-data";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, siteUrl } from "@/lib/site-config";
 
 import { ServicioBackNav } from "./servicio-back-nav";
 import { ServicioBodyText } from "./servicio-body-text";
@@ -12,6 +13,8 @@ import { ServicioHeroBg } from "./servicio-hero-bg";
 import { ServicioAcompanamientoCta } from "./servicio-acompanamiento-cta";
 import { ServicioAcompanamientoHow } from "./servicio-acompanamiento-how";
 import { ServicioBodaVideos } from "./servicio-boda-videos";
+import { ServicioGroomingFaq } from "./servicio-grooming-faq";
+import { ServicioGroomingSeoCopy } from "./servicio-grooming-seo";
 import { ServicioPageClient } from "./servicio-page-client";
 import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
 import { ServicioServiciosSection } from "./servicio-servicios-section";
@@ -31,6 +34,30 @@ export async function generateMetadata({
   const { slug } = await params;
   const servicio = getServicio(slug);
   if (!servicio) return {};
+
+  if (servicio.slug === "grooming") {
+    const title = "Grooming — Peluquería canina en Vigo";
+    const description =
+      "Grooming y peluquería canina en Vigo: baño, corte, deslanado y dermocosmética con calma y técnica en Maison Vigo.";
+    return {
+      title,
+      description,
+      alternates: { canonical: `/servicios/${servicio.slug}` },
+      openGraph: {
+        title: `${title} | ${siteConfig.shortName}`,
+        description,
+        url: `/servicios/${servicio.slug}`,
+        images: [{ url: servicio.image, alt: servicio.imageAlt }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${title} | ${siteConfig.shortName}`,
+        description,
+        images: [servicio.image],
+      },
+    };
+  }
+
   const description = servicio.subtitle.replace(/\n/g, " ");
   return {
     title: servicio.title,
@@ -51,6 +78,29 @@ export async function generateMetadata({
   };
 }
 
+function GroomingFaqJsonLd() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${siteUrl}/servicios/grooming#faq`,
+    mainEntity: groomingFaq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+
 export default async function ServicioPage({
   params,
 }: {
@@ -62,6 +112,7 @@ export default async function ServicioPage({
 
   return (
     <ServicioPageClient>
+    {servicio.slug === "grooming" ? <GroomingFaqJsonLd /> : null}
     <main className="servicio">
       <ServicioEffects />
       <section
@@ -155,6 +206,10 @@ export default async function ServicioPage({
         slides={getServicioSlideshowSlides(servicio.slug)}
       />
 
+      {servicio.slug === "grooming" && servicio.seoBody ? (
+        <ServicioGroomingSeoCopy paragraphs={servicio.seoBody} />
+      ) : null}
+
       {servicio.slug === "acompanamiento" ? (
         <>
           <ServicioBodaVideos />
@@ -163,6 +218,7 @@ export default async function ServicioPage({
       ) : null}
 
       <ServicioServiciosSection slug={servicio.slug} />
+      {servicio.slug === "grooming" ? <ServicioGroomingFaq /> : null}
     </main>
     <ServicioBackNav currentTitle={servicio.title} />
     </ServicioPageClient>

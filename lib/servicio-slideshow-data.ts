@@ -16,7 +16,8 @@ const GROOMING_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
     headline1: "Diagnóstico y",
     headline2: "observación",
     image: "/assets/images/diagnostico.webp",
-    imageAlt: "Diagnóstico del manto en Maison Vigo.",
+    imageAlt:
+      "Diagnóstico de piel y manto antes del grooming en Maison Vigo, peluquería canina en Vigo",
   },
   {
     caption:
@@ -24,7 +25,8 @@ const GROOMING_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
     headline1: "Dermocosmética",
     headline2: "personalizada",
     image: "/assets/images/grooming.webp",
-    imageAlt: "Dermocosmética personalizada en Maison Vigo.",
+    imageAlt:
+      "Baño y dermocosmética personalizada en sesión de grooming canino Vigo",
   },
   {
     caption:
@@ -32,7 +34,8 @@ const GROOMING_SLIDESHOW_SLIDES: ServicioSlideshowSlide[] = [
     headline1: "Resultados",
     headline2: "saludables",
     image: "/assets/images/secado.webp",
-    imageAlt: "Resultados saludables del cuidado del manto en Maison Vigo.",
+    imageAlt:
+      "Secado y acabado de corte de perros en Vigo en Maison Vigo",
   },
 ];
 

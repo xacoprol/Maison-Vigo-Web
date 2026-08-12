@@ -1,0 +1,63 @@
+/* FAQ al final de /servicios/grooming — tono editorial, variables del sitio */
+
+.servicio-grooming-faq {
+  background: #1a1a1a;
+  color: var(--cream);
+  padding: clamp(72px, 10vw, 128px) var(--nav-pad-x, 48px)
+    clamp(96px, 12vw, 160px);
+}
+
+.servicio-grooming-faq__inner {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.servicio-grooming-faq__intro {
+  margin: 0 0 clamp(40px, 6vw, 72px);
+  max-width: min(40rem, 100%);
+}
+
+.servicio-grooming-faq .section-label {
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.servicio-grooming-faq__title {
+  margin: 0;
+  font-family: var(--ff-serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4.5vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--cream);
+  text-wrap: pretty;
+}
+
+.servicio-grooming-faq .mvcare-faq-accordion.servicio-servicios {
+  padding: 0;
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .servicio-grooming-faq {
+    padding-left: clamp(20px, 5vw, 36px);
+    padding-right: clamp(20px, 5vw, 36px);
+  }
+
+  .servicio-grooming-faq__title {
+    font-size: clamp(24px, 7vw, 34px);
+  }
+
+  .servicio-grooming-faq
+    .mvcare-faq-accordion
+    .servicio-servicios__trigger-title {
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
+  .servicio-grooming-faq .mvcare-faq-accordion .servicio-servicios__desc {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+}

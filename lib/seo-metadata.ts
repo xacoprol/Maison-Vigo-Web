@@ -43,7 +43,10 @@ export function rootMetadata(): Metadata {
     description: siteConfig.defaultDescription,
     keywords: [
       "peluquería canina Vigo",
-      "grooming canino",
+      "peluquería canina en Vigo",
+      "grooming canino Vigo",
+      "estética canina Vigo",
+      "corte de perros en Vigo",
       "Maison Vigo",
       "cuidado perros Vigo",
       "guardería canina",
