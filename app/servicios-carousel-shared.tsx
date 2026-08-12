@@ -43,6 +43,14 @@ export const SERVICE_IMAGES: Record<ServiceId, string> = {
   Educación: "/educacion.webp",
 };
 
+export const SERVICE_IMAGE_ALTS: Record<ServiceId, string> = {
+  Grooming: "Grooming canino profesional en Maison Vigo, Vigo",
+  Bienestar: "Cuidado de bienestar y piel canina en Maison Vigo, Vigo",
+  "Guardería Familiar": "Guardería canina familiar en Vigo — Maison Vigo",
+  Acompañamiento: "Acompañamiento canino en eventos — Maison Vigo, Vigo",
+  Educación: "Educación canina en Maison Vigo, Vigo",
+};
+
 export const SERVICE_SUBTITLES: Record<ServiceId, string> = {
   Grooming:
     "Grooming con dermocosmética, observación y un ritmo de trabajo sereno.",

@@ -19,6 +19,20 @@ const nextConfig: NextConfig = {
      */
     unoptimized: isDev,
   },
+  /**
+   * Canonical = www.maisonvigo.es — evita duplicado apex ↔ www.
+   * (También conviene el redirect en el DNS/hosting; esto cubre el edge de Next.)
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "maisonvigo.es" }],
+        destination: "https://www.maisonvigo.es/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

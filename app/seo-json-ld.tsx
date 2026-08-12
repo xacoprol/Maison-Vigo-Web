@@ -2,7 +2,7 @@ import { legalCompany } from "@/lib/legal/company";
 import {
   allowIndexing,
   bookingUrl,
-  defaultOgImage,
+  businessImage,
   siteConfig,
   siteUrl,
 } from "@/lib/site-config";
@@ -15,14 +15,14 @@ export function SeoJsonLd() {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": ["PetGroomer", "LocalBusiness"],
+        "@type": ["LocalBusiness", "PetGroomer"],
         "@id": `${siteUrl}/#business`,
         name: siteConfig.shortName,
         legalName: legalCompany.legalName,
         description: siteConfig.defaultDescription,
         url: siteUrl,
-        image: `${siteUrl}${defaultOgImage}`,
-        telephone: [siteConfig.phones.landline, siteConfig.phones.mobile],
+        image: `${siteUrl}${businessImage}`,
+        telephone: siteConfig.phones.landline,
         priceRange: siteConfig.priceRange,
         address: {
           "@type": "PostalAddress",

@@ -35,7 +35,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     carouselLabel: "Grooming",
     image: "/grooming.webp",
     imageAlt:
-      "Corte y grooming de perro en Maison Vigo, peluquería canina en Vigo",
+      "Grooming canino profesional en Maison Vigo, Vigo",
     subtitle: "Dermocosmética y cuidado\nadaptado a cada perro.",
     body:
       "Cada sesión de grooming cuida la piel, el manto y el bienestar con un " +
@@ -62,7 +62,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Guardería Familiar",
     carouselLabel: "Guardería Familiar",
     image: "/guarderia.webp",
-    imageAlt: "Guardería familiar para perros en Maison Vigo, Vigo",
+    imageAlt: "Guardería canina familiar en Vigo — Maison Vigo",
     subtitle:
       "Un entorno reducido, tranquilo y supervisado donde sentirse seguro y acompañado.",
     body:

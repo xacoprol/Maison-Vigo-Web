@@ -37,6 +37,7 @@ export function HomeEffects() {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const introMobileMq = window.matchMedia("(max-width: 900px)");
 
     const unionBounds = (rects: DOMRect[]) => {
       if (!rects.length) return null;
@@ -70,32 +71,42 @@ export function HomeEffects() {
       const introUnion = unionBounds(introRects);
       if (!introUnion) return;
 
-      const introWordmark = introEl.querySelector<HTMLElement>(
-        ".logo-intro-piece--two",
+      /**
+       * Móvil: alinear/escalar por la M (pieza 1) para que aterrice al tamaño
+       * exacto del header y no haya salto al revelar el nav.
+       * Desktop: wordmark (pieza 2), como hasta ahora.
+       */
+      const alignByMark = introMobileMq.matches;
+      const introAnchor = introEl.querySelector<HTMLElement>(
+        alignByMark
+          ? ".logo-intro-piece--one"
+          : ".logo-intro-piece--two",
       );
-      const navWordmark = navbar.querySelector<HTMLElement>(
-        ".nav-brand-piece--two",
+      const navAnchor = navbar.querySelector<HTMLElement>(
+        alignByMark
+          ? ".nav-brand-piece--one"
+          : ".nav-brand-piece--two",
       );
-      const tw = introWordmark?.getBoundingClientRect();
-      const nw = navWordmark?.getBoundingClientRect();
+      const introBox = introAnchor?.getBoundingClientRect();
+      const navBox = navAnchor?.getBoundingClientRect();
 
       let alignIntroCx =
         introUnion.left + (introUnion.right - introUnion.left) / 2;
       let alignIntroCy =
         introUnion.top + (introUnion.bottom - introUnion.top) / 2;
-      if (tw && tw.width > 0) {
-        alignIntroCx = tw.left + tw.width / 2;
-        alignIntroCy = tw.top + tw.height / 2;
+      if (introBox && introBox.width > 0) {
+        alignIntroCx = introBox.left + introBox.width / 2;
+        alignIntroCy = introBox.top + introBox.height / 2;
       }
 
       let alignNavCx: number;
       let alignNavCy: number;
       let targetScale = introFlightEndScaleFallback;
 
-      if (tw && tw.width > 0 && nw && nw.width > 0) {
-        targetScale = nw.width / tw.width;
-        alignNavCx = nw.left + nw.width / 2;
-        alignNavCy = nw.top + nw.height / 2;
+      if (introBox && introBox.width > 0 && navBox && navBox.width > 0) {
+        targetScale = navBox.width / introBox.width;
+        alignNavCx = navBox.left + navBox.width / 2;
+        alignNavCy = navBox.top + navBox.height / 2;
       } else {
         const brandSlot =
           navbar.querySelector<HTMLElement>("a.nav-brand") ?? navbar;
@@ -125,8 +136,6 @@ export function HomeEffects() {
     let onResizeIntro: (() => void) | undefined;
     let introFinished = false;
     let introStarted = false;
-    let orphanedTagline: HTMLElement | null = null;
-    const introMobileMq = window.matchMedia("(max-width: 900px)");
     let conceptoTitleRevealed = false;
     let serviciosTitleRevealed = false;
     const serviciosCarouselReveal = document.querySelector<HTMLElement>(
@@ -148,48 +157,6 @@ export function HomeEffects() {
       document.cookie = `${introSeenCookie}=1; Max-Age=${introSeenMaxAgeSec}; Path=/; SameSite=Lax`;
     };
 
-    const releaseOrphanedTagline = () => {
-      if (!orphanedTagline) return;
-      orphanedTagline.remove();
-      orphanedTagline = null;
-    };
-
-    /**
-     * En móvil la frase «peluquería canina» no vuela al nav con el logo:
-     * se fija en viewport y se desvanece al arrancar el vuelo.
-     */
-    const detachTaglineForMobileFade = () => {
-      if (!introEl || !introMobileMq.matches) return;
-      const pieceThree = introEl.querySelector<HTMLElement>(
-        ".logo-intro-piece--three",
-      );
-      if (!pieceThree || orphanedTagline) return;
-
-      const rect = pieceThree.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-
-      const clone = pieceThree.cloneNode(true) as HTMLElement;
-      pieceThree.style.visibility = "hidden";
-      clone.classList.add("logo-intro-piece--tagline-fade");
-      clone.style.cssText = [
-        "position:fixed",
-        `left:${rect.left}px`,
-        `top:${rect.top}px`,
-        `width:${rect.width}px`,
-        "height:auto",
-        "transform:none",
-        "opacity:1",
-        "margin:0",
-        "z-index:261",
-        "pointer-events:none",
-      ].join(";");
-      document.body.appendChild(clone);
-      orphanedTagline = clone;
-      // Force reflow then fade
-      void clone.offsetWidth;
-      clone.classList.add("is-fading");
-    };
-
     const finishIntro = () => {
       if (introFinished || !introEl) return;
       introFinished = true;
@@ -197,7 +164,6 @@ export function HomeEffects() {
         window.clearTimeout(introCompleteFallbackTimer);
       }
       introEl.removeEventListener("animationend", onIntroFlyEnd);
-      releaseOrphanedTagline();
       /**
        * `intro-complete` antes que quitar `intro-active`: si no, deja de
        * aplicarse `logoIntroMove` y el transform del overlay vuelve a
@@ -230,7 +196,6 @@ export function HomeEffects() {
       flightTimer = window.setTimeout(() => {
         requestAnimationFrame(() => {
           setIntroTarget();
-          detachTaglineForMobileFade();
           introEl.addEventListener("animationend", onIntroFlyEnd);
           introEl.classList.add("logo-intro--fly");
           body.classList.add("intro-logo-flight");
@@ -398,7 +363,6 @@ export function HomeEffects() {
       if (flightTimer) {
         window.clearTimeout(flightTimer);
       }
-      releaseOrphanedTagline();
       if (introEl) {
         introEl.removeEventListener("animationend", onIntroFlyEnd);
         introEl.classList.remove("is-playing");

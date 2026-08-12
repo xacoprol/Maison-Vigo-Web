@@ -20,6 +20,7 @@ import {
   MOBILE_SLIDES_PER_VIEW,
   MOBILE_SLIDES_PER_VIEW_NARROW,
   ORDER_MOBILE,
+  SERVICE_IMAGE_ALTS,
   SERVICE_IMAGES,
   SERVICE_SUBTITLES,
   ServiceOrbLabel,
@@ -209,7 +210,7 @@ export function ServiciosCarouselMobile() {
           >
             <Image
               src={SERVICE_IMAGES[label]}
-              alt=""
+              alt={SERVICE_IMAGE_ALTS[label]}
               fill
               className="servicios-carousel__photo-img"
               sizes="(max-width: 900px) min(98vw, 640px), min(1180px, 98vw)"

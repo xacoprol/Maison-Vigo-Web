@@ -18,6 +18,9 @@ export const siteUrl =
 /** Imagen social por defecto (Open Graph / Twitter). JPEG ligero ≤300KB. */
 export const defaultOgImage = "/og/default.jpg";
 
+/** Imagen representativa del negocio (JSON-LD LocalBusiness). */
+export const businessImage = "/assets/images/cuidado-integral.webp";
+
 /**
  * Indexación activa salvo que se desactive explícitamente
  * (`NEXT_PUBLIC_ALLOW_INDEXING=false`).
@@ -32,7 +35,7 @@ export const bookingUrl =
 export const siteConfig = {
   shortName: "Maison Vigo",
   defaultTitle:
-    "Peluquería Canina en Vigo | Maison Vigo — Grooming y Bienestar",
+    "Maison Vigo | Peluquería canina en Vigo — Grooming y cuidado",
   titleTemplate: "%s — Maison Vigo",
   defaultDescription:
     "Peluquería canina en Vigo: grooming, bienestar y guardería familiar. Cuidado con calma, técnica y dermocosmética en Maison Vigo.",

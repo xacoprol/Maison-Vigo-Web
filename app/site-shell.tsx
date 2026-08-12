@@ -173,7 +173,7 @@ export function SiteShell() {
               >
                 <Image
                   src="/foto1.jpg"
-                  alt=""
+                  alt="Peluquería canina Maison Vigo en Vigo"
                   fill
                   className="mobile-menu-media-img"
                   sizes="(max-width: 900px) 100vw, 40vw"
@@ -184,7 +184,7 @@ export function SiteShell() {
               <div className="mobile-menu-media-layer" data-menu-image="foto2">
                 <Image
                   src="/assets/images/cuidado-integral.webp"
-                  alt=""
+                  alt="Cuidado integral canino en Maison Vigo, Vigo"
                   fill
                   className="mobile-menu-media-img"
                   sizes="(max-width: 900px) 100vw, 40vw"
@@ -195,7 +195,7 @@ export function SiteShell() {
               <div className="mobile-menu-media-layer" data-menu-image="foto3">
                 <Image
                   src="/foto3.jpg"
-                  alt=""
+                  alt="Espacio de grooming en Maison Vigo, Vigo"
                   fill
                   className="mobile-menu-media-img"
                   sizes="(max-width: 900px) 100vw, 40vw"
@@ -206,7 +206,7 @@ export function SiteShell() {
               <div className="mobile-menu-media-layer" data-menu-image="mvcare">
                 <Image
                   src="/assets/images/mvcare-1.webp"
-                  alt=""
+                  alt="MV Care — seguimiento del cuidado canino en Maison Vigo"
                   fill
                   className="mobile-menu-media-img"
                   sizes="(max-width: 900px) 100vw, 40vw"
@@ -280,7 +280,7 @@ export function SiteShell() {
             <div className="reserva-panel-media-layer is-active">
               <Image
                 src="/assets/images/cuidado-integral.webp"
-                alt=""
+                alt="Cuidado integral canino en Maison Vigo, Vigo"
                 fill
                 className="reserva-panel-media-img"
                 sizes="(max-width: 900px) 100vw, 40vw"

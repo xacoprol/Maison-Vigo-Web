@@ -253,6 +253,13 @@ body.intro-active .logo-intro.is-playing .logo-intro-piece--three {
   animation: logoPieceIn 1.15s cubic-bezier(0.22, 1, 0.36, 1) 2.35s both;
 }
 
+/* Móvil: el tagline vuela con el logo pero se desvanece durante el traslado */
+@media (max-width: 900px) {
+  body.intro-active .logo-intro.is-playing.logo-intro--fly .logo-intro-piece--three {
+    animation: logoTaglineFlyFade 1.9s cubic-bezier(0.2, 0.94, 0.29, 1) forwards;
+  }
+}
+
 body.intro-active .nav-brand-anim {
   opacity: 0;
   transition: none;
@@ -3276,20 +3283,18 @@ a.contact-line:focus-visible .contact-text {
   }
 }
 
-/** Tagline «peluquería canina» en intro móvil: se queda y se desvanece. */
-.logo-intro-piece--tagline-fade {
-  filter: drop-shadow(0 10px 36px rgba(0, 0, 0, 0.16));
-  will-change: opacity;
-}
-.logo-intro-piece--tagline-fade.is-fading {
-  animation: logoTaglineFadeOut 1.15s cubic-bezier(0.33, 0.86, 0.45, 1) forwards;
-}
-@keyframes logoTaglineFadeOut {
-  from {
+/** Tagline «peluquería canina»: acompaña el vuelo y se opaca (móvil). */
+@keyframes logoTaglineFlyFade {
+  0% {
     opacity: 1;
+    filter: blur(0);
   }
-  to {
+  55% {
+    opacity: 0.35;
+  }
+  100% {
     opacity: 0;
+    filter: blur(2px);
   }
 }
 
