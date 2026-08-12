@@ -2,38 +2,10 @@
 
 .google-reviews {
   position: relative;
-  --reviews-bg: #1a1614;
-  background-color: var(--reviews-bg);
-  background-image:
-    linear-gradient(rgba(11, 11, 11, 0.5), rgba(11, 11, 11, 0.5)),
-    url("/assets/images/bgpasos.webp");
-  background-repeat: no-repeat, repeat;
-  background-position: center, center top;
-  background-size: cover, auto;
+  background: var(--black);
   color: var(--cream);
   padding: clamp(96px, 14vw, 160px) 48px clamp(100px, 12vw, 140px);
   overflow: clip;
-}
-
-/** Línea dorada entre ritmo-cuidado y opiniones — centrada, sin llegar a sangre. */
-.google-reviews::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  z-index: 2;
-  width: min(38vw, 420px);
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(187, 149, 93, 0.15) 12%,
-    rgba(212, 175, 122, 0.7) 50%,
-    rgba(187, 149, 93, 0.15) 88%,
-    transparent 100%
-  );
-  pointer-events: none;
 }
 
 .google-reviews__inner {
