@@ -31,10 +31,26 @@ export const bookingUrl =
 
 export const siteConfig = {
   shortName: "Maison Vigo",
-  defaultTitle: "Maison Vigo — Cuidado canino en Vigo",
+  defaultTitle:
+    "Peluquería Canina en Vigo | Maison Vigo — Grooming y Bienestar",
   titleTemplate: "%s — Maison Vigo",
   defaultDescription:
-    "Grooming, bienestar, guardería familiar, educación y acompañamiento en un espacio pensado para el cuidado con calma, técnica y continuidad.",
+    "Peluquería canina en Vigo: grooming, bienestar y guardería familiar. Cuidado con calma, técnica y dermocosmética en Maison Vigo.",
   locale: "es_ES",
   regionLabel: "Vigo, España",
+  /** Coordenadas aproximadas del local (Navia / Teixugueiras). */
+  geo: {
+    latitude: 42.2118,
+    longitude: -8.7445,
+  },
+  social: {
+    instagram: "https://instagram.com/maisonvigo",
+    facebook: "https://facebook.com/maisonvigo",
+    tiktok: "https://www.tiktok.com/@maison.vigo",
+  },
+  phones: {
+    landline: "+34986233321",
+    mobile: "+34644577798",
+  },
+  priceRange: "€€",
 } as const;

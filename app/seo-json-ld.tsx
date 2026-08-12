@@ -11,20 +11,19 @@ import {
 export function SeoJsonLd() {
   if (!allowIndexing) return null;
 
-  const telephone = `+34${legalCompany.phone.replace(/\s/g, "")}`;
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": ["LocalBusiness", "PetGroomer"],
+        "@type": ["PetGroomer", "LocalBusiness"],
         "@id": `${siteUrl}/#business`,
         name: siteConfig.shortName,
         legalName: legalCompany.legalName,
         description: siteConfig.defaultDescription,
         url: siteUrl,
         image: `${siteUrl}${defaultOgImage}`,
-        telephone,
+        telephone: [siteConfig.phones.landline, siteConfig.phones.mobile],
+        priceRange: siteConfig.priceRange,
         address: {
           "@type": "PostalAddress",
           streetAddress: legalCompany.address,
@@ -33,15 +32,45 @@ export function SeoJsonLd() {
           postalCode: legalCompany.postalCode,
           addressCountry: "ES",
         },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: siteConfig.geo.latitude,
+          longitude: siteConfig.geo.longitude,
+        },
+        openingHoursSpecification: [
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+            ],
+            opens: "10:00",
+            closes: "18:00",
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: "Saturday",
+            opens: "10:00",
+            closes: "14:00",
+          },
+        ],
+        sameAs: [
+          siteConfig.social.instagram,
+          siteConfig.social.facebook,
+          siteConfig.social.tiktok,
+        ],
         areaServed: {
           "@type": "City",
           name: "Vigo",
         },
         inLanguage: "es",
-        priceRange: "€€",
         knowsAbout: [
-          "Peluquería canina",
+          "Peluquería canina en Vigo",
           "Grooming canino",
+          "Estética canina",
           "Bienestar animal",
           "Guardería para perros",
           "Educación canina",

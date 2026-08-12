@@ -13,6 +13,7 @@ import { ServicioAcompanamientoCta } from "./servicio-acompanamiento-cta";
 import { ServicioAcompanamientoHow } from "./servicio-acompanamiento-how";
 import { ServicioBodaVideos } from "./servicio-boda-videos";
 import { ServicioPageClient } from "./servicio-page-client";
+import { ServicioGroomingFaq } from "./servicio-grooming-faq";
 import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
 import { ServicioServiciosSection } from "./servicio-servicios-section";
 import "./servicio.css";
@@ -32,20 +33,27 @@ export async function generateMetadata({
   const servicio = getServicio(slug);
   if (!servicio) return {};
   const description = servicio.subtitle.replace(/\n/g, " ");
+  const isGrooming = servicio.slug === "grooming";
+  const title = isGrooming
+    ? "Peluquería canina y grooming en Vigo"
+    : servicio.title;
+  const pageDescription = isGrooming
+    ? "Peluquería canina en Vigo: baño, corte, deslanado y dermocosmética con calma y técnica en Maison Vigo."
+    : description;
   return {
-    title: servicio.title,
-    description,
+    title,
+    description: pageDescription,
     alternates: { canonical: `/servicios/${servicio.slug}` },
     openGraph: {
-      title: `${servicio.title} — ${siteConfig.shortName}`,
-      description,
+      title: `${title} — ${siteConfig.shortName}`,
+      description: pageDescription,
       url: `/servicios/${servicio.slug}`,
       images: [{ url: servicio.image, alt: servicio.imageAlt }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${servicio.title} — ${siteConfig.shortName}`,
-      description,
+      title: `${title} — ${siteConfig.shortName}`,
+      description: pageDescription,
       images: [servicio.image],
     },
   };
@@ -163,6 +171,8 @@ export default async function ServicioPage({
       ) : null}
 
       <ServicioServiciosSection slug={servicio.slug} />
+
+      {servicio.slug === "grooming" ? <ServicioGroomingFaq /> : null}
     </main>
     <ServicioBackNav currentTitle={servicio.title} />
     </ServicioPageClient>

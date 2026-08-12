@@ -43,7 +43,7 @@ export function ConceptoSection() {
         >
           <img
             src="/assets/images/caniche.webp"
-            alt="Maison Vigo — retrato conceptual."
+            alt="Caniche tras sesión de grooming en Maison Vigo, peluquería canina en Vigo"
             className="concepto-image-main concepto-image-main--top"
             loading="lazy"
           />

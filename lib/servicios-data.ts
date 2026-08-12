@@ -34,7 +34,8 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Grooming",
     carouselLabel: "Grooming",
     image: "/grooming.webp",
-    imageAlt: "Sesión de grooming en Maison Vigo.",
+    imageAlt:
+      "Corte y grooming de perro en Maison Vigo, peluquería canina en Vigo",
     subtitle: "Dermocosmética y cuidado\nadaptado a cada perro.",
     body:
       "Cada sesión de grooming cuida la piel, el manto y el bienestar con un " +
@@ -47,7 +48,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Bienestar",
     carouselLabel: "Bienestar",
     image: "/cuidado.webp",
-    imageAlt: "Cuidado de bienestar en Maison Vigo.",
+    imageAlt: "Bienestar y cuidado de piel en Maison Vigo, peluquería canina en Vigo",
     subtitle:
       "Diagnóstico, cosmética y cuidados adaptados a las necesidades de cada perro.",
     body:
@@ -61,7 +62,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Guardería Familiar",
     carouselLabel: "Guardería Familiar",
     image: "/guarderia.webp",
-    imageAlt: "Guardería familiar en Maison Vigo.",
+    imageAlt: "Guardería familiar para perros en Maison Vigo, Vigo",
     subtitle:
       "Un entorno reducido, tranquilo y supervisado donde sentirse seguro y acompañado.",
     body:
@@ -79,7 +80,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Acompañamiento",
     carouselLabel: "Acompañamiento",
     image: "/acompanamiento.webp",
-    imageAlt: "Acompañamiento personalizado Maison Vigo.",
+    imageAlt: "Acompañamiento canino en eventos — Maison Vigo, Vigo",
     subtitle:
       "Presencia y cuidado para que tu perro forme parte de los momentos especiales.",
     body:
@@ -93,7 +94,7 @@ export const SERVICIOS: Record<ServicioSlug, Servicio> = {
     title: "Educación",
     carouselLabel: "Educación",
     image: "/educacion.webp",
-    imageAlt: "Trabajo de educación canina Maison Vigo.",
+    imageAlt: "Educación canina en Maison Vigo, Vigo",
     subtitle:
       "Trabajo enfocado en convivencia, equilibrio y bienestar emocional.",
     body:

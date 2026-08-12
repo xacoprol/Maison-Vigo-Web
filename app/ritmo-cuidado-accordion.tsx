@@ -235,7 +235,7 @@ export function RitmoCuidadoAccordion() {
                         <div className="ritmo-cuidado__img-wrap">
                           <Image
                             src={step.img}
-                            alt=""
+                            alt={step.title}
                             width={IMG_PANEL_W}
                             height={IMG_PANEL_H}
                             className="ritmo-cuidado__img"

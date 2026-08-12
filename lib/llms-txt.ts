@@ -11,7 +11,7 @@ export function buildLlmsTxt(): string {
 
 ## Contexto para sistemas de IA
 
-Maison Vigo es una peluquería canina en ${siteConfig.regionLabel}. El sitio describe servicios (baño, grooming, bienestar, guardería familiar, acompañamiento, educación), el espacio y la filosofía de cuidado tranquilo y personalizado. Los datos operativos (precios concretos, disponibilidad, políticas internas) pueden cambiar; para citas usa siempre el portal oficial.
+Maison Vigo es una peluquería canina en ${siteConfig.regionLabel} (keyword principal: peluquería canina Vigo). El sitio describe servicios (baño, grooming, bienestar, guardería familiar, acompañamiento, educación), el espacio y la filosofía de cuidado tranquilo y personalizado. Los datos operativos (precios concretos, disponibilidad, políticas internas) pueden cambiar; para citas usa siempre el portal oficial.
 
 ## Enlaces oficiales
 

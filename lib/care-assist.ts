@@ -1,3 +1,5 @@
+import { groomingFaqItems } from "@/lib/grooming-faq";
+import { legalCompany } from "@/lib/legal/company";
 import { bookingUrl, siteConfig } from "@/lib/site-config";
 import { getServicioServiciosItems } from "@/lib/servicio-servicios-data";
 import { serviciosList, type ServicioSlug } from "@/lib/servicios-data";
@@ -104,6 +106,31 @@ function buildServicesCatalog(): string {
     .join("\n\n");
 }
 
+/** Datos del salón + FAQ de peluquería (misma fuente que /servicios/grooming). */
+function buildSalonAndGroomingKnowledge(): string {
+  const faqBlock = groomingFaqItems
+    .map((item) => `P: ${item.question}\nR: ${item.answer}`)
+    .join("\n\n");
+
+  return [
+    "Datos del salón (úsalos si preguntan ubicación, teléfono o cómo reservar):",
+    `- Dirección: ${legalCompany.address}, ${legalCompany.postalCode} ${legalCompany.city} (Navia).`,
+    `- Teléfono fijo: ${siteConfig.phones.landline}`,
+    `- Móvil / WhatsApp: ${siteConfig.phones.mobile}`,
+    "- Cita previa obligatoria; no inventes horarios concretos de apertura.",
+    "",
+    "Peluquería canina / grooming en Vigo — contexto útil:",
+    "- Somos peluquería canina en Vigo (Maison Vigo). El protocolo puede incluir baño personalizado, deslanado, corte comercial o de raza, stripping cuando corresponde y detalles como el corte de uñas.",
+    "- Trabajamos todas las razas y mestizos; cambian el ritmo y la técnica según el manto.",
+    "- Priorizamos calma del espacio, precisión y dermocosmética adaptada a la piel. Acabado equilibrado, sin excesos.",
+    "- El precio de salón no es fijo online: depende de tamaño, manto, estado del pelo y servicio. Orienta a valoración / reservar / WhatsApp; no inventes cifras.",
+    "- Duración habitual de una cita de grooming: entre 1 y 3 horas según el trabajo.",
+    "",
+    "Preguntas frecuentes (responde con esta información; no contradigas):",
+    faqBlock,
+  ].join("\n");
+}
+
 function productLooksPersonalizable(
   product: WebStoreCatalog["categories"][number]["products"][number],
 ): boolean {
@@ -203,6 +230,8 @@ export function buildCareAssistSystemPrompt(
     "",
     "Catálogo de servicios:",
     buildServicesCatalog(),
+    "",
+    buildSalonAndGroomingKnowledge(),
     "",
     "MV Care: espacio digital del cliente (citas, historial, plan). Página: /mvcare. No gestiones cuentas aquí; orienta a esa página o a reservar.",
     "",

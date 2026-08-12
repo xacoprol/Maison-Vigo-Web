@@ -100,7 +100,7 @@ export const espacioPanels: EspacioPanel[] = [
       </>
     ),
     image: "/assets/images/grooming-room.webp",
-    imageAlt: "Detalle del grooming room Maison Vigo.",
+    imageAlt: "Grooming room de Maison Vigo, peluquería canina en Vigo",
     modifier: "espacio__panel--four",
   },
 ];

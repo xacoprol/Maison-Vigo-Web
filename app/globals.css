@@ -23,6 +23,23 @@
   --panel-reveal-delay: 0.14s;
 }
 
+/**
+ * Texto en el HTML (SEO / lectores de pantalla) sin ocupar espacio visual.
+ * Preferible a display:none para que el contenido siga en el DOM.
+ */
+.seo-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 html {
   scroll-behavior: smooth;
   background-color: var(--cream);
@@ -1338,6 +1355,12 @@ body.intro-complete #hero .hero-video-overlay {
   text-align: center;
   white-space: nowrap;
 }
+.hero-local-heading {
+  /* Visible solo vía .seo-visually-hidden en el markup. */
+  font-family: var(--ff-serif);
+  font-size: 1rem;
+  font-weight: 400;
+}
 .hero-sub {
   font-size: clamp(18px, 2.3vw, 24px);
   line-height: 1.7;
@@ -2023,6 +2046,46 @@ img.concepto-quote-mark {
   text-shadow:
     0 2px 28px rgba(0, 0, 0, 0.55),
     0 0 52px rgba(187, 149, 93, 0.28);
+}
+
+/* SEO editorial: oculto visualmente (.seo-visually-hidden en el markup). */
+.home-seo-grooming {
+  /* sin layout visual */
+}
+
+.home-seo-grooming__inner {
+  max-width: 720px;
+}
+
+.home-seo-grooming__eyebrow {
+  font-family: var(--ff-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.home-seo-grooming__title {
+  font-family: var(--ff-serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+.home-seo-grooming__copy {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.home-seo-grooming__copy p {
+  margin: 0;
+  font-family: var(--ff-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  /* reservado: el bloque SEO sigue oculto visualmente */
 }
 @media (prefers-reduced-motion: reduce) {
   .servicios-heading-display.is-revealed .servicios-heading-reveal {
