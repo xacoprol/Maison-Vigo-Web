@@ -15,7 +15,7 @@ MAISON GROOMING, SLU no está obligada a designar Delegado de Protección de Dat
 
 La presente Política de Privacidad se aplica al tratamiento de datos personales realizados a través de:
 
-- El sitio web https://www.maisonvigo.es
+- El sitio web https://maisonvigo.es
 - El portal de cliente y reservas MV Care (https://care.maisonvigo.es)
 - Formularios de contacto, reserva y compra
 - Comunicaciones por correo electrónico, teléfono o WhatsApp vinculadas a la actividad de Maison Vigo

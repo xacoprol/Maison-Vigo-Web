@@ -9,7 +9,7 @@ En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios
 - **Teléfono:** 644 577 798
 - **Correo electrónico de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
 - **Correo electrónico de protección de datos:** [[EMAIL:rgpd|maisonvigo.es]]
-- **Sitio web:** https://www.maisonvigo.es
+- **Sitio web:** https://maisonvigo.es
 
 MAISON GROOMING, SLU desarrolla su actividad principal en el ámbito de la peluquería canina, servicios integrales para mascotas, reserva de citas, venta de productos para animales de compañía (personalizados y no personalizados) y gestión de la relación con clientes a través de su plataforma digital asociada.
 
@@ -35,7 +35,7 @@ MAISON GROOMING, SLU se reserva el derecho de denegar o retirar el acceso al sit
 
 ## 4. Tecnología y arquitectura del sitio
 
-El sitio web https://www.maisonvigo.es está desarrollado con tecnología **Next.js** (framework de React) y se despliega en infraestructura de hosting compatible con aplicaciones web modernas. La plataforma de reservas, área de cliente, registro, inicio de sesión, compra online y gestión de pedidos se presta a través del portal asociado **MV Care** (https://care.maisonvigo.es), vinculado operativamente con Maison Vigo.
+El sitio web https://maisonvigo.es está desarrollado con tecnología **Next.js** (framework de React) y se despliega en infraestructura de hosting compatible con aplicaciones web modernas. La plataforma de reservas, área de cliente, registro, inicio de sesión, compra online y gestión de pedidos se presta a través del portal asociado **MV Care** (https://care.maisonvigo.es), vinculado operativamente con Maison Vigo.
 
 El formulario de contacto del sitio web puede remitir comunicaciones por correo electrónico mediante servidor SMTP configurado por el titular.
 
@@ -66,19 +66,19 @@ El sitio web puede contener enlaces a páginas de terceros. MAISON GROOMING, SLU
 
 ## 8. Protección de datos personales
 
-El tratamiento de los datos personales del usuario se rige por la **Política de Privacidad** publicada en https://www.maisonvigo.es/privacidad, elaborada conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
+El tratamiento de los datos personales del usuario se rige por la **Política de Privacidad** publicada en https://maisonvigo.es/privacidad, elaborada conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
 
 Para cualquier cuestión relativa al tratamiento de datos personales, el usuario puede contactar en [[EMAIL:rgpd|maisonvigo.es]].
 
 ## 9. Cookies y tecnologías similares
 
-El sitio web utiliza cookies y tecnologías similares conforme a lo indicado en la **Política de Cookies** (https://www.maisonvigo.es/cookies), incluyendo, cuando el usuario preste su consentimiento, herramientas de analítica (Google Analytics) y publicidad/medición (Meta Pixel).
+El sitio web utiliza cookies y tecnologías similares conforme a lo indicado en la **Política de Cookies** (https://maisonvigo.es/cookies), incluyendo, cuando el usuario preste su consentimiento, herramientas de analítica (Google Analytics) y publicidad/medición (Meta Pixel).
 
 ## 10. Comercio electrónico y contratación
 
-Las compras de productos realizadas a través del sitio web o del portal MV Care se regirán por las **Condiciones Generales de Compra** (https://www.maisonvigo.es/condiciones-generales).
+Las compras de productos realizadas a través del sitio web o del portal MV Care se regirán por las **Condiciones Generales de Compra** (https://maisonvigo.es/condiciones-generales).
 
-Las reservas de servicios de peluquería canina y demás prestaciones se regirán por la **Política de Reservas y Cancelaciones** (https://www.maisonvigo.es/politica-reservas).
+Las reservas de servicios de peluquería canina y demás prestaciones se regirán por la **Política de Reservas y Cancelaciones** (https://maisonvigo.es/politica-reservas).
 
 ## 11. Medidas de seguridad y prevención del fraude
 

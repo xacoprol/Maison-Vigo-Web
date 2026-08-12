@@ -20,15 +20,15 @@ const nextConfig: NextConfig = {
     unoptimized: isDev,
   },
   /**
-   * Canonical = www.maisonvigo.es — evita duplicado apex ↔ www.
-   * (También conviene el redirect en el DNS/hosting; esto cubre el edge de Next.)
+   * Canonical = maisonvigo.es (sin www) — evita duplicado www ↔ apex.
+   * En Vercel conviene fijar también el dominio primario sin www.
    */
   async redirects() {
     return [
       {
         source: "/:path*",
-        has: [{ type: "host", value: "maisonvigo.es" }],
-        destination: "https://www.maisonvigo.es/:path*",
+        has: [{ type: "host", value: "www.maisonvigo.es" }],
+        destination: "https://maisonvigo.es/:path*",
         permanent: true,
       },
     ];

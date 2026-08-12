@@ -6,7 +6,7 @@
 - **Domicilio:** Rúa das Teixugueiras 29, Portal 5, Bajo, 36212 Vigo (Pontevedra), España
 - **Teléfono:** 644 577 798
 - **Correo de atención al cliente:** [[EMAIL:care|maisonvigo.es]]
-- **Sitio web de venta:** https://www.maisonvigo.es y portal MV Care (https://care.maisonvigo.es)
+- **Sitio web de venta:** https://maisonvigo.es y portal MV Care (https://care.maisonvigo.es)
 
 ## 2. Ámbito de aplicación
 
@@ -148,7 +148,7 @@ Los contenidos de la tienda online (textos, imágenes, marcas, diseño) son titu
 
 ## 16. Protección de datos
 
-El tratamiento de datos personales derivado de la compra se describe en la Política de Privacidad (https://www.maisonvigo.es/privacidad).
+El tratamiento de datos personales derivado de la compra se describe en la Política de Privacidad (https://maisonvigo.es/privacidad).
 
 ## 17. Legislación aplicable y jurisdicción
 

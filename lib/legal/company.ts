@@ -9,7 +9,7 @@ export const legalCompany = {
   province: "Pontevedra",
   country: "España",
   phone: "644 577 798",
-  website: "https://www.maisonvigo.es",
+  website: "https://maisonvigo.es",
   carePortal: "https://care.maisonvigo.es",
   customerEmail: { local: "care", domain: "maisonvigo.es" },
   privacyEmail: { local: "rgpd", domain: "maisonvigo.es" },

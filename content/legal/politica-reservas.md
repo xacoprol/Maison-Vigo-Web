@@ -1,6 +1,6 @@
 ## 1. Objeto y ámbito
 
-La presente Política de Reservas y Cancelaciones regula la solicitud, confirmación, modificación y cancelación de citas y servicios de peluquería canina y demás prestaciones ofrecidas por **MAISON GROOMING, SLU** (Maison Vigo), tanto a través del sitio web https://www.maisonvigo.es como del portal de reservas **MV Care** (https://care.maisonvigo.es).
+La presente Política de Reservas y Cancelaciones regula la solicitud, confirmación, modificación y cancelación de citas y servicios de peluquería canina y demás prestaciones ofrecidas por **MAISON GROOMING, SLU** (Maison Vigo), tanto a través del sitio web https://maisonvigo.es como del portal de reservas **MV Care** (https://care.maisonvigo.es).
 
 Se aplica a servicios presenciales en el centro de Vigo y, en su caso, a servicios a domicilio o de acompañamiento cuando se contraten expresamente.
 
@@ -154,4 +154,4 @@ Para conflictos con consumidores, serán competentes los tribunales que correspo
 
 ## 16. Modificaciones
 
-MAISON GROOMING, SLU podrá actualizar esta política. La versión publicada en https://www.maisonvigo.es/politica-reservas será la aplicable a las reservas posteriores a su publicación.
+MAISON GROOMING, SLU podrá actualizar esta política. La versión publicada en https://maisonvigo.es/politica-reservas será la aplicable a las reservas posteriores a su publicación.

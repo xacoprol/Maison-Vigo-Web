@@ -15,7 +15,7 @@ También pueden utilizarse tecnologías similares, como píxeles de seguimiento,
 
 ### 3.1. Según la entidad que las gestione
 
-- **Cookies propias:** enviadas al dispositivo desde https://www.maisonvigo.es o dominios asociados gestionados por MAISON GROOMING, SLU
+- **Cookies propias:** enviadas al dispositivo desde https://maisonvigo.es o dominios asociados gestionados por MAISON GROOMING, SLU
 - **Cookies de terceros:** enviadas desde equipos o dominios gestionados por Google, Meta u otros proveedores.
 
 ### 3.2. Según su finalidad
@@ -106,4 +106,4 @@ MAISON GROOMING, SLU podrá actualizar esta política cuando incorpore nuevas co
 
 ## 9. Más información
 
-Para cualquier consulta sobre el uso de cookies o el tratamiento de datos derivado, contacte en [[EMAIL:rgpd|maisonvigo.es]] o consulte la Política de Privacidad en https://www.maisonvigo.es/privacidad.
+Para cualquier consulta sobre el uso de cookies o el tratamiento de datos derivado, contacte en [[EMAIL:rgpd|maisonvigo.es]] o consulte la Política de Privacidad en https://maisonvigo.es/privacidad.
