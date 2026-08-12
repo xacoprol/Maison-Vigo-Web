@@ -125,6 +125,8 @@ export function HomeEffects() {
     let onResizeIntro: (() => void) | undefined;
     let introFinished = false;
     let introStarted = false;
+    let orphanedTagline: HTMLElement | null = null;
+    const introMobileMq = window.matchMedia("(max-width: 900px)");
     let conceptoTitleRevealed = false;
     let serviciosTitleRevealed = false;
     const serviciosCarouselReveal = document.querySelector<HTMLElement>(
@@ -146,6 +148,48 @@ export function HomeEffects() {
       document.cookie = `${introSeenCookie}=1; Max-Age=${introSeenMaxAgeSec}; Path=/; SameSite=Lax`;
     };
 
+    const releaseOrphanedTagline = () => {
+      if (!orphanedTagline) return;
+      orphanedTagline.remove();
+      orphanedTagline = null;
+    };
+
+    /**
+     * En móvil la frase «peluquería canina» no vuela al nav con el logo:
+     * se fija en viewport y se desvanece al arrancar el vuelo.
+     */
+    const detachTaglineForMobileFade = () => {
+      if (!introEl || !introMobileMq.matches) return;
+      const pieceThree = introEl.querySelector<HTMLElement>(
+        ".logo-intro-piece--three",
+      );
+      if (!pieceThree || orphanedTagline) return;
+
+      const rect = pieceThree.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      const clone = pieceThree.cloneNode(true) as HTMLElement;
+      pieceThree.style.visibility = "hidden";
+      clone.classList.add("logo-intro-piece--tagline-fade");
+      clone.style.cssText = [
+        "position:fixed",
+        `left:${rect.left}px`,
+        `top:${rect.top}px`,
+        `width:${rect.width}px`,
+        "height:auto",
+        "transform:none",
+        "opacity:1",
+        "margin:0",
+        "z-index:261",
+        "pointer-events:none",
+      ].join(";");
+      document.body.appendChild(clone);
+      orphanedTagline = clone;
+      // Force reflow then fade
+      void clone.offsetWidth;
+      clone.classList.add("is-fading");
+    };
+
     const finishIntro = () => {
       if (introFinished || !introEl) return;
       introFinished = true;
@@ -153,6 +197,7 @@ export function HomeEffects() {
         window.clearTimeout(introCompleteFallbackTimer);
       }
       introEl.removeEventListener("animationend", onIntroFlyEnd);
+      releaseOrphanedTagline();
       /**
        * `intro-complete` antes que quitar `intro-active`: si no, deja de
        * aplicarse `logoIntroMove` y el transform del overlay vuelve a
@@ -185,6 +230,7 @@ export function HomeEffects() {
       flightTimer = window.setTimeout(() => {
         requestAnimationFrame(() => {
           setIntroTarget();
+          detachTaglineForMobileFade();
           introEl.addEventListener("animationend", onIntroFlyEnd);
           introEl.classList.add("logo-intro--fly");
           body.classList.add("intro-logo-flight");
@@ -352,6 +398,7 @@ export function HomeEffects() {
       if (flightTimer) {
         window.clearTimeout(flightTimer);
       }
+      releaseOrphanedTagline();
       if (introEl) {
         introEl.removeEventListener("animationend", onIntroFlyEnd);
         introEl.classList.remove("is-playing");

@@ -23,6 +23,7 @@ const PARALLAX_LERP = 0.1;
 export function RitmoCuidadoAccordion() {
   const rootRef = useRef<HTMLElement>(null);
   const listSurfaceRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const tijeraParallaxRef = useRef<HTMLSpanElement>(null);
   const deslanadorParallaxRef = useRef<HTMLSpanElement>(null);
   const smoothYRef = useRef(0);
@@ -30,10 +31,22 @@ export function RitmoCuidadoAccordion() {
   const observingRef = useRef(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [inView, setInView] = useState(false);
+  const [visibleItems, setVisibleItems] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setInView(true);
+      const all: Record<number, boolean> = {};
+      RITMO_CUIDADO_STEPS.forEach((_, i) => {
+        all[i] = true;
+      });
+      setVisibleItems(all);
+      return;
+    }
+
     const obs = new IntersectionObserver(
       ([e]) => {
         if (e?.isIntersecting) {
@@ -41,9 +54,36 @@ export function RitmoCuidadoAccordion() {
           obs.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.12, rootMargin: "0px 0px -10% 0px" },
     );
     obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const nodes = itemRefs.current.filter(Boolean) as HTMLLIElement[];
+    if (!nodes.length) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const index = nodes.indexOf(entry.target as HTMLLIElement);
+          if (index < 0) continue;
+          setVisibleItems((prev) =>
+            prev[index] ? prev : { ...prev, [index]: true },
+          );
+          obs.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.2, rootMargin: "0px 0px -6% 0px" },
+    );
+
+    nodes.forEach((node) => obs.observe(node));
     return () => obs.disconnect();
   }, []);
 
@@ -131,12 +171,23 @@ export function RitmoCuidadoAccordion() {
       aria-labelledby="ritmo-cuidado-heading"
     >
       <div className="ritmo-cuidado__inner">
-        <p className="ritmo-cuidado__kicker">
+        <p
+          className={
+            "ritmo-cuidado__kicker" +
+            (inView ? " ritmo-cuidado__kicker--visible" : "")
+          }
+        >
           {RITMO_CUIDADO_STEPS.length === 1
             ? "1 momento"
             : `${RITMO_CUIDADO_STEPS.length} momentos`}
         </p>
-        <p className="ritmo-cuidado__eyebrow" id="ritmo-cuidado-heading">
+        <p
+          className={
+            "ritmo-cuidado__eyebrow" +
+            (inView ? " ritmo-cuidado__eyebrow--visible" : "")
+          }
+          id="ritmo-cuidado-heading"
+        >
           EL RITMO DEL CUIDADO
         </p>
 
@@ -144,13 +195,17 @@ export function RitmoCuidadoAccordion() {
           <ul className="ritmo-cuidado__list" role="list">
             {RITMO_CUIDADO_STEPS.map((step, i) => {
               const isOpen = openIndex === i;
+              const isVisible = Boolean(visibleItems[i]);
               return (
                 <li
                   key={step.title}
+                  ref={(node) => {
+                    itemRefs.current[i] = node;
+                  }}
                   className={
                     "ritmo-cuidado__item" +
                     (isOpen ? " ritmo-cuidado__item--open" : "") +
-                    (inView ? " ritmo-cuidado__item--visible" : "")
+                    (isVisible ? " ritmo-cuidado__item--visible" : "")
                   }
                 >
                   <div className="ritmo-cuidado__item-head">
@@ -161,9 +216,6 @@ export function RitmoCuidadoAccordion() {
                       aria-controls={`ritmo-panel-${i}`}
                       id={`ritmo-trigger-${i}`}
                       onClick={() => toggle(i)}
-                      style={{
-                        transitionDelay: inView ? `${0.06 + i * 0.07}s` : "0s",
-                      }}
                     >
                       <span className="ritmo-cuidado__trigger-body">
                         <span
