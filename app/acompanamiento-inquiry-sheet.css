@@ -1298,8 +1298,26 @@
 }
 
 .acompanamiento-inquiry-sheet__jewelry-pick:hover,
-.acompanamiento-inquiry-sheet__jewelry-pick:focus-visible {
+.acompanamiento-inquiry-sheet__jewelry-pick:focus-visible,
+.acompanamiento-inquiry-sheet__jewelry-pick--active {
   border-color: rgba(187, 149, 93, 0.65);
+}
+
+.acompanamiento-inquiry-sheet__jewelry-pick--active {
+  background: rgba(187, 149, 93, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(187, 149, 93, 0.35);
+}
+
+.acompanamiento-inquiry-sheet__jewelry-grid--ring {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 280px;
+}
+
+@media (min-width: 640px) {
+  .acompanamiento-inquiry-sheet__jewelry-grid--ring {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 320px;
+  }
 }
 
 .acompanamiento-inquiry-sheet__jewelry-pick-img {

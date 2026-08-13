@@ -43,9 +43,17 @@ const DOG_SEX_OPTIONS: { id: DogSex; label: string }[] = [
   { id: "female", label: "Hembra" },
 ];
 
-const RING_COLOR_OPTIONS: { id: RingBoxColor; label: string }[] = [
-  { id: "white", label: "Blanco" },
-  { id: "brown", label: "Marrón" },
+const RING_COLOR_OPTIONS: { id: RingBoxColor; label: string; image: string }[] = [
+  {
+    id: "white",
+    label: "Blanco",
+    image: "/assets/images/porta-anillos-blanco.webp",
+  },
+  {
+    id: "brown",
+    label: "Marrón",
+    image: "/assets/images/porta-anillos-marron.webp",
+  },
 ];
 
 const STEPS = [
@@ -1689,24 +1697,37 @@ export function AcompanamientoInquirySheet() {
                         <p className="acompanamiento-inquiry-sheet__choice-label">
                           Color
                         </p>
-                        <div className="acompanamiento-inquiry-sheet__chips">
+                        <div
+                          className="acompanamiento-inquiry-sheet__jewelry-grid acompanamiento-inquiry-sheet__jewelry-grid--ring"
+                          role="listbox"
+                          aria-label="Color del portaalianzas"
+                        >
                           {RING_COLOR_OPTIONS.map((opt) => (
                             <button
                               key={opt.id}
                               type="button"
+                              role="option"
+                              aria-selected={ringBoxColor === opt.id}
                               className={
-                                "acompanamiento-inquiry-sheet__chip" +
+                                "acompanamiento-inquiry-sheet__jewelry-pick" +
                                 (ringBoxColor === opt.id
-                                  ? " acompanamiento-inquiry-sheet__chip--active"
+                                  ? " acompanamiento-inquiry-sheet__jewelry-pick--active"
                                   : "")
                               }
-                              aria-pressed={ringBoxColor === opt.id}
                               onClick={() => {
                                 setRingBoxColor(opt.id);
                                 clearFieldError("ringColor");
                               }}
                             >
-                              {opt.label}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={opt.image}
+                                alt=""
+                                className="acompanamiento-inquiry-sheet__jewelry-pick-img"
+                              />
+                              <span className="acompanamiento-inquiry-sheet__jewelry-pick-name">
+                                {opt.label}
+                              </span>
                             </button>
                           ))}
                         </div>
