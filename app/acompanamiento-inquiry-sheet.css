@@ -1325,7 +1325,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   display: block;
-  background: rgba(255, 255, 255, 0.06);
+  background: #fff;
 }
 
 .acompanamiento-inquiry-sheet__jewelry-pick-img--empty {
