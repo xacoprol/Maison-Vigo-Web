@@ -211,31 +211,43 @@ export function AcompanamientoInquiryJewelry({
                   </button>
                 </div>
                 {product.variants.length > 0 ? (
-                  <label className="acompanamiento-inquiry-sheet__field">
-                    <span>Variante</span>
-                    <select
-                      value={item.variantKey ?? ""}
-                      onChange={(e) => {
-                        const key = e.target.value;
-                        const v = product.variants.find((x) => variantKey(x.optionValues) === key);
-                        if (!v) return;
-                        updateItem(index, {
-                          variantKey: key,
-                          optionLabel: optionLabel(v.optionValues),
-                          unitPriceCents: null,
-                        });
-                      }}
+                  <div className="acompanamiento-inquiry-sheet__field">
+                    <span>Opciones</span>
+                    <div
+                      className="acompanamiento-inquiry-sheet__jewelry-variants"
+                      role="listbox"
+                      aria-label="Opciones de la joya"
                     >
                       {product.variants.map((v) => {
                         const key = variantKey(v.optionValues);
+                        const label = optionLabel(v.optionValues) || "Opción";
+                        const selected = item.variantKey === key;
                         return (
-                          <option key={key} value={key}>
-                            {optionLabel(v.optionValues)}
-                          </option>
+                          <button
+                            key={v.id || key}
+                            type="button"
+                            role="option"
+                            aria-selected={selected}
+                            className={
+                              "acompanamiento-inquiry-sheet__jewelry-variant" +
+                              (selected
+                                ? " acompanamiento-inquiry-sheet__jewelry-variant--active"
+                                : "")
+                            }
+                            onClick={() =>
+                              updateItem(index, {
+                                variantKey: key,
+                                optionLabel: optionLabel(v.optionValues),
+                                unitPriceCents: null,
+                              })
+                            }
+                          >
+                            {label}
+                          </button>
                         );
                       })}
-                    </select>
-                  </label>
+                    </div>
+                  </div>
                 ) : null}
                 {pers?.enabled
                   ? (pers.textFields ?? []).map((field, fi) => (
