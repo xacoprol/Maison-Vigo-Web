@@ -14,6 +14,7 @@ import { ServicioAcompanamientoHow } from "./servicio-acompanamiento-how";
 import { ServicioBodaVideos } from "./servicio-boda-videos";
 import { ServicioPageClient } from "./servicio-page-client";
 import { ServicioGroomingFaq } from "./servicio-grooming-faq";
+import { ServicioFaqJsonLd } from "./servicio-faq-json-ld";
 import { ServicioScrollCarousel } from "./servicio-scroll-carousel";
 import { ServicioServiciosSection } from "./servicio-servicios-section";
 import "./servicio.css";
@@ -69,7 +70,9 @@ export default async function ServicioPage({
   if (!servicio) notFound();
 
   return (
-    <ServicioPageClient>
+    <>
+      <ServicioFaqJsonLd slug={servicio.slug} />
+      <ServicioPageClient>
     <main className="servicio">
       <ServicioEffects />
       <section
@@ -175,6 +178,7 @@ export default async function ServicioPage({
       {servicio.slug === "grooming" ? <ServicioGroomingFaq /> : null}
     </main>
     <ServicioBackNav currentTitle={servicio.title} />
-    </ServicioPageClient>
+      </ServicioPageClient>
+    </>
   );
 }

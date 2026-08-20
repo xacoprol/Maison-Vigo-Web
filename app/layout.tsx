@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 
+import { SeoJsonLd } from "@/app/seo-json-ld";
 import { rootMetadata } from "@/lib/seo-metadata";
 
 import "./espacio-horizontal-section.scss";
@@ -57,6 +58,7 @@ export default function RootLayout({
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
+        <SeoJsonLd />
         {children}
       </body>
     </html>
