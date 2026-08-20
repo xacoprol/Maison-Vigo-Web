@@ -15,6 +15,7 @@ export function SeoJsonLd() {
     image: `${siteUrl}/grooming.webp`,
     url: siteUrl,
     telephone: siteConfig.phones.landline,
+    priceRange: siteConfig.priceRange,
     address: {
       "@type": "PostalAddress",
       streetAddress: legalCompany.address,
