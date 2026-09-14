@@ -173,6 +173,9 @@ html.mv-scroll-locked::-webkit-scrollbar {
 }
 html.mv-scroll-locked body {
   overflow: hidden;
+  /* Evita flash crema/blanco con body position:fixed al abrir sheets. */
+  background-color: var(--black) !important;
+  color: var(--cream);
 }
 
 body.menu-open,

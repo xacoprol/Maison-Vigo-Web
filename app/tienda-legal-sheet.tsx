@@ -41,19 +41,17 @@ export function TiendaLegalSheet({ doc, open, onClose }: Props) {
     setPortalReady(true);
   }, []);
 
+  const docTitle = doc?.title ?? null;
+  const docMarkdown = doc?.markdown ?? null;
+
   useEffect(() => {
-    if (open && doc) {
-      setActiveDoc(doc);
+    if (open && docTitle != null && docMarkdown != null) {
+      setActiveDoc({ title: docTitle, markdown: docMarkdown });
       setMounted(true);
       setVisible(false);
-      let frame2 = 0;
-      const frame1 = window.requestAnimationFrame(() => {
-        frame2 = window.requestAnimationFrame(() => setVisible(true));
-      });
-      return () => {
-        window.cancelAnimationFrame(frame1);
-        if (frame2) window.cancelAnimationFrame(frame2);
-      };
+      /* Timeout estable: doble rAF se cancela si RSC reenvía el mismo doc. */
+      const showTimer = window.setTimeout(() => setVisible(true), 24);
+      return () => window.clearTimeout(showTimer);
     }
 
     setVisible(false);
@@ -62,7 +60,7 @@ export function TiendaLegalSheet({ doc, open, onClose }: Props) {
       setActiveDoc(null);
     }, EXIT_MS);
     return () => window.clearTimeout(timer);
-  }, [open, doc]);
+  }, [open, docTitle, docMarkdown]);
 
   useEffect(() => {
     if (!mounted) return;

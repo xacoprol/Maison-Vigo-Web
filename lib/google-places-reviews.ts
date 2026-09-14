@@ -1,5 +1,3 @@
-import { siteUrl } from "@/lib/site-config";
-
 export type GooglePlaceReview = {
   authorName: string;
   authorUri: string | null;
@@ -51,36 +49,39 @@ function truncateReviewText(text: string, max = 280): string {
 
 /**
  * Reseñas públicas vía Places API (New). Máximo 5 por diseño de Google.
- * La key debe vivir solo en servidor. Si la key tiene restricción HTTP referrer,
- * enviamos el origen del sitio (comportamiento habitual con keys de Maps web).
+ * La key debe vivir solo en servidor. Preferir restricción por IP (server key).
+ * Solo envía `Referer` si `GOOGLE_PLACES_HTTP_REFERER` está definido: forzar
+ * maisonvigo.es con una key que lo tiene bloqueado provoca 403.
  */
 export async function getGooglePlaceReviews(): Promise<GooglePlaceReviewsPayload | null> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
   const placeId = process.env.GOOGLE_PLACE_ID?.trim();
   if (!apiKey || !placeId) return null;
 
-  const referer =
-    process.env.GOOGLE_PLACES_HTTP_REFERER?.trim() || `${siteUrl}/`;
+  const referer = process.env.GOOGLE_PLACES_HTTP_REFERER?.trim();
 
   try {
+    const headers: Record<string, string> = {
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask":
+        "id,displayName,rating,userRatingCount,reviews,googleMapsUri",
+    };
+    if (referer) headers.Referer = referer;
+
     const res = await fetch(
       `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=es`,
       {
-        headers: {
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask":
-            "id,displayName,rating,userRatingCount,reviews,googleMapsUri",
-          Referer: referer,
-        },
+        headers,
         next: { revalidate: REVALIDATE_SECONDS },
       },
     );
 
     if (!res.ok) {
-      console.error(
+      // console.warn: Next.js DevTools convierte console.error en badge de Issues.
+      console.warn(
         "[google-places] Place Details failed:",
         res.status,
-        await res.text().catch(() => ""),
+        (await res.text().catch(() => "")).slice(0, 240),
       );
       return null;
     }
@@ -127,7 +128,7 @@ export async function getGooglePlaceReviews(): Promise<GooglePlaceReviewsPayload
       reviews,
     };
   } catch (error) {
-    console.error("[google-places] unexpected error:", error);
+    console.warn("[google-places] unexpected error:", error);
     return null;
   }
 }
