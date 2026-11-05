@@ -1559,11 +1559,6 @@ body.reserva-open .acompanamiento-vigo-bodas-dock {
 }
 
 
-/* «Aún no tenemos fecha» bajo el calendario. */
-.acompanamiento-inquiry-sheet__check--nodate {
-  margin: -2px 0 6px;
-}
-
 /* Selector rápido de mes/año en el calendario. */
 .acompanamiento-date__month--pick {
   display: inline-flex;

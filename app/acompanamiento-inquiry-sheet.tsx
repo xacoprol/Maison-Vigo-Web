@@ -463,8 +463,6 @@ export function AcompanamientoInquirySheet() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [eventDates, setEventDates] = useState<string[]>([]);
-  /** La pareja aún no tiene fecha cerrada (habitual en ferias). */
-  const [noDateYet, setNoDateYet] = useState(false);
   const [venue, setVenue] = useState("");
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
@@ -500,7 +498,6 @@ export function AcompanamientoInquirySheet() {
     setPhone("");
     setEmail("");
     setEventDates([]);
-    setNoDateYet(false);
     setVenue("");
     setDogs([emptyDogDraft()]);
     setEventType("boda");
@@ -824,11 +821,8 @@ export function AcompanamientoInquirySheet() {
 
       if (checkEvent) {
         if (!eventType) nextErrors.eventType = "Indica el tipo de evento";
-        if (noDateYet) {
-          /* Sin fecha: no se valida el calendario. */
-        } else if (!eventDates.length) {
-          nextErrors.dates =
-            "Indica una fecha o marca «Aún no tenemos fecha»";
+        if (!eventDates.length) {
+          nextErrors.dates = "Indica al menos una fecha del evento";
         } else {
           const today = new Date();
           const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -879,7 +873,6 @@ export function AcompanamientoInquirySheet() {
       email,
       eventType,
       eventDates,
-      noDateYet,
       venue,
       dogs,
       ringBox,
@@ -946,11 +939,8 @@ export function AcompanamientoInquirySheet() {
     const tel = phone.trim();
     const mail = email.trim();
     const place = venue.trim() || "Sin decidir";
-    const datesOut = noDateYet ? [] : [...eventDates].sort();
-    const messageOut =
-      [noDateYet ? "Aún sin fecha del evento." : "", message.trim()]
-        .filter(Boolean)
-        .join(" ") || null;
+    const datesOut = [...eventDates].sort();
+    const messageOut = message.trim() || null;
     const dogsPayload: InquiryDogSummary[] = dogs.map((dog) => {
       const ageRaw = dog.ageYears.trim().replace(",", ".");
       const ageNum = ageRaw === "" ? null : Number(ageRaw);
@@ -1420,30 +1410,15 @@ export function AcompanamientoInquirySheet() {
                       {fieldErrors.eventType}
                     </p>
                   ) : null}
-                  {noDateYet ? null : (
-                    <AcompanamientoDateField
-                      id={`${titleId}-date`}
-                      value={eventDates}
-                      onChange={(next) => {
-                        setEventDates(next);
-                        clearFieldError("dates");
-                      }}
-                      error={fieldErrors.dates ?? null}
-                    />
-                  )}
-                  <label className="acompanamiento-inquiry-sheet__check acompanamiento-inquiry-sheet__check--nodate">
-                    <input
-                      type="checkbox"
-                      checked={noDateYet}
-                      onChange={(e) => {
-                        setNoDateYet(e.target.checked);
-                        clearFieldError("dates");
-                      }}
-                    />
-                    <span className="acompanamiento-inquiry-sheet__check-text">
-                      Aún no tenemos fecha
-                    </span>
-                  </label>
+                  <AcompanamientoDateField
+                    id={`${titleId}-date`}
+                    value={eventDates}
+                    onChange={(next) => {
+                      setEventDates(next);
+                      clearFieldError("dates");
+                    }}
+                    error={fieldErrors.dates ?? null}
+                  />
                   <InquiryFloatField
                     id={`${titleId}-venue`}
                     label="Lugar / municipio (opcional)"
