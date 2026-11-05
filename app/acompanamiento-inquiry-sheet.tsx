@@ -101,12 +101,31 @@ function isVigoBodasQrUrl(url: URL): boolean {
   return url.searchParams.get("utm_source") === "vigo_bodas";
 }
 
+const VIGO_BODAS_SESSION_KEY = "mv_vigo_bodas_qr";
+
+function markVigoBodasSession() {
+  try {
+    sessionStorage.setItem(VIGO_BODAS_SESSION_KEY, "1");
+  } catch {
+    /* private mode / blocked storage */
+  }
+}
+
+function hasVigoBodasSession(): boolean {
+  try {
+    return sessionStorage.getItem(VIGO_BODAS_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 function readLeadSourceFromUrl(): string | null {
   if (typeof window === "undefined") return null;
   const url = new URL(window.location.href);
   const origen = url.searchParams.get("origen")?.trim();
   if (origen) return origen;
-  return isVigoBodasQrUrl(url) ? "vigo-bodas" : null;
+  if (isVigoBodasQrUrl(url)) return "vigo-bodas";
+  return hasVigoBodasSession() ? "vigo-bodas" : null;
 }
 
 function shouldAutoOpenFromUrl(): boolean {
@@ -461,6 +480,10 @@ export function AcompanamientoInquirySheet() {
   const [leadSource, setLeadSource] = useState<string | null>(null);
   /** QR del tótem de la feria Vigo Bodas: saludo propio en el sheet. */
   const isVigoBodas = leadSource === "vigo-bodas";
+  /** Tras cerrar el sheet al menos una vez en esta sesión QR. */
+  const [vigoBodasDismissed, setVigoBodasDismissed] = useState(false);
+  /** Burbuja flotante tras cerrar el modal (solo sesión Vigo Bodas). */
+  const showVigoBodasBubble = isVigoBodas && vigoBodasDismissed && !mounted;
   /** Origen leído del deep-link antes de limpiar la URL (para analítica). */
   const autoLeadSourceRef = useRef<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -496,7 +519,17 @@ export function AcompanamientoInquirySheet() {
 
   useEffect(() => {
     setPortalReady(true);
+    const origen = readLeadSourceFromUrl();
+    if (origen) {
+      autoLeadSourceRef.current = origen;
+      setLeadSource((prev) => prev ?? origen);
+      if (origen === "vigo-bodas") markVigoBodasSession();
+    }
   }, []);
+
+  useEffect(() => {
+    if (isVigoBodas) markVigoBodasSession();
+  }, [isVigoBodas]);
 
   useEffect(() => {
     if (!open && !mounted) return;
@@ -580,6 +613,9 @@ export function AcompanamientoInquirySheet() {
   }, []);
 
   const closeModal = useCallback(() => {
+    if (leadSource === "vigo-bodas" || autoLeadSourceRef.current === "vigo-bodas") {
+      setVigoBodasDismissed(true);
+    }
     setVisible(false);
     if (closeTimer.current != null) window.clearTimeout(closeTimer.current);
     closeTimer.current = window.setTimeout(() => {
@@ -587,7 +623,7 @@ export function AcompanamientoInquirySheet() {
       setMounted(false);
       closeTimer.current = null;
     }, 520);
-  }, []);
+  }, [leadSource]);
   closeModalRef.current = closeModal;
 
   useEffect(() => {
@@ -1034,9 +1070,36 @@ export function AcompanamientoInquirySheet() {
 
   const summaryItems = summary ? summaryRows(summary) : [];
 
-  if (!portalReady || !mounted) return null;
+  const reopenFromBubble = () => {
+    trackEvent("acompanamiento_vigo_bodas_bubble_click", {
+      lead_source: "vigo-bodas",
+    });
+    document.body.dispatchEvent(new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT));
+  };
+
+  if (!portalReady || (!mounted && !showVigoBodasBubble)) return null;
 
   return createPortal(
+    <>
+      {showVigoBodasBubble ? (
+        <div className="acompanamiento-vigo-bodas-dock">
+          <button
+            type="button"
+            className="acompanamiento-vigo-bodas-bubble"
+            onClick={reopenFromBubble}
+            aria-label="Abrir solicitud Vigo Bodas"
+          >
+            <span className="acompanamiento-vigo-bodas-bubble__dot" aria-hidden={true} />
+            <span className="acompanamiento-vigo-bodas-bubble__label">
+              Vigo Bodas
+            </span>
+            <span className="acompanamiento-vigo-bodas-bubble__cta">
+              Pide tu propuesta
+            </span>
+          </button>
+        </div>
+      ) : null}
+      {mounted ? (
     <div
       className={
         "acompanamiento-inquiry-sheet" +
@@ -1876,7 +1939,9 @@ export function AcompanamientoInquirySheet() {
           )}
         </div>
       </div>
-    </div>,
+    </div>
+      ) : null}
+    </>,
     document.body,
   );
 }
