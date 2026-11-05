@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { trackEvent } from "@/lib/analytics";
 import { ACOMPANAMIENTO_INQUIRY_OPEN_EVENT } from "@/lib/care-assist";
 import { careApiBaseUrl } from "@/lib/web-store/utils";
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
@@ -95,16 +96,24 @@ function inquiryApiUrl(): string {
   return base ? `${base}/public/acompanamientos/inquiry` : "";
 }
 
+/** QR del tótem de la feria Vigo Bodas (enlace bit.ly fijo, solo con UTM). */
+function isVigoBodasQrUrl(url: URL): boolean {
+  return url.searchParams.get("utm_source") === "vigo_bodas";
+}
+
 function readLeadSourceFromUrl(): string | null {
   if (typeof window === "undefined") return null;
-  const origen = new URL(window.location.href).searchParams.get("origen");
-  return origen?.trim() || null;
+  const url = new URL(window.location.href);
+  const origen = url.searchParams.get("origen")?.trim();
+  if (origen) return origen;
+  return isVigoBodasQrUrl(url) ? "vigo-bodas" : null;
 }
 
 function shouldAutoOpenFromUrl(): boolean {
   if (typeof window === "undefined") return false;
   const url = new URL(window.location.href);
   if (!url.pathname.includes("/servicios/acompanamiento")) return false;
+  if (isVigoBodasQrUrl(url)) return true;
   const reserva = url.searchParams.get("reserva");
   return reserva === "1" || reserva === "true" || reserva === "si";
 }
@@ -118,7 +127,13 @@ function clearReservaQuery() {
   url.searchParams.delete("reserva");
   /* Conservamos origen en memoria vía state; lo quitamos de la URL limpia. */
   url.searchParams.delete("origen");
-  window.history.replaceState(window.history.state, "", url.pathname + url.hash);
+  /* Conservamos el resto de parámetros (p. ej. utm_*) para que Analytics
+     atribuya la visita al QR. */
+  window.history.replaceState(
+    window.history.state,
+    "",
+    url.pathname + url.search + url.hash,
+  );
 }
 
 const INQUIRY_SENT_COOKIE = "mv_acomp_inquiry_sent";
@@ -444,6 +459,10 @@ export function AcompanamientoInquirySheet() {
   const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
   const [leadSource, setLeadSource] = useState<string | null>(null);
+  /** QR del tótem de la feria Vigo Bodas: saludo propio en el sheet. */
+  const isVigoBodas = leadSource === "vigo-bodas";
+  /** Origen leído del deep-link antes de limpiar la URL (para analítica). */
+  const autoLeadSourceRef = useRef<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const grabberRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | null>(null);
@@ -525,6 +544,11 @@ export function AcompanamientoInquirySheet() {
       setAlreadySent(sent);
       setDone(sent);
       setLeadSource((prev) => prev ?? readLeadSourceFromUrl());
+      if (!sent) {
+        trackEvent("acompanamiento_form_open", {
+          lead_source: readLeadSourceFromUrl() ?? autoLeadSourceRef.current,
+        });
+      }
       setOpen(true);
     };
     document.body.addEventListener(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT, onOpen);
@@ -542,7 +566,10 @@ export function AcompanamientoInquirySheet() {
     if (!shouldAutoOpenFromUrl()) return;
     autoOpenedRef.current = true;
     const origen = readLeadSourceFromUrl();
-    if (origen) setLeadSource(origen);
+    if (origen) {
+      autoLeadSourceRef.current = origen;
+      setLeadSource(origen);
+    }
     clearReservaQuery();
     const id = window.setTimeout(() => {
       document.body.dispatchEvent(
@@ -973,6 +1000,11 @@ export function AcompanamientoInquirySheet() {
         petCareNotes: petCareNotes.trim() || null,
         message: message.trim() || null,
       };
+      trackEvent("generate_lead", {
+        form_name: "acompanamiento",
+        lead_source: leadSource,
+        event_type: eventType,
+      });
       markInquirySentCookie();
       saveInquirySummary(nextSummary);
       setSummary(nextSummary);
@@ -1108,15 +1140,16 @@ export function AcompanamientoInquirySheet() {
           ) : (
             <>
               <p className="acompanamiento-inquiry-sheet__eyebrow">
-                Acompañamiento
+                {isVigoBodas ? "Vigo Bodas" : "Acompañamiento"}
               </p>
               <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
                 Pide tu propuesta
               </h2>
               {step === 0 ? (
                 <p className="acompanamiento-inquiry-sheet__lead">
-                  Cuéntanos el evento y a vuestro perro; os preparamos una
-                  propuesta a medida, sin compromiso.
+                  {isVigoBodas
+                    ? "¡Bienvenidos desde Vigo Bodas! Cuéntanos vuestra fecha y a vuestro perro; os preparamos una propuesta a medida, sin compromiso."
+                    : "Cuéntanos el evento y a vuestro perro; os preparamos una propuesta a medida, sin compromiso."}
                 </p>
               ) : null}
               <form
