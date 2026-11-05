@@ -573,7 +573,12 @@ export function AcompanamientoInquirySheet() {
         window.clearTimeout(closeTimer.current);
         closeTimer.current = null;
       }
-      resetFormFields();
+      /* Se conserva el borrador (campos y paso) si se cerró sin querer;
+         solo se limpian errores y estado de envío. El formulario se vacía
+         tras enviar o con «otra solicitud». */
+      setFieldErrors({});
+      setError(null);
+      setPending(false);
       const sent = readInquirySentCookie();
       const stored = sent ? readInquirySummary() : null;
       setSummary(stored);
@@ -594,7 +599,7 @@ export function AcompanamientoInquirySheet() {
         onOpen,
       );
     };
-  }, [resetFormFields]);
+  }, []);
 
   /** QR / deep-link: ?reserva=1&origen=vigo-bodas */
   useEffect(() => {
