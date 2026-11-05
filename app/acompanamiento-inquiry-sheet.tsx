@@ -463,6 +463,8 @@ export function AcompanamientoInquirySheet() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [eventDates, setEventDates] = useState<string[]>([]);
+  /** La pareja aún no tiene fecha cerrada (habitual en ferias). */
+  const [noDateYet, setNoDateYet] = useState(false);
   const [venue, setVenue] = useState("");
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
@@ -498,6 +500,7 @@ export function AcompanamientoInquirySheet() {
     setPhone("");
     setEmail("");
     setEventDates([]);
+    setNoDateYet(false);
     setVenue("");
     setDogs([emptyDogDraft()]);
     setEventType("boda");
@@ -805,7 +808,6 @@ export function AcompanamientoInquirySheet() {
 
       if (checkContact) {
         if (!nameA) nextErrors.nameA = "Indica este nombre";
-        if (!nameB) nextErrors.nameB = "Indica este nombre";
         if (!tel) nextErrors.phone = "Indica tu teléfono";
         else if (tel.replace(/\D/g, "").length < 7) {
           nextErrors.phone = "Indica un teléfono válido";
@@ -817,8 +819,11 @@ export function AcompanamientoInquirySheet() {
 
       if (checkEvent) {
         if (!eventType) nextErrors.eventType = "Indica el tipo de evento";
-        if (!eventDates.length) {
-          nextErrors.dates = "Indica al menos una fecha del evento";
+        if (noDateYet) {
+          /* Sin fecha: no se valida el calendario. */
+        } else if (!eventDates.length) {
+          nextErrors.dates =
+            "Indica una fecha o marca «Aún no tenemos fecha»";
         } else {
           const today = new Date();
           const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -827,7 +832,6 @@ export function AcompanamientoInquirySheet() {
               "La fecha del evento no puede ser anterior a hoy";
           }
         }
-        if (!place) nextErrors.venue = "Indica el lugar";
       }
 
       if (checkDog) {
@@ -850,9 +854,6 @@ export function AcompanamientoInquirySheet() {
           ) {
             nextErrors[`dog${idx}-age`] = `Revisa la edad ${label}`;
           }
-          if (!dog.sex) {
-            nextErrors[`dog${idx}-sex`] = `Indica el sexo ${label}`;
-          }
         });
       }
 
@@ -873,6 +874,7 @@ export function AcompanamientoInquirySheet() {
       email,
       eventType,
       eventDates,
+      noDateYet,
       venue,
       dogs,
       ringBox,
@@ -938,7 +940,12 @@ export function AcompanamientoInquirySheet() {
     const name = formatCoupleName(partnerNameA, partnerNameB);
     const tel = phone.trim();
     const mail = email.trim();
-    const place = venue.trim();
+    const place = venue.trim() || "Sin decidir";
+    const datesOut = noDateYet ? [] : [...eventDates].sort();
+    const messageOut =
+      [noDateYet ? "Aún sin fecha del evento." : "", message.trim()]
+        .filter(Boolean)
+        .join(" ") || null;
     const dogsPayload: InquiryDogSummary[] = dogs.map((dog) => {
       const ageRaw = dog.ageYears.trim().replace(",", ".");
       const ageNum = ageRaw === "" ? null : Number(ageRaw);
@@ -966,7 +973,7 @@ export function AcompanamientoInquirySheet() {
           contactName: name,
           phone: tel,
           email: mail || null,
-          eventDates: [...eventDates].sort(),
+          eventDates: datesOut,
           venue: place,
           dogs: dogsPayload.map((d) => ({
             name: d.name,
@@ -998,7 +1005,7 @@ export function AcompanamientoInquirySheet() {
           })),
           hoursEstimate: hoursEstimate.trim() || null,
           petCareNotes: petCareNotes.trim() || null,
-          message: message.trim() || null,
+          message: messageOut,
           leadSource: leadSource || null,
         }),
       });
@@ -1018,7 +1025,7 @@ export function AcompanamientoInquirySheet() {
         phone: tel,
         email: mail || null,
         eventType,
-        eventDates: [...eventDates].sort(),
+        eventDates: datesOut,
         venue: place,
         dogs: dogsPayload,
         needsTransfer,
@@ -1034,7 +1041,7 @@ export function AcompanamientoInquirySheet() {
         jewelryItems,
         hoursEstimate: hoursEstimate.trim() || null,
         petCareNotes: petCareNotes.trim() || null,
-        message: message.trim() || null,
+        message: messageOut,
       };
       trackEvent("generate_lead", {
         form_name: "acompanamiento",
@@ -1262,7 +1269,7 @@ export function AcompanamientoInquirySheet() {
                   <div className="acompanamiento-inquiry-sheet__row acompanamiento-inquiry-sheet__row--couple">
                     <InquiryFloatField
                       id={`${titleId}-nameA`}
-                      label="Nombre"
+                      label="Tu nombre"
                       error={fieldErrors.nameA}
                     >
                       <input
@@ -1273,7 +1280,7 @@ export function AcompanamientoInquirySheet() {
                           clearFieldError("nameA");
                         }}
                         autoComplete="off"
-                        placeholder="Nombre"
+                        placeholder="Tu nombre"
                         aria-invalid={fieldErrors.nameA ? true : undefined}
                         aria-describedby={
                           fieldErrors.nameA
@@ -1290,7 +1297,7 @@ export function AcompanamientoInquirySheet() {
                     </span>
                     <InquiryFloatField
                       id={`${titleId}-nameB`}
-                      label="Nombre"
+                      label="Tu pareja (opcional)"
                       error={fieldErrors.nameB}
                     >
                       <input
@@ -1301,7 +1308,7 @@ export function AcompanamientoInquirySheet() {
                           clearFieldError("nameB");
                         }}
                         autoComplete="off"
-                        placeholder="Nombre"
+                        placeholder="Tu pareja (opcional)"
                         aria-invalid={fieldErrors.nameB ? true : undefined}
                         aria-describedby={
                           fieldErrors.nameB
@@ -1408,18 +1415,33 @@ export function AcompanamientoInquirySheet() {
                       {fieldErrors.eventType}
                     </p>
                   ) : null}
-                  <AcompanamientoDateField
-                    id={`${titleId}-date`}
-                    value={eventDates}
-                    onChange={(next) => {
-                      setEventDates(next);
-                      clearFieldError("dates");
-                    }}
-                    error={fieldErrors.dates ?? null}
-                  />
+                  {noDateYet ? null : (
+                    <AcompanamientoDateField
+                      id={`${titleId}-date`}
+                      value={eventDates}
+                      onChange={(next) => {
+                        setEventDates(next);
+                        clearFieldError("dates");
+                      }}
+                      error={fieldErrors.dates ?? null}
+                    />
+                  )}
+                  <label className="acompanamiento-inquiry-sheet__check acompanamiento-inquiry-sheet__check--nodate">
+                    <input
+                      type="checkbox"
+                      checked={noDateYet}
+                      onChange={(e) => {
+                        setNoDateYet(e.target.checked);
+                        clearFieldError("dates");
+                      }}
+                    />
+                    <span className="acompanamiento-inquiry-sheet__check-text">
+                      Aún no tenemos fecha
+                    </span>
+                  </label>
                   <InquiryFloatField
                     id={`${titleId}-venue`}
-                    label="Lugar / municipio"
+                    label="Lugar / municipio (opcional)"
                     error={fieldErrors.venue}
                   >
                     <input
@@ -1429,7 +1451,7 @@ export function AcompanamientoInquirySheet() {
                         setVenue(e.target.value);
                         clearFieldError("venue");
                       }}
-                      placeholder="Lugar / municipio"
+                      placeholder="Lugar / municipio (opcional)"
                       aria-invalid={fieldErrors.venue ? true : undefined}
                       aria-describedby={
                         fieldErrors.venue
@@ -1566,7 +1588,7 @@ export function AcompanamientoInquirySheet() {
                             }
                           >
                             <p className="acompanamiento-inquiry-sheet__choice-label">
-                              Sexo
+                              Sexo (opcional)
                             </p>
                             <div className="acompanamiento-inquiry-sheet__chips">
                               {DOG_SEX_OPTIONS.map((opt) => (

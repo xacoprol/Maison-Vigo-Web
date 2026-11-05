@@ -1180,8 +1180,29 @@
     background: var(--gold-lt, #d4af7a);
   }
 
+  /* En móvil también se muestra el aspa: la barra de arrastre sola no se
+     descubre bien (QR de ferias). */
   .acompanamiento-inquiry-sheet__close {
-    display: none;
+    top: 8px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Objetivos táctiles cómodos en los extras. */
+  .acompanamiento-inquiry-sheet__check {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .acompanamiento-inquiry-sheet__check input {
+    width: 22px;
+    height: 22px;
+  }
+
+  .acompanamiento-inquiry-sheet__tip {
+    width: 24px;
+    height: 24px;
   }
 
   .acompanamiento-inquiry-sheet__body {
@@ -1535,4 +1556,50 @@ body.reserva-open .acompanamiento-vigo-bodas-dock {
   .acompanamiento-vigo-bodas-bubble__cta {
     display: none;
   }
+}
+
+
+/* «Aún no tenemos fecha» bajo el calendario. */
+.acompanamiento-inquiry-sheet__check--nodate {
+  margin: -2px 0 6px;
+}
+
+/* Selector rápido de mes/año en el calendario. */
+.acompanamiento-date__month--pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.acompanamiento-date__select {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+  margin: 0;
+  padding: 6px 18px 6px 8px;
+  border: 1px solid rgba(187, 149, 93, 0.35);
+  border-radius: 999px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--gold-lt, #d4af7a) 50%)
+      calc(100% - 10px) 52% / 4px 4px no-repeat,
+    linear-gradient(135deg, var(--gold-lt, #d4af7a) 50%, transparent 50%)
+      calc(100% - 6px) 52% / 4px 4px no-repeat,
+    transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.acompanamiento-date__select:focus-visible {
+  outline: 1px solid var(--gold-lt, #d4af7a);
+  outline-offset: 2px;
+}
+
+/* Con el formulario abierto, el botón «Desplázate hacia abajo» del hero
+   se transparentaba sobre la hoja en móvil. */
+body:has(.acompanamiento-inquiry-sheet--visible) .servicio__scroll-cta {
+  visibility: hidden;
 }

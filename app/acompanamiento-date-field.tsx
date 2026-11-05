@@ -190,6 +190,18 @@ export function AcompanamientoDateField({
     setViewM0(d.getMonth());
   };
 
+  /** Salto directo a mes/año (las bodas suelen ser a muchos meses vista). */
+  const jumpTo = (y: number, m0: number) => {
+    let month = m0;
+    if (y === minParsed.y && month < minParsed.m0) month = minParsed.m0;
+    if (y === maxParsed.y && month > maxParsed.m0) month = maxParsed.m0;
+    setViewY(y);
+    setViewM0(month);
+  };
+
+  const yearOptions: number[] = [];
+  for (let y = minParsed.y; y <= maxParsed.y; y++) yearOptions.push(y);
+
   const toggleDay = (key: string) => {
     if (key < min || key > max) return;
     const sorted = [...selected].sort();
@@ -257,9 +269,39 @@ export function AcompanamientoDateField({
         >
           ‹
         </button>
-        <p className="acompanamiento-date__month">
-          {MONTHS[viewM0]} {viewY}
-        </p>
+        <div className="acompanamiento-date__month acompanamiento-date__month--pick">
+          <select
+            className="acompanamiento-date__select"
+            aria-label="Mes"
+            value={viewM0}
+            onChange={(e) => jumpTo(viewY, Number(e.target.value))}
+          >
+            {MONTHS.map((label, m0) => (
+              <option
+                key={label}
+                value={m0}
+                disabled={
+                  (viewY === minParsed.y && m0 < minParsed.m0) ||
+                  (viewY === maxParsed.y && m0 > maxParsed.m0)
+                }
+              >
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="acompanamiento-date__select"
+            aria-label="Año"
+            value={viewY}
+            onChange={(e) => jumpTo(Number(e.target.value), viewM0)}
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           type="button"
           className="acompanamiento-date__nav-btn"
