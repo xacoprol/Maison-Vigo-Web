@@ -1598,3 +1598,241 @@ body.reserva-open .acompanamiento-vigo-bodas-dock {
 body:has(.acompanamiento-inquiry-sheet--visible) .servicio__scroll-cta {
   visibility: hidden;
 }
+
+/* ── Flujo conversacional (una pregunta por pantalla) ───────────────── */
+
+.acompanamiento-inquiry-sheet__progress {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding-right: 36px;
+}
+
+.acompanamiento-inquiry-sheet__progress .acompanamiento-inquiry-sheet__eyebrow {
+  margin: 0;
+}
+
+.acompanamiento-inquiry-sheet__progress-bar {
+  position: relative;
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(244, 244, 242, 0.12);
+  overflow: hidden;
+}
+
+.acompanamiento-inquiry-sheet__progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold, #bb955d), var(--gold-lt, #d4af7a));
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.acompanamiento-inquiry-sheet__step {
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  animation: acomp-inquiry-step-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes acomp-inquiry-step-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.acompanamiento-inquiry-sheet__greeting {
+  margin: 6px 0 6px;
+  font-family: var(--ff-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--gold-lt, #d4af7a);
+}
+
+.acompanamiento-inquiry-sheet__question {
+  margin-top: 4px;
+}
+
+.acompanamiento-inquiry-sheet__step .acompanamiento-inquiry-sheet__lead {
+  margin-bottom: 18px;
+}
+
+.acompanamiento-inquiry-sheet__answer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Respuestas grandes, fáciles de tocar */
+.acompanamiento-inquiry-sheet__options {
+  display: grid;
+  gap: 10px;
+}
+
+.acompanamiento-inquiry-sheet__options--inline {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.acompanamiento-inquiry-sheet__option {
+  appearance: none;
+  min-height: 54px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(187, 149, 93, 0.3);
+  background: rgba(244, 244, 242, 0.02);
+  color: rgba(244, 244, 242, 0.86);
+  font-family: var(--ff-sans);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.acompanamiento-inquiry-sheet__options--inline .acompanamiento-inquiry-sheet__option {
+  text-align: center;
+}
+
+.acompanamiento-inquiry-sheet__option:hover,
+.acompanamiento-inquiry-sheet__option:focus-visible {
+  border-color: rgba(212, 175, 122, 0.6);
+  color: var(--cream, #f4f4f2);
+  outline: none;
+}
+
+.acompanamiento-inquiry-sheet__option:active {
+  transform: scale(0.985);
+}
+
+.acompanamiento-inquiry-sheet__option.is-active {
+  border-color: var(--gold-lt, #d4af7a);
+  background: rgba(212, 175, 122, 0.14);
+  color: var(--cream, #f4f4f2);
+}
+
+.acompanamiento-inquiry-sheet__field-error--static {
+  position: static;
+  margin: 0;
+}
+
+.acompanamiento-inquiry-sheet__dog-name-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Incluido en el servicio */
+.acompanamiento-inquiry-sheet__included {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 4px 16px;
+  border: 1px solid rgba(187, 149, 93, 0.28);
+  border-radius: 16px;
+  background: rgba(187, 149, 93, 0.06);
+}
+
+.acompanamiento-inquiry-sheet__included-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(244, 244, 242, 0.08);
+}
+
+.acompanamiento-inquiry-sheet__included-item:first-child {
+  border-top: 0;
+}
+
+.acompanamiento-inquiry-sheet__included-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: rgba(212, 175, 122, 0.18);
+  color: var(--gold-lt, #d4af7a);
+}
+
+.acompanamiento-inquiry-sheet__included-check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.acompanamiento-inquiry-sheet__included-title {
+  display: block;
+  font-family: var(--ff-sans);
+  font-size: 14px;
+  color: var(--cream, #f4f4f2);
+}
+
+.acompanamiento-inquiry-sheet__included-text {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--ff-sans);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(244, 244, 242, 0.55);
+}
+
+.acompanamiento-inquiry-sheet__included-badge {
+  margin-top: 2px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 122, 0.45);
+  font-family: var(--ff-sans);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-lt, #d4af7a);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .acompanamiento-inquiry-sheet__step {
+    min-height: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acompanamiento-inquiry-sheet__step {
+    animation: none;
+  }
+  .acompanamiento-inquiry-sheet__progress-fill {
+    transition: none;
+  }
+}
+
+/* Altura estable entre preguntas y botones siempre abajo, al alcance del pulgar */
+.acompanamiento-inquiry-sheet__panel:has(.acompanamiento-inquiry-sheet__step) {
+  height: min(86svh, 760px);
+}
+
+.acompanamiento-inquiry-sheet__body:has(.acompanamiento-inquiry-sheet__step) {
+  display: flex;
+  flex-direction: column;
+}
+
+.acompanamiento-inquiry-sheet__body:has(.acompanamiento-inquiry-sheet__step)
+  > .acompanamiento-inquiry-sheet__form {
+  flex: 1 0 auto;
+}
+
+.acompanamiento-inquiry-sheet__form .acompanamiento-inquiry-sheet__step {
+  flex: 1 0 auto;
+}

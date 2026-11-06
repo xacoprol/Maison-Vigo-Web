@@ -21,11 +21,7 @@ import {
   AcompanamientoInquiryBreedField,
   titleCaseBreedLabel,
 } from "./acompanamiento-inquiry-breed-field";
-import {
-  AcompanamientoInquiryJewelry,
-  validateInquiryJewelryItems,
-  type InquiryJewelryItem,
-} from "./acompanamiento-inquiry-jewelry";
+import type { InquiryJewelryItem } from "./acompanamiento-inquiry-jewelry";
 
 import "./acompanamiento-inquiry-sheet.css";
 
@@ -44,27 +40,62 @@ const DOG_SEX_OPTIONS: { id: DogSex; label: string }[] = [
   { id: "female", label: "Hembra" },
 ];
 
-const RING_COLOR_OPTIONS: { id: RingBoxColor; label: string; image: string }[] = [
+type StepDef =
+  | { id: "names" }
+  | { id: "eventType" }
+  | { id: "dates" }
+  | { id: "venue" }
+  | { id: "dogNames" }
+  | { id: "dogBreed"; dog: number }
+  | { id: "dogTraits"; dog: number }
+  | { id: "care" }
+  | { id: "hours" }
+  | { id: "transfer" }
+  | { id: "included" }
+  | { id: "contact" };
+
+/** Flujo conversacional: una pregunta por pantalla. Los pasos de perro se repiten por cada perro. */
+function buildSteps(dogCount: number): StepDef[] {
+  const perDog: StepDef[] = [];
+  for (let i = 0; i < Math.max(1, dogCount); i++) {
+    perDog.push({ id: "dogBreed", dog: i }, { id: "dogTraits", dog: i });
+  }
+  return [
+    { id: "names" },
+    { id: "eventType" },
+    { id: "dates" },
+    { id: "venue" },
+    { id: "dogNames" },
+    ...perDog,
+    { id: "care" },
+    { id: "hours" },
+    { id: "transfer" },
+    { id: "included" },
+    { id: "contact" },
+  ];
+}
+
+function stepKeyOf(s: StepDef): string {
+  return "dog" in s ? `${s.id}-${s.dog}` : s.id;
+}
+
+const HOURS_OPTIONS = ["1–2 horas", "3–4 horas", "Todo el día", "Aún no lo sé"];
+
+/** Ya incluidos en el servicio: se muestran, no se piden. */
+const INCLUDED_ITEMS: { title: string; text: string }[] = [
   {
-    id: "white",
-    label: "Blanco",
-    image: "/assets/images/porta-anillos-blanco.webp",
+    title: "Portaalianzas",
+    text: "Lo lleva vuestro perro, grabado con vuestras iniciales, su nombre y la fecha.",
   },
   {
-    id: "brown",
-    label: "Marrón",
-    image: "/assets/images/porta-anillos-marron.webp",
+    title: "Collar y correa especial",
+    text: "En biothane, disponible en varios colores.",
+  },
+  {
+    title: "Joyas personalizadas",
+    text: "Un detalle a medida para que vaya a juego con el día.",
   },
 ];
-
-const STEPS = [
-  { key: "contacto", label: "Contacto" },
-  { key: "evento", label: "Evento" },
-  { key: "perro", label: "Mascotas" },
-  { key: "extras", label: "Extras" },
-] as const;
-
-type StepIndex = 0 | 1 | 2 | 3;
 
 const MAX_INQUIRY_DOGS = 5;
 
@@ -348,6 +379,10 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
   if (extras.length) {
     rows.push({ label: "Extras", value: extras.join(" · ") });
   }
+  rows.push({
+    label: "Incluido",
+    value: INCLUDED_ITEMS.map((i) => i.title).join(" · "),
+  });
   if (summary.needsTransfer && summary.pickupAddress) {
     rows.push({ label: "Recogida", value: summary.pickupAddress });
   }
@@ -457,7 +492,7 @@ export function AcompanamientoInquirySheet() {
   const [summary, setSummary] = useState<InquirySummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [step, setStep] = useState<StepIndex>(0);
+  const [step, setStep] = useState(0);
   const [partnerNameA, setPartnerNameA] = useState("");
   const [partnerNameB, setPartnerNameB] = useState("");
   const [phone, setPhone] = useState("");
@@ -470,10 +505,6 @@ export function AcompanamientoInquirySheet() {
   const [needsTransfer, setNeedsTransfer] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [ringBox, setRingBox] = useState(false);
-  const [ringBoxColor, setRingBoxColor] = useState<RingBoxColor | null>(null);
-  const [collarLeash, setCollarLeash] = useState(false);
-  const [jewelryItems, setJewelryItems] = useState<InquiryJewelryItem[]>([]);
   const [hoursEstimate, setHoursEstimate] = useState("");
   const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
@@ -504,10 +535,6 @@ export function AcompanamientoInquirySheet() {
     setNeedsTransfer(false);
     setPickupAddress("");
     setDeliveryAddress("");
-    setRingBox(false);
-    setRingBoxColor(null);
-    setCollarLeash(false);
-    setJewelryItems([]);
     setHoursEstimate("");
     setPetCareNotes("");
     setMessage("");
@@ -733,83 +760,105 @@ export function AcompanamientoInquirySheet() {
     });
   }, []);
 
+  const navigatedRef = useRef(false);
+  const steps = buildSteps(dogs.length);
+  const stepIndex = Math.min(step, steps.length - 1);
+  const current = steps[stepIndex]!;
+  const isLastStep = stepIndex === steps.length - 1;
+
+  const dogDisplayName = useCallback(
+    (idx: number) =>
+      dogs[idx]?.name.trim() ||
+      (dogs.length > 1 ? `el perro ${idx + 1}` : "vuestro perro"),
+    [dogs],
+  );
+
+  const allDogNames = (() => {
+    const names = dogs.map((_, i) => dogDisplayName(i));
+    if (names.length <= 1) return names[0] ?? "vuestro perro";
+    return `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
+  })();
+
+  /** lo / la / los / las según sexo indicado. */
+  const dogPronoun = (() => {
+    if (dogs.length > 1) {
+      return dogs.every((d) => d.sex === "female") ? "las" : "los";
+    }
+    return dogs[0]?.sex === "female" ? "la" : "lo";
+  })();
+
   const focusFirstError = useCallback(
     (nextErrors: Record<string, string>) => {
-      const focusOrder = [
-        "nameA",
-        "nameB",
-        "phone",
-        "email",
-        "eventType",
-        "dates",
-        "venue",
-        ...dogs.flatMap((_, i) => [
-          `dog${i}-name`,
-          `dog${i}-breed`,
-          `dog${i}-age`,
-          `dog${i}-sex`,
-        ]),
-        "ringColor",
-      ];
-      const firstKey = focusOrder.find((k) => nextErrors[k]);
-      const focusId =
-        firstKey === "eventType" ||
-        firstKey === "ringColor" ||
-        (firstKey?.endsWith("-sex") ?? false)
-          ? null
-          : firstKey === "dates"
-            ? `${titleId}-date`
-            : firstKey === "nameA" ||
-                firstKey === "nameB" ||
-                firstKey === "phone" ||
-                firstKey === "email" ||
-                firstKey === "venue"
-              ? `${titleId}-${firstKey}`
-              : firstKey
-                ? `${titleId}-${firstKey}`
-                : null;
-      window.requestAnimationFrame(() => {
-        const body = panelRef.current?.querySelector(
-          ".acompanamiento-inquiry-sheet__body",
+      const firstKey = Object.keys(nextErrors)[0];
+      if (!firstKey) return;
+      window.setTimeout(() => {
+        const el = document.getElementById(
+          firstKey === "dates" ? `${titleId}-date` : `${titleId}-${firstKey}`,
         );
-        body?.scrollTo({ top: 0, behavior: "smooth" });
-        if (focusId) {
-          document.getElementById(focusId)?.focus({ preventScroll: true });
-        } else if (firstKey === "eventType") {
-          document
-            .getElementById(`${titleId}-event-type`)
-            ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        } else if (firstKey?.endsWith("-sex")) {
-          document
-            .getElementById(`${titleId}-${firstKey}`)
-            ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        } else if (firstKey === "ringColor") {
-          document
-            .getElementById(`${titleId}-ring-color`)
-            ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        if (!el) return;
+        if (el.matches("input, textarea, button")) {
+          el.focus({ preventScroll: false });
+        } else {
+          el.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
-      });
+      }, 60);
     },
-    [dogs, titleId],
+    [titleId],
   );
 
   const collectErrors = useCallback(
-    (forStep?: StepIndex): Record<string, string> => {
-      const nameA = partnerNameA.trim();
-      const nameB = partnerNameB.trim();
-      const tel = phone.trim();
-      const mail = email.trim();
-      const place = venue.trim();
+    (only?: StepDef): Record<string, string> => {
       const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const nextErrors: Record<string, string> = {};
+      const is = (id: StepDef["id"]) => only == null || only.id === id;
+      const dogIndexes =
+        only && "dog" in only ? [only.dog] : dogs.map((_, i) => i);
 
-      const checkContact = forStep == null || forStep === 0;
-      const checkEvent = forStep == null || forStep === 1;
-      const checkDog = forStep == null || forStep === 2;
-      const checkExtras = forStep == null || forStep === 3;
-
-      if (checkContact) {
-        if (!nameA) nextErrors.nameA = "Indica este nombre";
+      if (is("names") && !partnerNameA.trim()) {
+        nextErrors.nameA = "Dinos al menos tu nombre";
+      }
+      if (is("eventType") && !eventType) {
+        nextErrors.eventType = "Elige una opción";
+      }
+      if (is("dates")) {
+        if (!eventDates.length) {
+          nextErrors.dates = "Elige al menos una fecha";
+        } else {
+          const today = new Date();
+          const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+          if (eventDates.some((d) => d < todayKey)) {
+            nextErrors.dates = "La fecha no puede ser anterior a hoy";
+          }
+        }
+      }
+      if (is("dogNames")) {
+        dogs.forEach((dog, idx) => {
+          if (!dog.name.trim()) {
+            nextErrors[`dog${idx}-name`] =
+              dogs.length > 1 ? `¿Cómo se llama el perro ${idx + 1}?` : "¿Cómo se llama?";
+          }
+        });
+      }
+      if (is("dogBreed")) {
+        dogIndexes.forEach((idx) => {
+          const dog = dogs[idx];
+          if (!dog) return;
+          if (!dog.breed.trim()) {
+            nextErrors[`dog${idx}-breed`] = "Indica la raza o el tamaño";
+          }
+          const ageRaw = dog.ageYears.trim().replace(",", ".");
+          const ageNum = ageRaw === "" ? null : Number(ageRaw);
+          if (
+            ageNum != null &&
+            (!Number.isFinite(ageNum) || ageNum < 0 || ageNum > 30)
+          ) {
+            nextErrors[`dog${idx}-age`] = "Revisa la edad";
+          }
+        });
+      }
+      if (is("contact")) {
+        const tel = phone.trim();
+        const mail = email.trim();
         if (!tel) nextErrors.phone = "Indica tu teléfono";
         else if (tel.replace(/\D/g, "").length < 7) {
           nextErrors.phone = "Indica un teléfono válido";
@@ -818,98 +867,75 @@ export function AcompanamientoInquirySheet() {
           nextErrors.email = "Revisa el formato del email";
         }
       }
-
-      if (checkEvent) {
-        if (!eventType) nextErrors.eventType = "Indica el tipo de evento";
-        if (!eventDates.length) {
-          nextErrors.dates = "Indica al menos una fecha del evento";
-        } else {
-          const today = new Date();
-          const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-          if (eventDates.some((d) => d < todayKey)) {
-            nextErrors.dates =
-              "La fecha del evento no puede ser anterior a hoy";
-          }
-        }
-      }
-
-      if (checkDog) {
-        if (!dogs.length) {
-          nextErrors["dog0-name"] = "Indica al menos un perro";
-        }
-        dogs.forEach((dog, idx) => {
-          const label = dogs.length > 1 ? `del perro ${idx + 1}` : "del perro";
-          if (!dog.name.trim()) {
-            nextErrors[`dog${idx}-name`] = `Indica el nombre ${label}`;
-          }
-          if (!dog.breed.trim()) {
-            nextErrors[`dog${idx}-breed`] = `Indica la raza o el tamaño ${label}`;
-          }
-          const ageRaw = dog.ageYears.trim().replace(",", ".");
-          const ageNum = ageRaw === "" ? null : Number(ageRaw);
-          if (
-            ageNum != null &&
-            (!Number.isFinite(ageNum) || ageNum < 0 || ageNum > 30)
-          ) {
-            nextErrors[`dog${idx}-age`] = `Revisa la edad ${label}`;
-          }
-        });
-      }
-
-      if (checkExtras && ringBox && !ringBoxColor) {
-        nextErrors.ringColor = "Indica el color del portaalianzas";
-      }
-      if (checkExtras) {
-        const jewelryErr = validateInquiryJewelryItems(jewelryItems);
-        if (jewelryErr) nextErrors.jewelry = jewelryErr;
-      }
-
       return nextErrors;
     },
-    [
-      partnerNameA,
-      partnerNameB,
-      phone,
-      email,
-      eventType,
-      eventDates,
-      venue,
-      dogs,
-      ringBox,
-      ringBoxColor,
-      jewelryItems,
-    ],
+    [partnerNameA, eventType, eventDates, dogs, phone, email],
   );
+
+  const scrollBodyTop = () => {
+    panelRef.current
+      ?.querySelector(".acompanamiento-inquiry-sheet__body")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const goNext = () => {
     setError(null);
-    const nextErrors = collectErrors(step);
+    const nextErrors = collectErrors(current);
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       focusFirstError(nextErrors);
       return;
     }
     setFieldErrors({});
-    setStep((s) => Math.min(3, s + 1) as StepIndex);
-    panelRef.current
-      ?.querySelector(".acompanamiento-inquiry-sheet__body")
-      ?.scrollTo({ top: 0, behavior: "smooth" });
+    navigatedRef.current = true;
+    setStep(Math.min(steps.length - 1, stepIndex + 1));
+    scrollBodyTop();
   };
+  const goNextRef = useRef(goNext);
+  useEffect(() => {
+    goNextRef.current = goNext;
+  });
 
   const goBack = () => {
     setError(null);
     setFieldErrors({});
-    setStep((s) => Math.max(0, s - 1) as StepIndex);
-    panelRef.current
-      ?.querySelector(".acompanamiento-inquiry-sheet__body")
-      ?.scrollTo({ top: 0, behavior: "smooth" });
+    navigatedRef.current = true;
+    setStep(Math.max(0, stepIndex - 1));
+    scrollBodyTop();
   };
+
+  /** Tras elegir un chip de respuesta única, avanzamos solos (con estado ya actualizado). */
+  const [autoAdvanceTick, setAutoAdvanceTick] = useState(0);
+  useEffect(() => {
+    if (!autoAdvanceTick) return;
+    const id = window.setTimeout(() => goNextRef.current(), 280);
+    return () => window.clearTimeout(id);
+  }, [autoAdvanceTick]);
+  const pickAndAdvance = (apply: () => void) => {
+    apply();
+    setAutoAdvanceTick((t) => t + 1);
+  };
+
+  /** Foco en el primer campo de texto al cambiar de pregunta (no al abrir). */
+  useEffect(() => {
+    if (!navigatedRef.current) return;
+    navigatedRef.current = false;
+    const id = window.setTimeout(() => {
+      const el = panelRef.current?.querySelector<HTMLElement>(
+        ".acompanamiento-inquiry-sheet__step input:not([type=checkbox]):not([inputmode=none]):not([data-nofocus]), .acompanamiento-inquiry-sheet__step textarea:not([data-nofocus])",
+      );
+      if (el && !el.closest(".acompanamiento-inquiry-sheet__field--date")) {
+        el.focus({ preventScroll: true });
+      }
+    }, 320);
+    return () => window.clearTimeout(id);
+  }, [stepIndex]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    if (step < 3) {
+    if (!isLastStep) {
       goNext();
       return;
     }
@@ -917,20 +943,10 @@ export function AcompanamientoInquirySheet() {
     const nextErrors = collectErrors();
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      const stepForKey = (key: string): StepIndex => {
-        if (key === "nameA" || key === "nameB" || key === "phone" || key === "email") return 0;
-        if (
-          key === "eventType" ||
-          key === "dates" ||
-          key === "venue"
-        ) {
-          return 1;
-        }
-        if (key === "ringColor") return 3;
-        return 2;
-      };
-      const firstKey = Object.keys(nextErrors)[0]!;
-      setStep(stepForKey(firstKey));
+      const target = steps.findIndex(
+        (s) => Object.keys(collectErrors(s)).length > 0,
+      );
+      if (target >= 0) setStep(target);
       focusFirstError(nextErrors);
       return;
     }
@@ -985,19 +1001,9 @@ export function AcompanamientoInquirySheet() {
           deliveryAddress: needsTransfer
             ? deliveryAddress.trim() || null
             : null,
-          ringBox,
-          ringBoxColor: ringBox ? ringBoxColor : null,
-          collarLeash,
-          jewelryItems: jewelryItems.map((j) => ({
-            productId: j.productId,
-            name: j.name,
-            imageUrl: j.imageUrl,
-            optionLabel: j.optionLabel,
-            variantKey: j.variantKey,
-            quantity: j.quantity,
-            unitPriceCents: j.unitPriceCents,
-            customization: j.customization,
-          })),
+          /* Portaalianzas, collar/correa y joyas van incluidos en el servicio:
+             no se piden en el formulario, se concretan después con la pareja. */
+          jewelryItems: [],
           hoursEstimate: hoursEstimate.trim() || null,
           petCareNotes: petCareNotes.trim() || null,
           message: messageOut,
@@ -1030,10 +1036,10 @@ export function AcompanamientoInquirySheet() {
         deliveryAddress: needsTransfer
           ? deliveryAddress.trim() || null
           : null,
-        ringBox,
-        ringBoxColor: ringBox ? ringBoxColor : null,
-        collarLeash,
-        jewelryItems,
+        ringBox: false,
+        ringBoxColor: null,
+        collarLeash: false,
+        jewelryItems: [],
         hoursEstimate: hoursEstimate.trim() || null,
         petCareNotes: petCareNotes.trim() || null,
         message: messageOut,
@@ -1204,739 +1210,692 @@ export function AcompanamientoInquirySheet() {
             </div>
           ) : (
             <>
-              <p className="acompanamiento-inquiry-sheet__eyebrow">
-                {isVigoBodas ? "Vigo Bodas" : "Acompañamiento"}
-              </p>
-              <h2 id={titleId} className="acompanamiento-inquiry-sheet__title">
-                Pide tu propuesta
-              </h2>
-              {step === 0 ? (
-                <p className="acompanamiento-inquiry-sheet__lead">
-                  {isVigoBodas
-                    ? "¡Bienvenidos desde Vigo Bodas! Cuéntanos vuestra fecha y a vuestro perro; os preparamos una propuesta a medida, sin compromiso."
-                    : "Cuéntanos el evento y a vuestro perro; os preparamos una propuesta a medida, sin compromiso."}
-                </p>
-              ) : null}
-              <form
-                className="acompanamiento-inquiry-sheet__form"
-                onSubmit={onSubmit}
-                noValidate
-              >
-              <input
-                type="text"
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden={true}
-                className="acompanamiento-inquiry-sheet__hp"
-              />
+              {(() => {
+                const optionalEmpty =
+                  (current.id === "venue" && !venue.trim()) ||
+                  (current.id === "care" && !petCareNotes.trim()) ||
+                  (current.id === "hours" && !hoursEstimate.trim());
+                const primaryLabel = isLastStep
+                  ? pending
+                    ? "Enviando…"
+                    : "Enviar solicitud"
+                  : optionalEmpty
+                    ? "Saltar"
+                    : "Continuar";
+                const nameA = partnerNameA.trim();
+                const nameB = partnerNameB.trim();
+                const progressPct = Math.round(
+                  ((stepIndex + 1) / steps.length) * 100,
+                );
 
-              <div
-                className="acompanamiento-inquiry-sheet__progress"
-                aria-label={`Paso ${step + 1} de ${STEPS.length}`}
-              >
-                <p className="acompanamiento-inquiry-sheet__progress-index">
-                  {String(step + 1).padStart(2, "0")} —{" "}
-                  {String(STEPS.length).padStart(2, "0")}
-                </p>
-                <ol className="acompanamiento-inquiry-sheet__progress-dots">
-                  {STEPS.map((s, i) => (
-                    <li
-                      key={s.key}
-                      className={
-                        "acompanamiento-inquiry-sheet__progress-dot" +
-                        (i === step ? " is-current" : "") +
-                        (i < step ? " is-done" : "")
-                      }
-                      aria-label={s.label}
-                      aria-current={i === step ? "step" : undefined}
-                    />
-                  ))}
-                </ol>
-              </div>
+                let greeting: string | null = null;
+                let question = "";
+                let lead: string | null = null;
+                switch (current.id) {
+                  case "names":
+                    greeting = isVigoBodas
+                      ? "¡Hola! Bienvenidos desde Vigo Bodas"
+                      : "¡Hola!";
+                    question = "¿Cómo os llamáis?";
+                    lead =
+                      "Os haremos unas preguntas rápidas para preparar vuestra propuesta, sin compromiso.";
+                    break;
+                  case "eventType":
+                    greeting = `Encantados, ${formatCoupleName(nameA, nameB)}`;
+                    question = "¿Qué celebráis?";
+                    break;
+                  case "dates":
+                    question =
+                      eventType === "boda"
+                        ? "¿Cuándo es el gran día?"
+                        : "¿Qué día es el evento?";
+                    lead =
+                      "Si aún dudáis entre varias fechas, podéis marcar más de una.";
+                    break;
+                  case "venue":
+                    question = "¿Dónde lo celebráis?";
+                    lead =
+                      "Finca, pazo, restaurante o municipio. Si aún no lo sabéis, podéis saltarlo.";
+                    break;
+                  case "dogNames":
+                    greeting = "Ahora lo más importante";
+                    question = "¿Cómo se llama vuestro perro?";
+                    lead = "¿Viene más de uno? Podéis añadirlo abajo.";
+                    break;
+                  case "dogBreed":
+                    question = `¿Cómo es ${dogDisplayName(current.dog)}?`;
+                    lead = "Su raza (o tamaño, si es mestizo) y edad aproximada.";
+                    break;
+                  case "dogTraits":
+                    question = `Un par de detalles sobre ${dogDisplayName(current.dog)}`;
+                    lead = "Opcional, pero nos ayuda a preparar el día.";
+                    break;
+                  case "care":
+                    question = `¿Algo que debamos saber de ${allDogNames}?`;
+                    lead =
+                      "Carácter, miedos, cuidados especiales… Todo suma para que esté a gusto ese día.";
+                    break;
+                  case "hours":
+                    question = "¿Cuánto tiempo queréis que os acompañemos?";
+                    lead = "Aproximado, lo afinamos después.";
+                    break;
+                  case "transfer":
+                    question = `¿Recogemos a ${allDogNames} y ${dogPronoun} llevamos al evento?`;
+                    lead = "Y de vuelta a casa, si lo necesitáis.";
+                    break;
+                  case "included":
+                    greeting = "Buenas noticias";
+                    question = "Esto ya va incluido";
+                    lead =
+                      "No tenéis que elegir nada ahora: lo personalizamos juntos al preparar vuestra propuesta.";
+                    break;
+                  case "contact":
+                    greeting = "Último paso";
+                    question = "¿Dónde os enviamos la propuesta?";
+                    lead = "Os escribimos por WhatsApp o email, sin compromiso.";
+                    break;
+                }
 
-              <p className="acompanamiento-inquiry-sheet__section">
-                {STEPS[step].label}
-              </p>
+                const dogIdx = "dog" in current ? current.dog : 0;
+                const dog = dogs[dogIdx];
 
-              {step === 0 ? (
-                <>
-                  <div className="acompanamiento-inquiry-sheet__row acompanamiento-inquiry-sheet__row--couple">
-                    <InquiryFloatField
-                      id={`${titleId}-nameA`}
-                      label="Tu nombre"
-                      error={fieldErrors.nameA}
-                    >
-                      <input
-                        id={`${titleId}-nameA`}
-                        value={partnerNameA}
-                        onChange={(e) => {
-                          setPartnerNameA(e.target.value);
-                          clearFieldError("nameA");
-                        }}
-                        autoComplete="off"
-                        placeholder="Tu nombre"
-                        aria-invalid={fieldErrors.nameA ? true : undefined}
-                        aria-describedby={
-                          fieldErrors.nameA
-                            ? `${titleId}-nameA-error`
-                            : undefined
-                        }
-                      />
-                    </InquiryFloatField>
-                    <span
-                      className="acompanamiento-inquiry-sheet__couple-and"
+                return (
+                  <form
+                    className="acompanamiento-inquiry-sheet__form"
+                    onSubmit={onSubmit}
+                    noValidate
+                  >
+                    <input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
                       aria-hidden={true}
-                    >
-                      y
-                    </span>
-                    <InquiryFloatField
-                      id={`${titleId}-nameB`}
-                      label="Tu pareja (opcional)"
-                      error={fieldErrors.nameB}
-                    >
-                      <input
-                        id={`${titleId}-nameB`}
-                        value={partnerNameB}
-                        onChange={(e) => {
-                          setPartnerNameB(e.target.value);
-                          clearFieldError("nameB");
-                        }}
-                        autoComplete="off"
-                        placeholder="Tu pareja (opcional)"
-                        aria-invalid={fieldErrors.nameB ? true : undefined}
-                        aria-describedby={
-                          fieldErrors.nameB
-                            ? `${titleId}-nameB-error`
-                            : undefined
-                        }
-                      />
-                    </InquiryFloatField>
-                  </div>
-                  <InquiryFloatField
-                    id={`${titleId}-phone`}
-                    label="Teléfono"
-                    error={fieldErrors.phone}
-                  >
-                    <input
-                      id={`${titleId}-phone`}
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                        clearFieldError("phone");
-                      }}
-                      autoComplete="tel"
-                      placeholder="Teléfono"
-                      aria-invalid={fieldErrors.phone ? true : undefined}
-                      aria-describedby={
-                        fieldErrors.phone
-                          ? `${titleId}-phone-error`
-                          : undefined
-                      }
+                      className="acompanamiento-inquiry-sheet__hp"
                     />
-                  </InquiryFloatField>
-                  <InquiryFloatField
-                    id={`${titleId}-email`}
-                    label="Email"
-                    error={fieldErrors.email}
-                  >
-                    <input
-                      id={`${titleId}-email`}
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        clearFieldError("email");
-                      }}
-                      autoComplete="email"
-                      placeholder="Email"
-                      aria-invalid={fieldErrors.email ? true : undefined}
-                      aria-describedby={
-                        fieldErrors.email
-                          ? `${titleId}-email-error`
-                          : undefined
-                      }
-                    />
-                  </InquiryFloatField>
-                </>
-              ) : null}
 
-              {step === 1 ? (
-                <>
-                  <div
-                    id={`${titleId}-event-type`}
-                    className={
-                      "acompanamiento-inquiry-sheet__chips" +
-                      (fieldErrors.eventType
-                        ? " acompanamiento-inquiry-sheet__chips--error"
-                        : "")
-                    }
-                    role="group"
-                    aria-label="Tipo de evento"
-                    aria-invalid={fieldErrors.eventType ? true : undefined}
-                    aria-describedby={
-                      fieldErrors.eventType
-                        ? `${titleId}-eventType-error`
-                        : undefined
-                    }
-                  >
-                    {EVENT_TYPES.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        className={
-                          "acompanamiento-inquiry-sheet__chip" +
-                          (eventType === t.id
-                            ? " acompanamiento-inquiry-sheet__chip--active"
-                            : "")
-                        }
-                        aria-pressed={eventType === t.id}
-                        onClick={() => {
-                          setEventType(t.id);
-                          clearFieldError("eventType");
-                        }}
+                    <div
+                      className="acompanamiento-inquiry-sheet__progress"
+                      role="progressbar"
+                      aria-label={`Pregunta ${stepIndex + 1} de ${steps.length}`}
+                      aria-valuemin={1}
+                      aria-valuemax={steps.length}
+                      aria-valuenow={stepIndex + 1}
+                    >
+                      <p className="acompanamiento-inquiry-sheet__eyebrow">
+                        {isVigoBodas ? "Vigo Bodas" : "Acompañamiento"}
+                      </p>
+                      <span className="acompanamiento-inquiry-sheet__progress-bar">
+                        <span
+                          className="acompanamiento-inquiry-sheet__progress-fill"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </span>
+                    </div>
+
+                    <div
+                      key={stepKeyOf(current)}
+                      className="acompanamiento-inquiry-sheet__step"
+                    >
+                      {greeting ? (
+                        <p className="acompanamiento-inquiry-sheet__greeting">
+                          {greeting}
+                        </p>
+                      ) : null}
+                      <h2
+                        id={titleId}
+                        className="acompanamiento-inquiry-sheet__title acompanamiento-inquiry-sheet__question"
                       >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                  {fieldErrors.eventType ? (
-                    <p
-                      id={`${titleId}-eventType-error`}
-                      className="acompanamiento-inquiry-sheet__field-error"
-                      role="alert"
-                    >
-                      {fieldErrors.eventType}
-                    </p>
-                  ) : null}
-                  <AcompanamientoDateField
-                    id={`${titleId}-date`}
-                    value={eventDates}
-                    onChange={(next) => {
-                      setEventDates(next);
-                      clearFieldError("dates");
-                    }}
-                    error={fieldErrors.dates ?? null}
-                  />
-                  <InquiryFloatField
-                    id={`${titleId}-venue`}
-                    label="Lugar / municipio (opcional)"
-                    error={fieldErrors.venue}
-                  >
-                    <input
-                      id={`${titleId}-venue`}
-                      value={venue}
-                      onChange={(e) => {
-                        setVenue(e.target.value);
-                        clearFieldError("venue");
-                      }}
-                      placeholder="Lugar / municipio (opcional)"
-                      aria-invalid={fieldErrors.venue ? true : undefined}
-                      aria-describedby={
-                        fieldErrors.venue
-                          ? `${titleId}-venue-error`
-                          : undefined
-                      }
-                    />
-                  </InquiryFloatField>
-                  <InquiryFloatField
-                    id={`${titleId}-hours`}
-                    label="Horas de presencia (aprox.)"
-                  >
-                    <input
-                      id={`${titleId}-hours`}
-                      value={hoursEstimate}
-                      onChange={(e) => setHoursEstimate(e.target.value)}
-                      placeholder="Horas de presencia (aprox.)"
-                    />
-                  </InquiryFloatField>
-                </>
-              ) : null}
+                        {question}
+                      </h2>
+                      {lead ? (
+                        <p className="acompanamiento-inquiry-sheet__lead">
+                          {lead}
+                        </p>
+                      ) : null}
 
-              {step === 2 ? (
-                <>
-                  <div className="acompanamiento-inquiry-sheet__dogs">
-                    {dogs.map((dog, idx) => {
-                      const nameId = `${titleId}-dog${idx}-name`;
-                      const breedId = `${titleId}-dog${idx}-breed`;
-                      const ageId = `${titleId}-dog${idx}-age`;
-                      const sexId = `${titleId}-dog${idx}-sex`;
-                      const nameErr = fieldErrors[`dog${idx}-name`];
-                      const breedErr = fieldErrors[`dog${idx}-breed`];
-                      const ageErr = fieldErrors[`dog${idx}-age`];
-                      const sexErr = fieldErrors[`dog${idx}-sex`];
-                      return (
-                        <div
-                          key={idx}
-                          className="acompanamiento-inquiry-sheet__dog"
-                        >
-                          <div className="acompanamiento-inquiry-sheet__dog-head">
-                            <p className="acompanamiento-inquiry-sheet__dog-title">
-                              {dogs.length > 1
-                                ? `Perro ${idx + 1}`
-                                : "Tu perro"}
-                            </p>
-                            {dogs.length > 1 ? (
-                              <button
-                                type="button"
-                                className="acompanamiento-inquiry-sheet__dog-remove"
-                                onClick={() => {
-                                  setDogs((prev) =>
-                                    prev.filter((_, i) => i !== idx),
-                                  );
-                                  setFieldErrors((prev) => {
-                                    const next = { ...prev };
-                                    for (const key of Object.keys(next)) {
-                                      if (key.startsWith(`dog${idx}-`)) {
-                                        delete next[key];
-                                      }
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              >
-                                Quitar
-                              </button>
-                            ) : null}
-                          </div>
-                          <InquiryFloatField
-                            id={nameId}
-                            label="Nombre del perro"
-                            error={nameErr}
-                          >
-                            <input
-                              id={nameId}
-                              value={dog.name}
-                              onChange={(e) => {
-                                updateDog(idx, { name: e.target.value });
-                                clearFieldError(`dog${idx}-name`);
-                              }}
-                              placeholder="Nombre del perro"
-                              aria-invalid={nameErr ? true : undefined}
-                              aria-describedby={
-                                nameErr ? `${nameId}-error` : undefined
-                              }
-                            />
-                          </InquiryFloatField>
-                          <div className="acompanamiento-inquiry-sheet__row">
-                            <AcompanamientoInquiryBreedField
-                              id={breedId}
-                              label="Raza o tamaño"
-                              value={dog.breed}
-                              options={breedOptions}
-                              error={breedErr}
-                              onChange={(next) => {
-                                updateDog(idx, { breed: next });
-                                clearFieldError(`dog${idx}-breed`);
-                              }}
-                            />
+                      <div className="acompanamiento-inquiry-sheet__answer">
+                        {current.id === "names" ? (
+                          <>
                             <InquiryFloatField
-                              id={ageId}
-                              label="Edad (años)"
-                              error={ageErr}
+                              id={`${titleId}-nameA`}
+                              label="Tu nombre"
+                              error={fieldErrors.nameA}
                             >
                               <input
-                                id={ageId}
-                                inputMode="decimal"
-                                value={dog.ageYears}
+                                id={`${titleId}-nameA`}
+                                value={partnerNameA}
                                 onChange={(e) => {
-                                  updateDog(idx, { ageYears: e.target.value });
-                                  clearFieldError(`dog${idx}-age`);
+                                  setPartnerNameA(e.target.value);
+                                  clearFieldError("nameA");
                                 }}
-                                placeholder="Edad (años)"
-                                aria-invalid={ageErr ? true : undefined}
+                                autoComplete="given-name"
+                                autoCapitalize="words"
+                                enterKeyHint="next"
+                                placeholder="Tu nombre"
+                                aria-invalid={fieldErrors.nameA ? true : undefined}
                                 aria-describedby={
-                                  ageErr ? `${ageId}-error` : undefined
+                                  fieldErrors.nameA
+                                    ? `${titleId}-nameA-error`
+                                    : undefined
                                 }
                               />
                             </InquiryFloatField>
-                          </div>
-                          <div
-                            id={sexId}
-                            className={
-                              "acompanamiento-inquiry-sheet__choice" +
-                              (sexErr
-                                ? " acompanamiento-inquiry-sheet__choice--error"
-                                : "")
-                            }
-                            role="group"
-                            aria-label="Sexo"
-                            aria-invalid={sexErr ? true : undefined}
-                            aria-describedby={
-                              sexErr ? `${sexId}-error` : undefined
-                            }
-                          >
-                            <p className="acompanamiento-inquiry-sheet__choice-label">
-                              Sexo (opcional)
-                            </p>
-                            <div className="acompanamiento-inquiry-sheet__chips">
-                              {DOG_SEX_OPTIONS.map((opt) => (
+                            <InquiryFloatField
+                              id={`${titleId}-nameB`}
+                              label="Y tu pareja (opcional)"
+                            >
+                              <input
+                                id={`${titleId}-nameB`}
+                                value={partnerNameB}
+                                onChange={(e) => setPartnerNameB(e.target.value)}
+                                autoComplete="off"
+                                autoCapitalize="words"
+                                enterKeyHint="next"
+                                placeholder="Y tu pareja (opcional)"
+                              />
+                            </InquiryFloatField>
+                          </>
+                        ) : null}
+
+                        {current.id === "eventType" ? (
+                          <>
+                            <div
+                              id={`${titleId}-eventType`}
+                              className="acompanamiento-inquiry-sheet__options"
+                              role="group"
+                              aria-label="Tipo de evento"
+                            >
+                              {EVENT_TYPES.map((t) => (
                                 <button
-                                  key={opt.id}
+                                  key={t.id}
                                   type="button"
                                   className={
-                                    "acompanamiento-inquiry-sheet__chip" +
-                                    (dog.sex === opt.id
-                                      ? " acompanamiento-inquiry-sheet__chip--active"
-                                      : "")
+                                    "acompanamiento-inquiry-sheet__option" +
+                                    (eventType === t.id ? " is-active" : "")
                                   }
-                                  aria-pressed={dog.sex === opt.id}
-                                  onClick={() => {
-                                    updateDog(idx, { sex: opt.id });
-                                    clearFieldError(`dog${idx}-sex`);
-                                  }}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                            {sexErr ? (
-                              <p
-                                id={`${sexId}-error`}
-                                className="acompanamiento-inquiry-sheet__field-error"
-                                role="alert"
-                              >
-                                {sexErr}
-                              </p>
-                            ) : null}
-                          </div>
-                          <div
-                            className="acompanamiento-inquiry-sheet__choice"
-                            role="group"
-                            aria-label="Esterilizado"
-                          >
-                            <p className="acompanamiento-inquiry-sheet__choice-label">
-                              Esterilizado
-                            </p>
-                            <div className="acompanamiento-inquiry-sheet__chips">
-                              {(
-                                [
-                                  { value: true, label: "Sí" },
-                                  { value: false, label: "No" },
-                                ] as const
-                              ).map((opt) => (
-                                <button
-                                  key={opt.label}
-                                  type="button"
-                                  className={
-                                    "acompanamiento-inquiry-sheet__chip" +
-                                    (dog.sterilized === opt.value
-                                      ? " acompanamiento-inquiry-sheet__chip--active"
-                                      : "")
-                                  }
-                                  aria-pressed={dog.sterilized === opt.value}
+                                  aria-pressed={eventType === t.id}
                                   onClick={() =>
-                                    updateDog(idx, {
-                                      sterilized:
-                                        dog.sterilized === opt.value
-                                          ? null
-                                          : opt.value,
+                                    pickAndAdvance(() => {
+                                      setEventType(t.id);
+                                      clearFieldError("eventType");
                                     })
                                   }
                                 >
-                                  {opt.label}
+                                  {t.label}
                                 </button>
                               ))}
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {dogs.length < MAX_INQUIRY_DOGS ? (
-                    <button
-                      type="button"
-                      className="acompanamiento-inquiry-sheet__dog-add"
-                      onClick={() =>
-                        setDogs((prev) => [...prev, emptyDogDraft()])
-                      }
-                    >
-                      Añadir otro perro
-                    </button>
-                  ) : null}
-                  <InquiryFloatField
-                    id={`${titleId}-care`}
-                    label="Carácter, miedos o cuidados (opcional)"
-                  >
-                    <textarea
-                      id={`${titleId}-care`}
-                      rows={3}
-                      value={petCareNotes}
-                      onChange={(e) => setPetCareNotes(e.target.value)}
-                      maxLength={2000}
-                      placeholder="Carácter, miedos o cuidados (opcional)"
-                    />
-                  </InquiryFloatField>
-                </>
-              ) : null}
+                            {fieldErrors.eventType ? (
+                              <p
+                                className="acompanamiento-inquiry-sheet__field-error acompanamiento-inquiry-sheet__field-error--static"
+                                role="alert"
+                              >
+                                {fieldErrors.eventType}
+                              </p>
+                            ) : null}
+                          </>
+                        ) : null}
 
-              {step === 3 ? (
-                <>
-                  <div className="acompanamiento-inquiry-sheet__extras">
-                    <label className="acompanamiento-inquiry-sheet__check">
-                      <input
-                        type="checkbox"
-                        checked={needsTransfer}
-                        onChange={(e) => setNeedsTransfer(e.target.checked)}
-                      />
-                      <span className="acompanamiento-inquiry-sheet__check-text">
-                        Necesito recogida / traslado
-                        <button
-                          type="button"
-                          className="acompanamiento-inquiry-sheet__tip"
-                          aria-label="Más información sobre recogida y traslado"
-                          aria-describedby={`${titleId}-tip-transfer`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.currentTarget.focus();
-                          }}
-                          onMouseDown={(e) => e.preventDefault()}
-                        >
-                          <span aria-hidden={true}>?</span>
-                          <span
-                            id={`${titleId}-tip-transfer`}
-                            role="tooltip"
-                            className="acompanamiento-inquiry-sheet__tip-bubble"
-                          >
-                            Recogemos a tu perro y lo llevamos al evento (y de
-                            vuelta, si lo necesitáis).
-                          </span>
-                        </button>
-                      </span>
-                    </label>
-                    {needsTransfer ? (
-                      <>
-                        <InquiryFloatField
-                          id={`${titleId}-pickup`}
-                          label="Dirección de recogida"
-                        >
-                          <input
-                            id={`${titleId}-pickup`}
-                            value={pickupAddress}
-                            onChange={(e) => setPickupAddress(e.target.value)}
-                            placeholder="Dirección de recogida"
+                        {current.id === "dates" ? (
+                          <AcompanamientoDateField
+                            id={`${titleId}-date`}
+                            value={eventDates}
+                            onChange={(next) => {
+                              setEventDates(next);
+                              clearFieldError("dates");
+                            }}
+                            error={fieldErrors.dates ?? null}
                           />
-                        </InquiryFloatField>
-                        <InquiryFloatField
-                          id={`${titleId}-delivery`}
-                          label="Dirección de entrega"
-                        >
-                          <input
-                            id={`${titleId}-delivery`}
-                            value={deliveryAddress}
-                            onChange={(e) =>
-                              setDeliveryAddress(e.target.value)
-                            }
-                            placeholder="Dirección de entrega"
-                          />
-                        </InquiryFloatField>
-                      </>
-                    ) : null}
-                    <label className="acompanamiento-inquiry-sheet__check">
-                      <input
-                        type="checkbox"
-                        checked={ringBox}
-                        onChange={(e) => {
-                          const on = e.target.checked;
-                          setRingBox(on);
-                          if (!on) {
-                            setRingBoxColor(null);
-                            clearFieldError("ringColor");
-                          }
-                        }}
-                      />
-                      <span className="acompanamiento-inquiry-sheet__check-text">
-                        Portaalianzas
-                        <button
-                          type="button"
-                          className="acompanamiento-inquiry-sheet__tip"
-                          aria-label="Más información sobre el portaalianzas"
-                          aria-describedby={`${titleId}-tip-ring`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.currentTarget.focus();
-                          }}
-                          onMouseDown={(e) => e.preventDefault()}
-                        >
-                          <span aria-hidden={true}>?</span>
-                          <span
-                            id={`${titleId}-tip-ring`}
-                            role="tooltip"
-                            className="acompanamiento-inquiry-sheet__tip-bubble"
+                        ) : null}
+
+                        {current.id === "venue" ? (
+                          <InquiryFloatField
+                            id={`${titleId}-venue`}
+                            label="Lugar o municipio"
                           >
-                            Lo lleva el perrito. Irá grabado con las iniciales
-                            de la pareja, el nombre de la mascota y la fecha del
-                            evento.
-                          </span>
-                        </button>
-                      </span>
-                    </label>
-                    {ringBox ? (
-                      <div
-                        id={`${titleId}-ring-color`}
-                        className={
-                          "acompanamiento-inquiry-sheet__choice" +
-                          (fieldErrors.ringColor
-                            ? " acompanamiento-inquiry-sheet__choice--error"
-                            : "")
-                        }
-                        role="group"
-                        aria-label="Color del portaalianzas"
-                        aria-invalid={
-                          fieldErrors.ringColor ? true : undefined
-                        }
-                        aria-describedby={
-                          fieldErrors.ringColor
-                            ? `${titleId}-ringColor-error`
-                            : undefined
-                        }
-                      >
-                        <p className="acompanamiento-inquiry-sheet__choice-label">
-                          Color
-                        </p>
-                        <div
-                          className="acompanamiento-inquiry-sheet__jewelry-grid acompanamiento-inquiry-sheet__jewelry-grid--ring"
-                          role="listbox"
-                          aria-label="Color del portaalianzas"
-                        >
-                          {RING_COLOR_OPTIONS.map((opt) => (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              role="option"
-                              aria-selected={ringBoxColor === opt.id}
-                              className={
-                                "acompanamiento-inquiry-sheet__jewelry-pick" +
-                                (ringBoxColor === opt.id
-                                  ? " acompanamiento-inquiry-sheet__jewelry-pick--active"
-                                  : "")
-                              }
-                              onClick={() => {
-                                setRingBoxColor(opt.id);
-                                clearFieldError("ringColor");
+                            <input
+                              id={`${titleId}-venue`}
+                              value={venue}
+                              onChange={(e) => setVenue(e.target.value)}
+                              enterKeyHint="next"
+                              placeholder="Lugar o municipio"
+                            />
+                          </InquiryFloatField>
+                        ) : null}
+
+                        {current.id === "dogNames" ? (
+                          <>
+                            {dogs.map((d, idx) => {
+                              const nameId = `${titleId}-dog${idx}-name`;
+                              const nameErr = fieldErrors[`dog${idx}-name`];
+                              return (
+                                <div
+                                  key={idx}
+                                  className="acompanamiento-inquiry-sheet__dog-name-row"
+                                >
+                                  <InquiryFloatField
+                                    id={nameId}
+                                    label={
+                                      dogs.length > 1
+                                        ? `Nombre del perro ${idx + 1}`
+                                        : "Su nombre"
+                                    }
+                                    error={nameErr}
+                                  >
+                                    <input
+                                      id={nameId}
+                                      value={d.name}
+                                      onChange={(e) => {
+                                        updateDog(idx, { name: e.target.value });
+                                        clearFieldError(`dog${idx}-name`);
+                                      }}
+                                      autoCapitalize="words"
+                                      enterKeyHint="next"
+                                      placeholder={
+                                        dogs.length > 1
+                                          ? `Nombre del perro ${idx + 1}`
+                                          : "Su nombre"
+                                      }
+                                      aria-invalid={nameErr ? true : undefined}
+                                      aria-describedby={
+                                        nameErr ? `${nameId}-error` : undefined
+                                      }
+                                    />
+                                  </InquiryFloatField>
+                                  {dogs.length > 1 ? (
+                                    <button
+                                      type="button"
+                                      className="acompanamiento-inquiry-sheet__dog-remove"
+                                      aria-label={`Quitar ${d.name.trim() || `perro ${idx + 1}`}`}
+                                      onClick={() => {
+                                        setDogs((prev) =>
+                                          prev.filter((_, i) => i !== idx),
+                                        );
+                                        setFieldErrors({});
+                                      }}
+                                    >
+                                      Quitar
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                            {dogs.length < MAX_INQUIRY_DOGS ? (
+                              <button
+                                type="button"
+                                className="acompanamiento-inquiry-sheet__dog-add"
+                                onClick={() =>
+                                  setDogs((prev) => [...prev, emptyDogDraft()])
+                                }
+                              >
+                                + Añadir otro perro
+                              </button>
+                            ) : null}
+                          </>
+                        ) : null}
+
+                        {current.id === "dogBreed" && dog ? (
+                          <>
+                            <AcompanamientoInquiryBreedField
+                              id={`${titleId}-dog${dogIdx}-breed`}
+                              label="Raza o tamaño"
+                              value={dog.breed}
+                              options={breedOptions}
+                              error={fieldErrors[`dog${dogIdx}-breed`]}
+                              onChange={(next) => {
+                                updateDog(dogIdx, { breed: next });
+                                clearFieldError(`dog${dogIdx}-breed`);
                               }}
+                            />
+                            <InquiryFloatField
+                              id={`${titleId}-dog${dogIdx}-age`}
+                              label="Edad en años (opcional)"
+                              error={fieldErrors[`dog${dogIdx}-age`]}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={opt.image}
-                                alt=""
-                                className="acompanamiento-inquiry-sheet__jewelry-pick-img"
+                              <input
+                                id={`${titleId}-dog${dogIdx}-age`}
+                                inputMode="decimal"
+                                enterKeyHint="next"
+                                value={dog.ageYears}
+                                onChange={(e) => {
+                                  updateDog(dogIdx, { ageYears: e.target.value });
+                                  clearFieldError(`dog${dogIdx}-age`);
+                                }}
+                                placeholder="Edad en años (opcional)"
+                                aria-invalid={
+                                  fieldErrors[`dog${dogIdx}-age`] ? true : undefined
+                                }
                               />
-                              <span className="acompanamiento-inquiry-sheet__jewelry-pick-name">
-                                {opt.label}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        {fieldErrors.ringColor ? (
-                          <p
-                            id={`${titleId}-ringColor-error`}
-                            className="acompanamiento-inquiry-sheet__field-error"
-                            role="alert"
+                            </InquiryFloatField>
+                          </>
+                        ) : null}
+
+                        {current.id === "dogTraits" && dog ? (
+                          <>
+                            <div
+                              className="acompanamiento-inquiry-sheet__choice"
+                              role="group"
+                              aria-label="Sexo"
+                            >
+                              <p className="acompanamiento-inquiry-sheet__choice-label">
+                                Es…
+                              </p>
+                              <div className="acompanamiento-inquiry-sheet__options acompanamiento-inquiry-sheet__options--inline">
+                                {DOG_SEX_OPTIONS.map((opt) => (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    className={
+                                      "acompanamiento-inquiry-sheet__option" +
+                                      (dog.sex === opt.id ? " is-active" : "")
+                                    }
+                                    aria-pressed={dog.sex === opt.id}
+                                    onClick={() =>
+                                      updateDog(dogIdx, {
+                                        sex: dog.sex === opt.id ? null : opt.id,
+                                      })
+                                    }
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div
+                              className="acompanamiento-inquiry-sheet__choice"
+                              role="group"
+                              aria-label="Esterilizado"
+                            >
+                              <p className="acompanamiento-inquiry-sheet__choice-label">
+                                {dog.sex === "female"
+                                  ? "¿Está esterilizada?"
+                                  : "¿Está esterilizado?"}
+                              </p>
+                              <div className="acompanamiento-inquiry-sheet__options acompanamiento-inquiry-sheet__options--inline">
+                                {(
+                                  [
+                                    { value: true, label: "Sí" },
+                                    { value: false, label: "No" },
+                                  ] as const
+                                ).map((opt) => (
+                                  <button
+                                    key={opt.label}
+                                    type="button"
+                                    className={
+                                      "acompanamiento-inquiry-sheet__option" +
+                                      (dog.sterilized === opt.value
+                                        ? " is-active"
+                                        : "")
+                                    }
+                                    aria-pressed={dog.sterilized === opt.value}
+                                    onClick={() =>
+                                      updateDog(dogIdx, {
+                                        sterilized:
+                                          dog.sterilized === opt.value
+                                            ? null
+                                            : opt.value,
+                                      })
+                                    }
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
+
+                        {current.id === "care" ? (
+                          <InquiryFloatField
+                            id={`${titleId}-care`}
+                            label="Cuéntanos (opcional)"
                           >
-                            {fieldErrors.ringColor}
-                          </p>
+                            <textarea
+                              id={`${titleId}-care`}
+                              rows={4}
+                              value={petCareNotes}
+                              onChange={(e) => setPetCareNotes(e.target.value)}
+                              maxLength={2000}
+                              placeholder="Cuéntanos (opcional)"
+                            />
+                          </InquiryFloatField>
+                        ) : null}
+
+                        {current.id === "hours" ? (
+                          <div
+                            className="acompanamiento-inquiry-sheet__options"
+                            role="group"
+                            aria-label="Horas de acompañamiento"
+                          >
+                            {HOURS_OPTIONS.map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                className={
+                                  "acompanamiento-inquiry-sheet__option" +
+                                  (hoursEstimate === opt ? " is-active" : "")
+                                }
+                                aria-pressed={hoursEstimate === opt}
+                                onClick={() =>
+                                  pickAndAdvance(() => setHoursEstimate(opt))
+                                }
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {current.id === "transfer" ? (
+                          <>
+                            <div
+                              className="acompanamiento-inquiry-sheet__options"
+                              role="group"
+                              aria-label="Recogida y traslado"
+                            >
+                              <button
+                                type="button"
+                                className={
+                                  "acompanamiento-inquiry-sheet__option" +
+                                  (needsTransfer ? " is-active" : "")
+                                }
+                                aria-pressed={needsTransfer}
+                                onClick={() => setNeedsTransfer(true)}
+                              >
+                                Sí, por favor
+                              </button>
+                              <button
+                                type="button"
+                                className={
+                                  "acompanamiento-inquiry-sheet__option" +
+                                  (!needsTransfer ? " is-active" : "")
+                                }
+                                aria-pressed={!needsTransfer}
+                                onClick={() =>
+                                  pickAndAdvance(() => setNeedsTransfer(false))
+                                }
+                              >
+                                No, nos encargamos nosotros
+                              </button>
+                            </div>
+                            {needsTransfer ? (
+                              <>
+                                <InquiryFloatField
+                                  id={`${titleId}-pickup`}
+                                  label="Dirección de recogida (opcional)"
+                                >
+                                  <input
+                                    id={`${titleId}-pickup`}
+                                    value={pickupAddress}
+                                    onChange={(e) => setPickupAddress(e.target.value)}
+                                    enterKeyHint="next"
+                                    placeholder="Dirección de recogida (opcional)"
+                                  />
+                                </InquiryFloatField>
+                                <InquiryFloatField
+                                  id={`${titleId}-delivery`}
+                                  label="Dirección de vuelta (opcional)"
+                                >
+                                  <input
+                                    id={`${titleId}-delivery`}
+                                    value={deliveryAddress}
+                                    onChange={(e) =>
+                                      setDeliveryAddress(e.target.value)
+                                    }
+                                    enterKeyHint="next"
+                                    placeholder="Dirección de vuelta (opcional)"
+                                  />
+                                </InquiryFloatField>
+                              </>
+                            ) : null}
+                          </>
+                        ) : null}
+
+                        {current.id === "included" ? (
+                          <>
+                            <ul className="acompanamiento-inquiry-sheet__included">
+                              {INCLUDED_ITEMS.map((item) => (
+                                <li
+                                  key={item.title}
+                                  className="acompanamiento-inquiry-sheet__included-item"
+                                >
+                                  <span
+                                    className="acompanamiento-inquiry-sheet__included-check"
+                                    aria-hidden={true}
+                                  >
+                                    <svg viewBox="0 0 16 16" fill="none">
+                                      <path
+                                        d="M3.5 8.5l3 3 6-7"
+                                        stroke="currentColor"
+                                        strokeWidth="1.6"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </span>
+                                  <span>
+                                    <span className="acompanamiento-inquiry-sheet__included-title">
+                                      {item.title}
+                                    </span>
+                                    <span className="acompanamiento-inquiry-sheet__included-text">
+                                      {item.text}
+                                    </span>
+                                  </span>
+                                  <span className="acompanamiento-inquiry-sheet__included-badge">
+                                    Incluido
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                            <InquiryFloatField
+                              id={`${titleId}-message`}
+                              label="¿Algo más que queráis contarnos? (opcional)"
+                            >
+                              <textarea
+                                id={`${titleId}-message`}
+                                rows={3}
+                                data-nofocus=""
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                maxLength={2000}
+                                placeholder="¿Algo más que queráis contarnos? (opcional)"
+                              />
+                            </InquiryFloatField>
+                          </>
+                        ) : null}
+
+                        {current.id === "contact" ? (
+                          <>
+                            <InquiryFloatField
+                              id={`${titleId}-phone`}
+                              label="Teléfono"
+                              error={fieldErrors.phone}
+                            >
+                              <input
+                                id={`${titleId}-phone`}
+                                type="tel"
+                                inputMode="tel"
+                                value={phone}
+                                onChange={(e) => {
+                                  setPhone(e.target.value);
+                                  clearFieldError("phone");
+                                }}
+                                autoComplete="tel"
+                                enterKeyHint="next"
+                                placeholder="Teléfono"
+                                aria-invalid={fieldErrors.phone ? true : undefined}
+                                aria-describedby={
+                                  fieldErrors.phone
+                                    ? `${titleId}-phone-error`
+                                    : undefined
+                                }
+                              />
+                            </InquiryFloatField>
+                            <InquiryFloatField
+                              id={`${titleId}-email`}
+                              label="Email (opcional)"
+                              error={fieldErrors.email}
+                            >
+                              <input
+                                id={`${titleId}-email`}
+                                type="email"
+                                inputMode="email"
+                                value={email}
+                                onChange={(e) => {
+                                  setEmail(e.target.value);
+                                  clearFieldError("email");
+                                }}
+                                autoComplete="email"
+                                enterKeyHint="send"
+                                placeholder="Email (opcional)"
+                                aria-invalid={fieldErrors.email ? true : undefined}
+                                aria-describedby={
+                                  fieldErrors.email
+                                    ? `${titleId}-email-error`
+                                    : undefined
+                                }
+                              />
+                            </InquiryFloatField>
+                          </>
                         ) : null}
                       </div>
+                    </div>
+
+                    {error ? (
+                      <p className="acompanamiento-inquiry-sheet__error" role="alert">
+                        {error}
+                      </p>
                     ) : null}
-                    <label className="acompanamiento-inquiry-sheet__check">
-                      <input
-                        type="checkbox"
-                        checked={collarLeash}
-                        onChange={(e) => setCollarLeash(e.target.checked)}
-                      />
-                      <span className="acompanamiento-inquiry-sheet__check-text">
-                        Collar / correa especial
+
+                    <div className="acompanamiento-inquiry-sheet__nav">
+                      {stepIndex > 0 ? (
                         <button
                           type="button"
-                          className="acompanamiento-inquiry-sheet__tip"
-                          aria-label="Más información sobre collar y correa"
-                          aria-describedby={`${titleId}-tip-collar`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.currentTarget.focus();
-                          }}
-                          onMouseDown={(e) => e.preventDefault()}
+                          className="acompanamiento-inquiry-sheet__nav-back"
+                          onClick={goBack}
                         >
-                          <span aria-hidden={true}>?</span>
-                          <span
-                            id={`${titleId}-tip-collar`}
-                            role="tooltip"
-                            className="acompanamiento-inquiry-sheet__tip-bubble"
-                          >
-                            Disponible en diferentes colores. Hecho en biotane.
-                          </span>
+                          Atrás
                         </button>
-                      </span>
-                    </label>
-                    <AcompanamientoInquiryJewelry
-                      titleId={titleId}
-                      value={jewelryItems}
-                      onChange={setJewelryItems}
-                    />
-                  </div>
-
-                  <InquiryFloatField
-                    id={`${titleId}-message`}
-                    label="Cuéntanos más (opcional)"
-                  >
-                    <textarea
-                      id={`${titleId}-message`}
-                      rows={3}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      maxLength={2000}
-                      placeholder="Cuéntanos más (opcional)"
-                    />
-                  </InquiryFloatField>
-                </>
-              ) : null}
-
-              {Object.keys(fieldErrors).length > 0 ? (
-                <p
-                  className="acompanamiento-inquiry-sheet__notice"
-                  role="alert"
-                >
-                  Revisa los campos marcados.
-                </p>
-              ) : null}
-              {error ? (
-                <p className="acompanamiento-inquiry-sheet__error" role="alert">
-                  {error}
-                </p>
-              ) : null}
-
-              <div className="acompanamiento-inquiry-sheet__nav">
-                {step > 0 ? (
-                  <button
-                    type="button"
-                    className="acompanamiento-inquiry-sheet__nav-back"
-                    onClick={goBack}
-                  >
-                    Atrás
-                  </button>
-                ) : (
-                  <span />
-                )}
-                {step < 3 ? (
-                  <button
-                    type="submit"
-                    className="acompanamiento-inquiry-sheet__submit"
-                  >
-                    Continuar
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="acompanamiento-inquiry-sheet__submit"
-                    disabled={pending}
-                  >
-                    {pending ? "Enviando…" : "Enviar solicitud"}
-                  </button>
-                )}
-              </div>
-            </form>
+                      ) : (
+                        <span />
+                      )}
+                      <button
+                        type="submit"
+                        className={
+                          "acompanamiento-inquiry-sheet__submit" +
+                          (optionalEmpty
+                            ? " acompanamiento-inquiry-sheet__submit--ghost"
+                            : "")
+                        }
+                        disabled={isLastStep && pending}
+                      >
+                        {primaryLabel}
+                      </button>
+                    </div>
+                  </form>
+                );
+              })()}
             </>
           )}
         </div>
