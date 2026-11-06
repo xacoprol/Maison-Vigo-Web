@@ -21,13 +21,11 @@
   gap: 18px;
 }
 
-.sorteo-ig__eyebrow {
-  margin: 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--sorteo-gold);
+.sorteo-ig__logo {
+  display: block;
+  width: min(220px, 58vw);
+  height: auto;
+  margin: 0 0 4px;
 }
 
 .sorteo-ig__title {
@@ -72,5 +70,24 @@
 .sorteo-ig__link:focus-visible {
   background: var(--sorteo-gold);
   color: var(--sorteo-bg);
+  outline: none;
+}
+
+.sorteo-ig__bases {
+  margin: 2px 0 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(239, 234, 228, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 0.28em;
+  text-decoration-color: rgba(185, 146, 93, 0.45);
+  transition: color 0.25s ease;
+}
+
+.sorteo-ig__bases:hover,
+.sorteo-ig__bases:focus-visible {
+  color: var(--sorteo-gold);
   outline: none;
 }
