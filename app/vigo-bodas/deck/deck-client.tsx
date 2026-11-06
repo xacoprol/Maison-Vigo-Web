@@ -191,7 +191,7 @@ export function VigoBodasDeckClient() {
           lead="Pasamos a buscarlo por vuestro domicilio. Vosotros, sin preocupaciones."
         />
         <StepPage
-          src="/fotos-bodas/puesta-a-punto.webp"
+          src="/assets/images/contacto-footer.webp"
           hint="Foto: Maison Vigo"
           num="02"
           phase="Antes de la boda"
@@ -199,7 +199,7 @@ export function VigoBodasDeckClient() {
           lead="Llega a Maison Vigo y se relaja antes de prepararse."
         />
         <StepPage
-          src="/grooming.webp"
+          src="/fotos-bodas/peluqueria.webp"
           hint="Foto: peluquería"
           num="03"
           phase="Antes de la boda"
@@ -266,27 +266,32 @@ export function VigoBodasDeckClient() {
             </p>
             <div className="vigo-bodas-deck__kit">
               <div>
-                <svg viewBox="0 0 40 40" aria-hidden="true">
-                  <circle cx="16" cy="20" r="7" />
-                  <circle cx="24" cy="20" r="7" />
-                  <path d="M20 6v7M20 27v7" />
-                </svg>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="vigo-bodas-deck__kit-photo"
+                  src="/fotos-bodas/portaalianzas.webp"
+                  alt="Portaalianzas en blanco"
+                />
                 <strong>Portaalianzas</strong>
                 <small>Marrón o blanco, para llevar los anillos con seguridad.</small>
               </div>
               <div>
-                <svg viewBox="0 0 40 40" aria-hidden="true">
-                  <circle cx="20" cy="15" r="8" />
-                  <path d="M20 23v11M16 34h8" />
-                </svg>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="vigo-bodas-deck__kit-photo"
+                  src="/fotos-bodas/correa-collar.webp"
+                  alt="Correa y collar a juego"
+                />
                 <strong>Correa y collar</strong>
                 <small>A juego, para todo el día.</small>
               </div>
               <div>
-                <svg viewBox="0 0 40 40" aria-hidden="true">
-                  <path d="M20 33 8 18l5-8h14l5 8z" />
-                  <path d="M8 18h24M16 10l4 8 4-8M20 18v15" />
-                </svg>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="vigo-bodas-deck__kit-photo"
+                  src="/fotos-bodas/joya.webp"
+                  alt="Joya grabada personalizada"
+                />
                 <strong>Joya grabada</strong>
                 <small>Una pieza a elegir, grabada para vosotros.</small>
               </div>
@@ -303,7 +308,7 @@ export function VigoBodasDeckClient() {
           lead="Vuelve para las fotos con vosotros. Un recuerdo para siempre."
         />
         <StepPage
-          src="/guarderia.webp"
+          src="/fotos-bodas/guarderia.webp"
           hint="Foto: guardería"
           num="10"
           phase="Después"
@@ -321,10 +326,7 @@ export function VigoBodasDeckClient() {
 
         <section className="vigo-bodas-deck__page vigo-bodas-deck__page--text vigo-bodas-deck__page--alt">
           <div className="vigo-bodas-deck__body">
-            <blockquote className="vigo-bodas-deck__quote">
-              “Javi nos acompañó en nuestra boda y se quedó con Río.”
-            </blockquote>
-            <cite className="vigo-bodas-deck__cite">Laura, en Google</cite>
+            <h2>Gracias</h2>
           </div>
         </section>
 

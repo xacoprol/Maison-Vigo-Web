@@ -265,11 +265,17 @@
 
 .vigo-bodas-deck__kit {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1px;
   background: var(--vb-line);
   border: 1px solid var(--vb-line);
   margin-top: clamp(16px, 3vh, 32px);
+}
+
+@media (min-width: 700px) {
+  .vigo-bodas-deck__kit {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .vigo-bodas-deck__kit div {
@@ -286,6 +292,15 @@
   stroke: var(--vb-accent);
   fill: none;
   stroke-width: 1.2;
+}
+
+.vigo-bodas-deck__kit-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #0a0908;
 }
 
 .vigo-bodas-deck__kit strong {
