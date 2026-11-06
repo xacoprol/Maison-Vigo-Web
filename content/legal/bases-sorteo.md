@@ -62,43 +62,43 @@ Podrán participar las personas físicas que, en el momento de participar, cumpl
 
 5.5. Solo se admitirá **una participación válida por persona y por cuenta de Instagram**, salvo que la Publicación Oficial indique expresamente otra regla. Las participaciones múltiples indebidas podrán ser anuladas.
 
-## 6. Premio
+## 6. Premios
 
-6.1. Habrá **un (1) premio**, integrado por los siguientes conceptos:
+6.1. Habrá **tres (3) premios independientes**, cada uno asignado a un ganador distinto:
 
-1. **1 sesión de estética MV Care** (servicio de estética canina de Maison Vigo, a disfrutar en las instalaciones y en las condiciones de agenda que se indiquen al ganador).
-2. **1 día de guardería en MV Home** (estancia de un día en el servicio de guardería familiar MV Home, en las condiciones de agenda y requisitos de admisión que se indiquen al ganador).
-3. **1 lote de cosmética PSH Cosmetics** (selección de productos de cosmética para mascotas de la marca PSH Cosmetics, según disponibilidad y composición que Maison Vigo determine).
+1. **Premio A — 1 sesión de estética MV Care** (servicio de estética canina de Maison Vigo, a disfrutar en las instalaciones y en las condiciones de agenda que se indiquen al ganador).
+2. **Premio B — 1 día de guardería en MV Home** (estancia de un día en el servicio de guardería familiar MV Home, en las condiciones de agenda y requisitos de admisión que se indiquen al ganador).
+3. **Premio C — 1 lote de cosmética PSH Cosmetics** (selección de productos de cosmética para mascotas de la marca PSH Cosmetics, según disponibilidad y composición que Maison Vigo determine).
 
-6.2. El premio no es canjeable por dinero en efectivo, ni transferable a terceros, salvo autorización expresa y escrita de Maison Vigo.
+6.2. Cada premio no es canjeable por dinero en efectivo, ni transferable a terceros, salvo autorización expresa y escrita de Maison Vigo. Una misma persona no podrá resultar ganadora de más de un premio en este Sorteo.
 
-6.3. La sesión de estética y el día de guardería deberán disfrutarse en las fechas y horarios acordados con Maison Vigo, dentro del plazo máximo que se comunique al ganador (y, en su defecto, **en los 6 meses siguientes** a la comunicación del premio), sujeto a disponibilidad. Podrán aplicarse condiciones de salud, vacunación u otras necesarias para el bienestar animal y la prestación segura del servicio.
+6.3. La sesión de estética y el día de guardería deberán disfrutarse en las fechas y horarios acordados con Maison Vigo, dentro del plazo máximo que se comunique al ganador correspondiente (y, en su defecto, **en los 6 meses siguientes** a la comunicación del premio), sujeto a disponibilidad. Podrán aplicarse condiciones de salud, vacunación u otras necesarias para el bienestar animal y la prestación segura del servicio.
 
 6.4. El lote de cosmética se entregará en mano en el centro de Maison Vigo o por envío a una dirección en España, según indique Maison Vigo. Los gastos de envío, si los hubiera, serán asumidos por Maison Vigo salvo que se indique lo contrario al ganador.
 
-6.5. Maison Vigo podrá sustituir cualquiera de los componentes del premio por otro de naturaleza y valor equivalente si el inicialmente previsto no estuviera disponible por causas ajenas a su voluntad, informando al ganador.
+6.5. Maison Vigo podrá sustituir cualquiera de los premios por otro de naturaleza y valor equivalente si el inicialmente previsto no estuviera disponible por causas ajenas a su voluntad, informando al ganador afectado.
 
 6.6. Cualquier impuesto, tasa o gasto no incluido expresamente en la descripción del premio será, en su caso, a cargo del ganador conforme a la normativa aplicable.
 
-## 7. Selección del ganador y suplentes
+## 7. Selección de ganadores y suplentes
 
-7.1. El **lunes 9 de noviembre de 2026**, Maison Vigo seleccionará al ganador (y suplentes) de forma **aleatoria** entre las participaciones válidas, mediante un sistema que garantice la imparcialidad (herramienta de sorteo aleatorio o procedimiento equivalente documentado).
+7.1. El **lunes 9 de noviembre de 2026**, Maison Vigo seleccionará a los ganadores (y suplentes) de forma **aleatoria** entre las participaciones válidas, mediante un sistema que garantice la imparcialidad (herramienta de sorteo aleatorio o procedimiento equivalente documentado).
 
-7.2. Habrá **un (1) ganador** y hasta **dos (2) suplentes**.
+7.2. Habrá **tres (3) ganadores**, uno por cada premio (A, B y C). Para cada premio podrá designarse hasta **un (1) suplente**. Una misma participación no podrá resultar adjudicada a más de un premio.
 
-7.3. Maison Vigo podrá descalificar participaciones fraudulentas, incompletas o contrarias a estas bases, incluso después del sorteo, y pasar al siguiente suplente.
+7.3. Maison Vigo podrá descalificar participaciones fraudulentas, incompletas o contrarias a estas bases, incluso después del sorteo, y pasar al suplente del premio correspondiente.
 
-## 8. Comunicación y entrega del premio
+## 8. Comunicación y entrega de los premios
 
-8.1. El ganador será contactado por Maison Vigo a través de **mensaje directo de Instagram** y/o por los medios que se indiquen en la Publicación Oficial, en un plazo razonable tras el sorteo (como referencia, **7 días naturales**).
+8.1. Cada ganador será contactado por Maison Vigo a través de **mensaje directo de Instagram** y/o por los medios que se indiquen en la Publicación Oficial, en un plazo razonable tras el sorteo (como referencia, **7 días naturales**).
 
 8.2. El ganador deberá responder en el plazo indicado en la comunicación (y, en su defecto, en **72 horas**) facilitando los datos necesarios para la entrega o disfrute del premio (nombre y apellidos, teléfono, correo electrónico y, si procede, dirección postal u otros datos imprescindibles, incluidos los relativos a la mascota cuando el premio lo requiera).
 
-8.3. Si el ganador no responde a tiempo, renuncia, no cumple los requisitos o no puede localizarse, el premio pasará al primer suplente, y así sucesivamente. Si tampoco hubiera suplente válido, el premio podrá declararse desierto.
+8.3. Si un ganador no responde a tiempo, renuncia, no cumple los requisitos o no puede localizarse, el premio correspondiente pasará a su suplente. Si tampoco hubiera suplente válido, ese premio podrá declararse desierto, sin afectar al resto.
 
-8.4. Maison Vigo podrá solicitar al ganador acreditación de identidad y edad (documento oficial) al solo efecto de verificar el cumplimiento de estas bases y gestionar la entrega.
+8.4. Maison Vigo podrá solicitar a cada ganador acreditación de identidad y edad (documento oficial) al solo efecto de verificar el cumplimiento de estas bases y gestionar la entrega.
 
-8.5. La entrega o disfrute del premio se realizará en la forma y plazo comunicados al ganador. Maison Vigo no responde de retrasos imputables al ganador, a terceros transportistas o a la plataforma Instagram.
+8.5. La entrega o disfrute de cada premio se realizará en la forma y plazo comunicados al ganador. Maison Vigo no responde de retrasos imputables al ganador, a terceros transportistas o a la plataforma Instagram.
 
 ## 9. Protección de datos
 
