@@ -13,5 +13,16 @@ export default function VigoBodasLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return (
+    <div
+      style={{
+        minHeight: "100svh",
+        height: "100%",
+        overflow: "hidden",
+        background: "#0f0d0c",
+      }}
+    >
+      {children}
+    </div>
+  );
 }

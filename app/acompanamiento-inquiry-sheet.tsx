@@ -540,12 +540,22 @@ function InquirySuccessHeart() {
   );
 }
 
-export function AcompanamientoInquirySheet() {
+export type AcompanamientoInquirySheetProps = {
+  /** Formulario fijo en página (stand `/vigo-bodas`), sin modal. */
+  embedded?: boolean;
+  /** Origen del lead si no viene de la URL (p. ej. stand). */
+  defaultLeadSource?: string | null;
+};
+
+export function AcompanamientoInquirySheet({
+  embedded = false,
+  defaultLeadSource = null,
+}: AcompanamientoInquirySheetProps = {}) {
   const titleId = useId();
   const [portalReady, setPortalReady] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(embedded);
+  const [mounted, setMounted] = useState(embedded);
+  const [visible, setVisible] = useState(embedded);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   /** Reabrimos con cookie: mensaje “ya enviada” + CTA para otra. */
@@ -571,7 +581,9 @@ export function AcompanamientoInquirySheet() {
   const [hoursEstimate, setHoursEstimate] = useState("");
   const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
-  const [leadSource, setLeadSource] = useState<string | null>(null);
+  const [leadSource, setLeadSource] = useState<string | null>(
+    () => defaultLeadSource,
+  );
   /** QR del tótem de la feria Vigo Bodas: saludo propio en el sheet. */
   const isVigoBodas = leadSource === "vigo-bodas";
   /** Tras cerrar el sheet al menos una vez en esta sesión QR. */
@@ -584,6 +596,7 @@ export function AcompanamientoInquirySheet() {
   const grabberRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | null>(null);
   const closeModalRef = useRef<() => void>(() => {});
+  const startAnotherInquiryRef = useRef<() => void>(() => {});
   const autoOpenedRef = useRef(false);
 
   const resetFormFields = useCallback(() => {
@@ -611,17 +624,30 @@ export function AcompanamientoInquirySheet() {
 
   useEffect(() => {
     setPortalReady(true);
+    if (defaultLeadSource) {
+      autoLeadSourceRef.current = defaultLeadSource;
+      setLeadSource((prev) => prev ?? defaultLeadSource);
+      if (defaultLeadSource === "vigo-bodas") markVigoBodasSession();
+    }
     const origen = readLeadSourceFromUrl();
     if (origen) {
       autoLeadSourceRef.current = origen;
       setLeadSource((prev) => prev ?? origen);
       if (origen === "vigo-bodas") markVigoBodasSession();
     }
-  }, []);
+  }, [defaultLeadSource]);
 
   useEffect(() => {
     if (isVigoBodas) markVigoBodasSession();
   }, [isVigoBodas]);
+
+  useEffect(() => {
+    if (!embedded) return;
+    trackEvent("acompanamiento_form_open", {
+      lead_source: defaultLeadSource ?? "vigo-bodas",
+      embedded: true,
+    });
+  }, [embedded, defaultLeadSource]);
 
   useEffect(() => {
     if (!open && !mounted) return;
@@ -710,6 +736,11 @@ export function AcompanamientoInquirySheet() {
   }, []);
 
   const closeModal = useCallback(() => {
+    if (embedded) {
+      /* En el stand no se cierra: dejamos listo para otra solicitud. */
+      startAnotherInquiryRef.current();
+      return;
+    }
     if (leadSource === "vigo-bodas" || autoLeadSourceRef.current === "vigo-bodas") {
       setVigoBodasDismissed(true);
     }
@@ -720,10 +751,11 @@ export function AcompanamientoInquirySheet() {
       setMounted(false);
       closeTimer.current = null;
     }, 520);
-  }, [leadSource]);
+  }, [embedded, leadSource]);
   closeModalRef.current = closeModal;
 
   useEffect(() => {
+    if (embedded) return;
     if (!open) return;
     setMounted(true);
     setVisible(false);
@@ -735,25 +767,25 @@ export function AcompanamientoInquirySheet() {
       window.cancelAnimationFrame(frame1);
       if (frame2) window.cancelAnimationFrame(frame2);
     };
-  }, [open]);
+  }, [embedded, open]);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (embedded || !mounted) return;
     lockScroll();
     return () => unlockScroll();
-  }, [mounted]);
+  }, [embedded, mounted]);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (embedded || !mounted) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeModalRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mounted]);
+  }, [embedded, mounted]);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (embedded || !mounted) return;
     const handle = grabberRef.current;
     const panel = panelRef.current;
     if (!handle || !panel) return;
@@ -805,7 +837,7 @@ export function AcompanamientoInquirySheet() {
       handle.removeEventListener("touchend", onTouchEnd);
       handle.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [mounted]);
+  }, [embedded, mounted]);
 
   const updateDog = useCallback(
     (index: number, patch: Partial<InquiryDogDraft>) => {
@@ -1163,6 +1195,7 @@ export function AcompanamientoInquirySheet() {
       ?.querySelector(".acompanamiento-inquiry-sheet__body")
       ?.scrollTo({ top: 0, behavior: "smooth" });
   };
+  startAnotherInquiryRef.current = startAnotherInquiry;
 
   const summaryItems = summary ? summaryRows(summary) : [];
 
@@ -1173,36 +1206,18 @@ export function AcompanamientoInquirySheet() {
     document.body.dispatchEvent(new Event(ACOMPANAMIENTO_INQUIRY_OPEN_EVENT));
   };
 
-  if (!portalReady || (!mounted && !showVigoBodasBubble)) return null;
+  if (!portalReady || (!embedded && !mounted && !showVigoBodasBubble)) return null;
 
-  return createPortal(
-    <>
-      {showVigoBodasBubble ? (
-        <div className="acompanamiento-vigo-bodas-dock">
-          <button
-            type="button"
-            className="acompanamiento-vigo-bodas-bubble"
-            onClick={reopenFromBubble}
-            aria-label="Abrir solicitud Vigo Bodas"
-          >
-            <span className="acompanamiento-vigo-bodas-bubble__dot" aria-hidden={true} />
-            <span className="acompanamiento-vigo-bodas-bubble__label">
-              Vigo Bodas
-            </span>
-            <span className="acompanamiento-vigo-bodas-bubble__cta">
-              Pide tu propuesta
-            </span>
-          </button>
-        </div>
-      ) : null}
-      {mounted ? (
+  const sheet = mounted || embedded ? (
     <div
       className={
         "acompanamiento-inquiry-sheet" +
-        (visible ? " acompanamiento-inquiry-sheet--visible" : "")
+        (embedded ? " acompanamiento-inquiry-sheet--embedded" : "") +
+        (visible || embedded ? " acompanamiento-inquiry-sheet--visible" : "")
       }
       role="presentation"
       onClick={(e) => {
+        if (embedded) return;
         if (e.target === e.currentTarget) closeModal();
       }}
     >
@@ -1210,24 +1225,28 @@ export function AcompanamientoInquirySheet() {
         ref={panelRef}
         className="acompanamiento-inquiry-sheet__panel"
         role="dialog"
-        aria-modal="true"
+        aria-modal={embedded ? undefined : true}
         aria-labelledby={titleId}
       >
-        <div
-          ref={grabberRef}
-          className="acompanamiento-inquiry-sheet__grabber"
-          aria-hidden={true}
-        >
-          <span className="acompanamiento-inquiry-sheet__grabber-bar" />
-        </div>
-        <button
-          type="button"
-          className="acompanamiento-inquiry-sheet__close"
-          aria-label="Cerrar"
-          onClick={closeModal}
-        >
-          ×
-        </button>
+        {embedded ? null : (
+          <>
+            <div
+              ref={grabberRef}
+              className="acompanamiento-inquiry-sheet__grabber"
+              aria-hidden={true}
+            >
+              <span className="acompanamiento-inquiry-sheet__grabber-bar" />
+            </div>
+            <button
+              type="button"
+              className="acompanamiento-inquiry-sheet__close"
+              aria-label="Cerrar"
+              onClick={closeModal}
+            >
+              ×
+            </button>
+          </>
+        )}
         <div className="acompanamiento-inquiry-sheet__body">
           {done ? (
             <div
@@ -1274,7 +1293,7 @@ export function AcompanamientoInquirySheet() {
                 </div>
               ) : null}
               <div className="acompanamiento-inquiry-sheet__success-actions">
-                {alreadySent ? (
+                {alreadySent || embedded ? (
                   <button
                     type="button"
                     className="acompanamiento-inquiry-sheet__submit"
@@ -1283,17 +1302,19 @@ export function AcompanamientoInquirySheet() {
                     Enviar otra solicitud
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  className={
-                    alreadySent
-                      ? "acompanamiento-inquiry-sheet__submit acompanamiento-inquiry-sheet__submit--ghost"
-                      : "acompanamiento-inquiry-sheet__submit"
-                  }
-                  onClick={closeModal}
-                >
-                  Cerrar
-                </button>
+                {embedded ? null : (
+                  <button
+                    type="button"
+                    className={
+                      alreadySent
+                        ? "acompanamiento-inquiry-sheet__submit acompanamiento-inquiry-sheet__submit--ghost"
+                        : "acompanamiento-inquiry-sheet__submit"
+                    }
+                    onClick={closeModal}
+                  >
+                    Cerrar
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -2149,7 +2170,31 @@ export function AcompanamientoInquirySheet() {
         </div>
       </div>
     </div>
+  ) : null;
+
+  if (embedded) return sheet;
+
+  return createPortal(
+    <>
+      {showVigoBodasBubble ? (
+        <div className="acompanamiento-vigo-bodas-dock">
+          <button
+            type="button"
+            className="acompanamiento-vigo-bodas-bubble"
+            onClick={reopenFromBubble}
+            aria-label="Abrir solicitud Vigo Bodas"
+          >
+            <span className="acompanamiento-vigo-bodas-bubble__dot" aria-hidden={true} />
+            <span className="acompanamiento-vigo-bodas-bubble__label">
+              Vigo Bodas
+            </span>
+            <span className="acompanamiento-vigo-bodas-bubble__cta">
+              Pide tu propuesta
+            </span>
+          </button>
+        </div>
       ) : null}
+      {sheet}
     </>,
     document.body,
   );

@@ -1,0 +1,404 @@
+/* Deck interno Vigo Bodas (stand) */
+.vigo-bodas-deck-root {
+  --vb-bg: #0f0d0c;
+  --vb-bg-2: #181512;
+  --vb-ink: #efe8dd;
+  --vb-muted: #b5aa9b;
+  --vb-accent: #c9ab80;
+  --vb-line: #2e2925;
+  --vb-sand: #dccbb0;
+  --vb-serif: var(--font-playfair), Georgia, serif;
+  --vb-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --vb-pad: clamp(24px, 6vw, 56px);
+  --vb-t-hero: clamp(44px, 9vw, 84px);
+  --vb-t-title: clamp(36px, 7vw, 60px);
+  --vb-t-body: clamp(19px, 3vw, 25px);
+  --vb-t-small: clamp(14px, 2vw, 17px);
+  height: 100%;
+  background: var(--vb-bg);
+  color: var(--vb-ink);
+  font-family: var(--vb-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.vigo-bodas-deck-root,
+.vigo-bodas-deck-root * {
+  box-sizing: border-box;
+}
+
+.vigo-bodas-deck {
+  height: 100svh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vigo-bodas-deck__page {
+  position: relative;
+  height: 100svh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--vb-bg);
+  margin: 0;
+  padding: 0;
+}
+
+.vigo-bodas-deck__page--alt {
+  background: var(--vb-bg-2);
+}
+
+.vigo-bodas-deck__photo {
+  position: relative;
+  flex: 0 0 54%;
+  background: linear-gradient(160deg, #2a2420, #14110f);
+  overflow: hidden;
+}
+
+.vigo-bodas-deck__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vigo-bodas-deck__photo img.is-missing {
+  display: none;
+}
+
+.vigo-bodas-deck__photo::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, var(--vb-bg));
+}
+
+.vigo-bodas-deck__hint {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #6f655a;
+  font-size: var(--vb-t-small);
+}
+
+.vigo-bodas-deck__photo img.is-missing + .vigo-bodas-deck__hint {
+  display: flex;
+}
+
+.vigo-bodas-deck__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(12px, 2vh, 20px);
+  padding: 0 var(--vb-pad) calc(var(--vb-pad) + env(safe-area-inset-bottom));
+}
+
+.vigo-bodas-deck__num {
+  font-family: var(--vb-serif);
+  font-size: clamp(56px, 11vw, 96px);
+  line-height: 0.9;
+  color: var(--vb-accent);
+  font-weight: 400;
+}
+
+.vigo-bodas-deck__phase {
+  font-size: var(--vb-t-small);
+  color: var(--vb-accent);
+  letter-spacing: 0.04em;
+}
+
+.vigo-bodas-deck__body h1,
+.vigo-bodas-deck__body h2 {
+  font-family: var(--vb-serif);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.vigo-bodas-deck__body h1 {
+  font-size: var(--vb-t-hero);
+}
+
+.vigo-bodas-deck__body h2 {
+  font-size: var(--vb-t-title);
+}
+
+.vigo-bodas-deck__lead {
+  font-size: var(--vb-t-body);
+  line-height: 1.5;
+  color: var(--vb-muted);
+  max-width: 30ch;
+  margin: 0;
+}
+
+.vigo-bodas-deck__page--cover .vigo-bodas-deck__photo {
+  position: absolute;
+  inset: 0;
+  flex: none;
+}
+
+.vigo-bodas-deck__page--cover .vigo-bodas-deck__photo::after {
+  height: 70%;
+}
+
+.vigo-bodas-deck__page--cover .vigo-bodas-deck__body {
+  position: relative;
+  flex: none;
+  margin-top: auto;
+  padding-bottom: calc(var(--vb-pad) * 1.6 + env(safe-area-inset-bottom));
+}
+
+.vigo-bodas-deck__page--cover h1 em {
+  font-style: italic;
+  color: var(--vb-accent);
+}
+
+.vigo-bodas-deck__logo {
+  position: absolute;
+  top: calc(var(--vb-pad) + env(safe-area-inset-top));
+  left: var(--vb-pad);
+  height: 34px;
+  z-index: 2;
+}
+
+.vigo-bodas-deck__swipe {
+  font-size: var(--vb-t-small);
+  color: var(--vb-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.vigo-bodas-deck__swipe span {
+  display: inline-block;
+  width: 1px;
+  height: 28px;
+  background: var(--vb-accent);
+  animation: vigo-bodas-drop 2.4s ease-in-out infinite;
+}
+
+@keyframes vigo-bodas-drop {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+}
+
+.vigo-bodas-deck__page--text .vigo-bodas-deck__body {
+  justify-content: center;
+  padding-top: calc(var(--vb-pad) + env(safe-area-inset-top));
+}
+
+.vigo-bodas-deck__moments {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  margin: clamp(16px, 3vh, 32px) 0 0;
+  padding: 0;
+}
+
+.vigo-bodas-deck__moments li {
+  display: grid;
+  grid-template-columns: 3.2ch 1fr;
+  gap: 16px;
+  padding: clamp(16px, 2.6vh, 26px) 0;
+  border-top: 1px solid var(--vb-line);
+}
+
+.vigo-bodas-deck__moments li:last-child {
+  border-bottom: 1px solid var(--vb-line);
+}
+
+.vigo-bodas-deck__moments b {
+  font-family: var(--vb-serif);
+  font-weight: 400;
+  font-size: clamp(26px, 4.6vw, 38px);
+  color: var(--vb-accent);
+  line-height: 1;
+}
+
+.vigo-bodas-deck__moments strong {
+  display: block;
+  font-family: var(--vb-serif);
+  font-weight: 400;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.1;
+}
+
+.vigo-bodas-deck__moments small {
+  display: block;
+  font-size: var(--vb-t-body);
+  color: var(--vb-muted);
+  margin-top: 6px;
+}
+
+.vigo-bodas-deck__page--statement {
+  background: var(--vb-sand);
+  color: #1d1916;
+}
+
+.vigo-bodas-deck__page--statement .vigo-bodas-deck__body {
+  justify-content: center;
+}
+
+.vigo-bodas-deck__page--statement h2 {
+  font-size: var(--vb-t-hero);
+}
+
+.vigo-bodas-deck__page--statement h2 em {
+  font-style: italic;
+}
+
+.vigo-bodas-deck__kit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--vb-line);
+  border: 1px solid var(--vb-line);
+  margin-top: clamp(16px, 3vh, 32px);
+}
+
+.vigo-bodas-deck__kit div {
+  background: var(--vb-bg-2);
+  padding: clamp(18px, 3vh, 30px) clamp(16px, 3vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vigo-bodas-deck__kit svg {
+  width: 40px;
+  height: 40px;
+  stroke: var(--vb-accent);
+  fill: none;
+  stroke-width: 1.2;
+}
+
+.vigo-bodas-deck__kit strong {
+  font-family: var(--vb-serif);
+  font-weight: 400;
+  font-size: clamp(24px, 4.2vw, 34px);
+  line-height: 1.1;
+}
+
+.vigo-bodas-deck__kit small {
+  font-size: var(--vb-t-small);
+  color: var(--vb-muted);
+  line-height: 1.4;
+}
+
+.vigo-bodas-deck__quote {
+  font-family: var(--vb-serif);
+  font-style: italic;
+  font-size: clamp(34px, 6.4vw, 56px);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.vigo-bodas-deck__cite {
+  font-style: normal;
+  font-size: var(--vb-t-body);
+  color: var(--vb-muted);
+}
+
+.vigo-bodas-deck__page--form {
+  overflow: hidden;
+}
+
+.vigo-bodas-deck__dots {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vigo-bodas-deck__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffffff38;
+  transition:
+    background 0.3s,
+    transform 0.3s;
+}
+
+.vigo-bodas-deck__dots i.is-on {
+  background: var(--vb-accent);
+  transform: scale(1.5);
+}
+
+.vigo-bodas-deck__dots.is-dark i {
+  background: #00000030;
+}
+
+.vigo-bodas-deck__dots.is-dark i.is-on {
+  background: #1d1916;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vigo-bodas-deck__swipe span {
+    animation: none;
+  }
+  .vigo-bodas-deck__dots i {
+    transition: none;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 900px) {
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    ) {
+    flex-direction: row;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__photo {
+    flex: 0 0 50%;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__photo::after {
+    display: none;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__body {
+    justify-content: center;
+    padding-top: var(--vb-pad);
+  }
+}
