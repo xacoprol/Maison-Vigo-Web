@@ -100,6 +100,10 @@ type Props = {
   onChange: (next: string[]) => void;
   required?: boolean;
   error?: string | null;
+  /** Un solo día: al tocarlo se elige y se cierra el calendario. */
+  single?: boolean;
+  /** Abre el calendario al montar si aún no hay fecha. */
+  openOnMount?: boolean;
 };
 
 export function AcompanamientoDateField({
@@ -108,10 +112,13 @@ export function AcompanamientoDateField({
   onChange,
   required,
   error,
+  single = false,
+  openOnMount = false,
 }: Props) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => openOnMount && value.length === 0);
+  const fieldLabel = single ? "Fecha del evento" : "Fechas del evento";
   const [panelHost, setPanelHost] = useState<HTMLElement | null>(null);
   const min = useMemo(() => todayKey(), []);
   const max = useMemo(() => maxKey(), []);
@@ -204,6 +211,11 @@ export function AcompanamientoDateField({
 
   const toggleDay = (key: string) => {
     if (key < min || key > max) return;
+    if (single) {
+      onChange([key]);
+      window.setTimeout(() => setOpen(false), 180);
+      return;
+    }
     const sorted = [...selected].sort();
     if (!sorted.length) {
       onChange([key]);
@@ -246,13 +258,15 @@ export function AcompanamientoDateField({
       className="acompanamiento-date acompanamiento-date--sheet"
       role="dialog"
       aria-modal="true"
-      aria-label="Elegir fechas del evento"
+      aria-label={single ? "Elegir la fecha del evento" : "Elegir fechas del evento"}
     >
       <div className="acompanamiento-date__head">
         <p className="acompanamiento-date__eyebrow">Evento</p>
-        <h3 className="acompanamiento-date__title">Fechas del evento</h3>
+        <h3 className="acompanamiento-date__title">{fieldLabel}</h3>
         <p className="acompanamiento-date__hint">
-          Puedes marcar varias fechas seguidas
+          {single
+            ? "Toca el día del evento"
+            : "Puedes marcar varias fechas seguidas"}
         </p>
         {selectionLabel ? (
           <p className="acompanamiento-date__selection">{selectionLabel}</p>
@@ -377,7 +391,7 @@ export function AcompanamientoDateField({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={listboxId}
-        aria-label="Fechas del evento"
+        aria-label={fieldLabel}
         aria-required={required ? true : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={errorId}
@@ -385,9 +399,9 @@ export function AcompanamientoDateField({
       >
         {selected.size
           ? formatTriggerLabel([...selected])
-          : "Fechas del evento"}
+          : fieldLabel}
       </button>
-      <label htmlFor={id}>Fechas del evento</label>
+      <label htmlFor={id}>{fieldLabel}</label>
       {error ? (
         <p
           id={errorId}

@@ -41,6 +41,7 @@ const DOG_SEX_OPTIONS: { id: DogSex; label: string }[] = [
 ];
 
 type StepDef =
+  | { id: "intro" }
   | { id: "names" }
   | { id: "eventType" }
   | { id: "dates" }
@@ -55,14 +56,18 @@ type StepDef =
   | { id: "contact" };
 
 /** Flujo conversacional: una pregunta por pantalla. Los pasos de perro se repiten por cada perro. */
-function buildSteps(dogCount: number): StepDef[] {
+function buildSteps(
+  dogCount: number,
+  opts: { skipEventType: boolean },
+): StepDef[] {
   const perDog: StepDef[] = [];
   for (let i = 0; i < Math.max(1, dogCount); i++) {
     perDog.push({ id: "dogBreed", dog: i }, { id: "dogTraits", dog: i });
   }
   return [
+    { id: "intro" },
     { id: "names" },
-    { id: "eventType" },
+    ...(opts.skipEventType ? [] : [{ id: "eventType" } as StepDef]),
     { id: "dates" },
     { id: "venue" },
     { id: "dogNames" },
@@ -79,7 +84,59 @@ function stepKeyOf(s: StepDef): string {
   return "dog" in s ? `${s.id}-${s.dog}` : s.id;
 }
 
+type DateMode = "exact" | "approx";
+
+const MONTH_LABELS = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+/** Próximos 18 meses para «aún no sabemos el día exacto». value = YYYY-MM */
+function approxMonthOptions(): { value: string; month: string; year: number }[] {
+  const now = new Date();
+  const out: { value: string; month: string; year: number }[] = [];
+  for (let i = 0; i < 18; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    out.push({
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      month: MONTH_LABELS[d.getMonth()]!,
+      year: d.getFullYear(),
+    });
+  }
+  return out;
+}
+
+function approxMonthLabel(value: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!m) return value;
+  const label = MONTH_LABELS[Number(m[2]) - 1] ?? "";
+  return `${label.charAt(0).toUpperCase()}${label.slice(1)} de ${m[1]}`;
+}
+
+function todayDateKey(): string {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+}
+
 const HOURS_OPTIONS = ["1–2 horas", "3–4 horas", "Todo el día", "Aún no lo sé"];
+
+const INTRO_STEPS = [
+  {
+    n: "01",
+    title: "Nos contáis",
+    text: "Fecha, lugar y cómo es vuestro perro. Sin compromiso.",
+  },
+  {
+    n: "02",
+    title: "Os preparamos la propuesta",
+    text: "Afinamos presencia, tiempos y traslado con vosotros.",
+  },
+  {
+    n: "03",
+    title: "El gran día",
+    text: "Estamos allí con calma para que podáis vivir el momento juntos.",
+  },
+] as const;
 
 /** Ya incluidos en el servicio: se muestran, no se piden. */
 const INCLUDED_ITEMS: { title: string; text: string }[] = [
@@ -197,6 +254,8 @@ type InquirySummary = {
   email: string | null;
   eventType: EventType | "";
   eventDates: string[];
+  /** «Aún no sabemos el día»: mes aproximado legible (p. ej. «Junio de 2027»). */
+  dateApprox?: string | null;
   venue: string;
   dogs: InquiryDogSummary[];
   /** Compat resúmenes antiguos (un solo perro). */
@@ -346,9 +405,11 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
     { label: "Evento", value: eventTypeLabel(summary.eventType) },
     {
       label: summary.eventDates.length > 1 ? "Fechas" : "Fecha",
-      value: summary.eventDates.length
-        ? summary.eventDates.map(formatSummaryDate).join(" · ")
-        : "—",
+      value: summary.dateApprox
+        ? `${summary.dateApprox} (día por decidir)`
+        : summary.eventDates.length
+          ? summary.eventDates.map(formatSummaryDate).join(" · ")
+          : "—",
     },
     { label: "Lugar", value: summary.venue },
   );
@@ -498,6 +559,8 @@ export function AcompanamientoInquirySheet() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [eventDates, setEventDates] = useState<string[]>([]);
+  const [dateMode, setDateMode] = useState<DateMode | null>(null);
+  const [approxMonth, setApproxMonth] = useState("");
   const [venue, setVenue] = useState("");
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
@@ -529,6 +592,8 @@ export function AcompanamientoInquirySheet() {
     setPhone("");
     setEmail("");
     setEventDates([]);
+    setDateMode(null);
+    setApproxMonth("");
     setVenue("");
     setDogs([emptyDogDraft()]);
     setEventType("boda");
@@ -761,7 +826,8 @@ export function AcompanamientoInquirySheet() {
   }, []);
 
   const navigatedRef = useRef(false);
-  const steps = buildSteps(dogs.length);
+  /** Desde el QR de Vigo Bodas siempre es boda: no preguntamos el tipo de evento. */
+  const steps = buildSteps(dogs.length, { skipEventType: isVigoBodas });
   const stepIndex = Math.min(step, steps.length - 1);
   const current = steps[stepIndex]!;
   const isLastStep = stepIndex === steps.length - 1;
@@ -821,14 +887,16 @@ export function AcompanamientoInquirySheet() {
         nextErrors.eventType = "Elige una opción";
       }
       if (is("dates")) {
-        if (!eventDates.length) {
-          nextErrors.dates = "Elige al menos una fecha";
-        } else {
-          const today = new Date();
-          const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-          if (eventDates.some((d) => d < todayKey)) {
+        if (!dateMode) {
+          nextErrors.dateMode = "Elige una opción";
+        } else if (dateMode === "exact") {
+          if (!eventDates.length) {
+            nextErrors.dates = "Elige el día";
+          } else if (eventDates.some((d) => d < todayDateKey())) {
             nextErrors.dates = "La fecha no puede ser anterior a hoy";
           }
+        } else if (!approxMonth) {
+          nextErrors.approxMonth = "Elige el mes aproximado";
         }
       }
       if (is("dogNames")) {
@@ -869,7 +937,7 @@ export function AcompanamientoInquirySheet() {
       }
       return nextErrors;
     },
-    [partnerNameA, eventType, eventDates, dogs, phone, email],
+    [partnerNameA, eventType, eventDates, dateMode, approxMonth, dogs, phone, email],
   );
 
   const scrollBodyTop = () => {
@@ -955,8 +1023,27 @@ export function AcompanamientoInquirySheet() {
     const tel = phone.trim();
     const mail = email.trim();
     const place = venue.trim() || "Sin decidir";
-    const datesOut = [...eventDates].sort();
-    const messageOut = message.trim() || null;
+    /* La API exige una fecha: si aún no saben el día, enviamos el primer día
+       (posible) del mes elegido y lo dejamos claro en el mensaje. */
+    const approxLabel =
+      dateMode === "approx" && approxMonth ? approxMonthLabel(approxMonth) : null;
+    const datesOut =
+      dateMode === "approx" && approxMonth
+        ? [
+            `${approxMonth}-01` < todayDateKey()
+              ? todayDateKey()
+              : `${approxMonth}-01`,
+          ]
+        : eventDates.slice(0, 1);
+    const messageOut =
+      [
+        approxLabel
+          ? `Fecha aproximada: ${approxLabel} (aún sin día exacto).`
+          : null,
+        message.trim() || null,
+      ]
+        .filter(Boolean)
+        .join("\n\n") || null;
     const dogsPayload: InquiryDogSummary[] = dogs.map((dog) => {
       const ageRaw = dog.ageYears.trim().replace(",", ".");
       const ageNum = ageRaw === "" ? null : Number(ageRaw);
@@ -1027,6 +1114,7 @@ export function AcompanamientoInquirySheet() {
         email: mail || null,
         eventType,
         eventDates: datesOut,
+        dateApprox: approxLabel,
         venue: place,
         dogs: dogsPayload,
         needsTransfer,
@@ -1042,7 +1130,7 @@ export function AcompanamientoInquirySheet() {
         jewelryItems: [],
         hoursEstimate: hoursEstimate.trim() || null,
         petCareNotes: petCareNotes.trim() || null,
-        message: messageOut,
+        message: message.trim() || null,
       };
       trackEvent("generate_lead", {
         form_name: "acompanamiento",
@@ -1215,7 +1303,9 @@ export function AcompanamientoInquirySheet() {
                   (current.id === "venue" && !venue.trim()) ||
                   (current.id === "care" && !petCareNotes.trim()) ||
                   (current.id === "hours" && !hoursEstimate.trim());
-                const primaryLabel = isLastStep
+                const primaryLabel = current.id === "intro"
+                  ? "Pedir nuestra propuesta"
+                  : isLastStep
                   ? pending
                     ? "Enviando…"
                     : "Enviar solicitud"
@@ -1224,33 +1314,38 @@ export function AcompanamientoInquirySheet() {
                     : "Continuar";
                 const nameA = partnerNameA.trim();
                 const nameB = partnerNameB.trim();
+                const isIntro = current.id === "intro";
+                const questionCount = steps.length - 1;
                 const progressPct = Math.round(
-                  ((stepIndex + 1) / steps.length) * 100,
+                  (stepIndex / questionCount) * 100,
                 );
+                const prevId = steps[stepIndex - 1]?.id;
 
                 let greeting: string | null = null;
                 let question = "";
                 let lead: string | null = null;
                 switch (current.id) {
+                  case "intro":
+                    question = isVigoBodas
+                      ? "Que vuestro perro también esté en el gran día"
+                      : "Que vuestro perro forme parte del día";
+                    break;
                   case "names":
-                    greeting = isVigoBodas
-                      ? "¡Hola! Bienvenidos desde Vigo Bodas"
-                      : "¡Hola!";
+                    greeting = "Empecemos";
                     question = "¿Cómo os llamáis?";
-                    lead =
-                      "Os haremos unas preguntas rápidas para preparar vuestra propuesta, sin compromiso.";
                     break;
                   case "eventType":
                     greeting = `Encantados, ${formatCoupleName(nameA, nameB)}`;
                     question = "¿Qué celebráis?";
                     break;
                   case "dates":
+                    if (prevId === "names") {
+                      greeting = `Encantados, ${formatCoupleName(nameA, nameB)}`;
+                    }
                     question =
                       eventType === "boda"
                         ? "¿Cuándo es el gran día?"
                         : "¿Qué día es el evento?";
-                    lead =
-                      "Si aún dudáis entre varias fechas, podéis marcar más de una.";
                     break;
                   case "venue":
                     question = "¿Dónde lo celebráis?";
@@ -1314,13 +1409,14 @@ export function AcompanamientoInquirySheet() {
                       className="acompanamiento-inquiry-sheet__hp"
                     />
 
+                    {!isIntro ? (
                     <div
                       className="acompanamiento-inquiry-sheet__progress"
                       role="progressbar"
-                      aria-label={`Pregunta ${stepIndex + 1} de ${steps.length}`}
+                      aria-label={`Pregunta ${stepIndex} de ${questionCount}`}
                       aria-valuemin={1}
-                      aria-valuemax={steps.length}
-                      aria-valuenow={stepIndex + 1}
+                      aria-valuemax={questionCount}
+                      aria-valuenow={stepIndex}
                     >
                       <p className="acompanamiento-inquiry-sheet__eyebrow">
                         {isVigoBodas ? "Vigo Bodas" : "Acompañamiento"}
@@ -1332,11 +1428,31 @@ export function AcompanamientoInquirySheet() {
                         />
                       </span>
                     </div>
+                    ) : null}
 
                     <div
                       key={stepKeyOf(current)}
-                      className="acompanamiento-inquiry-sheet__step"
+                      className={
+                        "acompanamiento-inquiry-sheet__step" +
+                        (isIntro ? " acompanamiento-inquiry-sheet__step--intro" : "")
+                      }
                     >
+                      {isIntro ? (
+                        <>
+                          <div
+                            className="acompanamiento-inquiry-sheet__intro-media"
+                            aria-hidden={true}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/acompanamiento.webp" alt="" />
+                          </div>
+                          <p className="acompanamiento-inquiry-sheet__eyebrow">
+                            {isVigoBodas
+                              ? "Vigo Bodas · Acompañamiento canino"
+                              : "Acompañamiento canino"}
+                          </p>
+                        </>
+                      ) : null}
                       {greeting ? (
                         <p className="acompanamiento-inquiry-sheet__greeting">
                           {greeting}
@@ -1355,6 +1471,37 @@ export function AcompanamientoInquirySheet() {
                       ) : null}
 
                       <div className="acompanamiento-inquiry-sheet__answer">
+                        {isIntro ? (
+                          <div className="acompanamiento-inquiry-sheet__intro">
+                            <p className="acompanamiento-inquiry-sheet__intro-text">
+                              {isVigoBodas
+                                ? "Estamos presentes en vuestra boda cuidando de vuestro perro, para que podáis tenerlo cerca y vivir ese momento juntos, con la misma calma y atención de siempre."
+                                : "Estamos presentes en bodas, celebraciones y días especiales cuidando de vuestro perro, para que podáis vivir ese momento juntos, con la misma calma y atención de siempre."}
+                            </p>
+                            <ol className="acompanamiento-inquiry-sheet__intro-steps">
+                              {INTRO_STEPS.map((it) => (
+                                <li key={it.n}>
+                                  <span className="acompanamiento-inquiry-sheet__intro-n">
+                                    {it.n}
+                                  </span>
+                                  <span>
+                                    <span className="acompanamiento-inquiry-sheet__intro-title">
+                                      {it.title}
+                                    </span>
+                                    <span className="acompanamiento-inquiry-sheet__intro-desc">
+                                      {it.text}
+                                    </span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                            <p className="acompanamiento-inquiry-sheet__intro-included">
+                              Incluye portaalianzas, collar y correa especial y
+                              joyas personalizadas.
+                            </p>
+                          </div>
+                        ) : null}
+
                         {current.id === "names" ? (
                           <>
                             <InquiryFloatField
@@ -1438,15 +1585,111 @@ export function AcompanamientoInquirySheet() {
                         ) : null}
 
                         {current.id === "dates" ? (
-                          <AcompanamientoDateField
-                            id={`${titleId}-date`}
-                            value={eventDates}
-                            onChange={(next) => {
-                              setEventDates(next);
-                              clearFieldError("dates");
-                            }}
-                            error={fieldErrors.dates ?? null}
-                          />
+                          <>
+                            <div
+                              id={`${titleId}-dateMode`}
+                              className="acompanamiento-inquiry-sheet__options"
+                              role="group"
+                              aria-label="¿Tenéis fecha?"
+                            >
+                              <button
+                                type="button"
+                                className={
+                                  "acompanamiento-inquiry-sheet__option" +
+                                  (dateMode === "exact" ? " is-active" : "")
+                                }
+                                aria-pressed={dateMode === "exact"}
+                                onClick={() => {
+                                  setDateMode("exact");
+                                  setFieldErrors({});
+                                }}
+                              >
+                                Ya tenemos el día
+                              </button>
+                              <button
+                                type="button"
+                                className={
+                                  "acompanamiento-inquiry-sheet__option" +
+                                  (dateMode === "approx" ? " is-active" : "")
+                                }
+                                aria-pressed={dateMode === "approx"}
+                                onClick={() => {
+                                  setDateMode("approx");
+                                  setFieldErrors({});
+                                }}
+                              >
+                                Aún no sabemos el día exacto
+                              </button>
+                            </div>
+                            {fieldErrors.dateMode ? (
+                              <p
+                                className="acompanamiento-inquiry-sheet__field-error acompanamiento-inquiry-sheet__field-error--static"
+                                role="alert"
+                              >
+                                {fieldErrors.dateMode}
+                              </p>
+                            ) : null}
+                            {dateMode === "exact" ? (
+                              <AcompanamientoDateField
+                                key="exact"
+                                id={`${titleId}-date`}
+                                single
+                                openOnMount
+                                value={eventDates.slice(0, 1)}
+                                onChange={(next) =>
+                                  pickAndAdvance(() => {
+                                    setEventDates(next.slice(0, 1));
+                                    clearFieldError("dates");
+                                  })
+                                }
+                                error={fieldErrors.dates ?? null}
+                              />
+                            ) : null}
+                            {dateMode === "approx" ? (
+                              <div
+                                id={`${titleId}-approxMonth`}
+                                className="acompanamiento-inquiry-sheet__choice"
+                                role="group"
+                                aria-label="Mes aproximado"
+                              >
+                                <p className="acompanamiento-inquiry-sheet__choice-label">
+                                  ¿Más o menos cuándo?
+                                </p>
+                                <div className="acompanamiento-inquiry-sheet__months">
+                                  {approxMonthOptions().map((m, i, all) => (
+                                    <button
+                                      key={m.value}
+                                      type="button"
+                                      className={
+                                        "acompanamiento-inquiry-sheet__month" +
+                                        (approxMonth === m.value ? " is-active" : "")
+                                      }
+                                      aria-pressed={approxMonth === m.value}
+                                      onClick={() =>
+                                        pickAndAdvance(() => {
+                                          setApproxMonth(m.value);
+                                          clearFieldError("approxMonth");
+                                        })
+                                      }
+                                    >
+                                      <span>{m.month}</span>
+                                      {i === 0 || all[i - 1]!.year !== m.year ? (
+                                        <small>{m.year}</small>
+                                      ) : null}
+                                    </button>
+                                  ))}
+                                </div>
+                                {fieldErrors.approxMonth ? (
+                                  <p
+                                    className="acompanamiento-inquiry-sheet__field-error acompanamiento-inquiry-sheet__field-error--static"
+                                    role="alert"
+                                  >
+                                    {fieldErrors.approxMonth}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </>
                         ) : null}
 
                         {current.id === "venue" ? (
@@ -1862,6 +2105,11 @@ export function AcompanamientoInquirySheet() {
                       </div>
                     </div>
 
+                    {isIntro ? (
+                      <p className="acompanamiento-inquiry-sheet__intro-note">
+                        Unas preguntas rápidas · menos de 2 minutos · sin compromiso
+                      </p>
+                    ) : null}
                     {error ? (
                       <p className="acompanamiento-inquiry-sheet__error" role="alert">
                         {error}
@@ -1869,7 +2117,7 @@ export function AcompanamientoInquirySheet() {
                     ) : null}
 
                     <div className="acompanamiento-inquiry-sheet__nav">
-                      {stepIndex > 0 ? (
+                      {stepIndex > 1 ? (
                         <button
                           type="button"
                           className="acompanamiento-inquiry-sheet__nav-back"
