@@ -194,6 +194,7 @@ export function AcompanamientoInquiryBreedField({
       <input
         ref={inputRef}
         id={id}
+        type="text"
         role="combobox"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}

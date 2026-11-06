@@ -380,6 +380,33 @@
   }
 }
 
+/* iPad / tablet portrait: foto un poco menor y texto centrado en el bloque */
+@media (min-width: 700px) and (orientation: portrait) {
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__photo {
+    flex: 0 0 46%;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__body {
+    justify-content: center;
+    padding-top: var(--vb-pad);
+    gap: clamp(10px, 1.6vh, 18px);
+  }
+
+  .vigo-bodas-deck__num {
+    font-size: clamp(48px, 8vw, 72px);
+  }
+}
+
 @media (orientation: landscape) and (min-width: 900px) {
   .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
       .vigo-bodas-deck__page--text
@@ -396,6 +423,45 @@
     )
     .vigo-bodas-deck__photo {
     flex: 0 0 50%;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__photo::after {
+    display: none;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__body {
+    justify-content: center;
+    padding-top: var(--vb-pad);
+  }
+}
+
+/* iPad landscape más estrecho (768–899): también foto | texto centrado */
+@media (orientation: landscape) and (min-width: 700px) and (max-width: 899px) {
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    ) {
+    flex-direction: row;
+  }
+
+  .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(
+      .vigo-bodas-deck__page--text
+    ):not(.vigo-bodas-deck__page--statement):not(
+      .vigo-bodas-deck__page--form
+    )
+    .vigo-bodas-deck__photo {
+    flex: 0 0 48%;
   }
 
   .vigo-bodas-deck__page:not(.vigo-bodas-deck__page--cover):not(

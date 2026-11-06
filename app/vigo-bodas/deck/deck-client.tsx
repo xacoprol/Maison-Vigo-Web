@@ -60,6 +60,13 @@ export function VigoBodasDeckClient() {
   const deckRef = useRef<HTMLElement>(null);
   const dotsRef = useRef<HTMLElement>(null);
 
+  const goToFirstSlide = () => {
+    const first = deckRef.current?.querySelector<HTMLElement>(
+      ".vigo-bodas-deck__page",
+    );
+    first?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     const deck = deckRef.current;
     const dots = dotsRef.current;
@@ -334,6 +341,7 @@ export function VigoBodasDeckClient() {
           <AcompanamientoInquirySheet
             embedded
             defaultLeadSource="vigo-bodas"
+            onGoHome={goToFirstSlide}
           />
         </section>
       </main>

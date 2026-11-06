@@ -545,11 +545,14 @@ export type AcompanamientoInquirySheetProps = {
   embedded?: boolean;
   /** Origen del lead si no viene de la URL (p. ej. stand). */
   defaultLeadSource?: string | null;
+  /** Stand: volver a la primera diapositiva del deck. */
+  onGoHome?: () => void;
 };
 
 export function AcompanamientoInquirySheet({
   embedded = false,
   defaultLeadSource = null,
+  onGoHome,
 }: AcompanamientoInquirySheetProps = {}) {
   const titleId = useId();
   const [portalReady, setPortalReady] = useState(false);
@@ -1016,20 +1019,55 @@ export function AcompanamientoInquirySheet({
     setAutoAdvanceTick((t) => t + 1);
   };
 
-  /** Foco en el primer campo de texto al cambiar de pregunta (no al abrir). */
+  /** Autofoco en el primer campo de texto al avanzar (no chips/fechas). */
+  const focusStepTextField = useCallback(() => {
+    const root = panelRef.current;
+    if (!root) return false;
+    const el = root.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      [
+        '.acompanamiento-inquiry-sheet__step input[type="text"]:not([data-nofocus]):not([readonly])',
+        '.acompanamiento-inquiry-sheet__step input[type="tel"]:not([data-nofocus]):not([readonly])',
+        '.acompanamiento-inquiry-sheet__step input[type="email"]:not([data-nofocus]):not([readonly])',
+        '.acompanamiento-inquiry-sheet__step input[type="search"]:not([data-nofocus]):not([readonly])',
+        '.acompanamiento-inquiry-sheet__step input[type="number"]:not([data-nofocus]):not([readonly])',
+        ".acompanamiento-inquiry-sheet__step input:not([type]):not([data-nofocus]):not([readonly])",
+        ".acompanamiento-inquiry-sheet__step textarea:not([data-nofocus]):not([readonly])",
+      ].join(", "),
+    );
+    if (!el) return false;
+    if (el.closest(".acompanamiento-inquiry-sheet__field--date")) return false;
+    el.focus({ preventScroll: true });
+    /* iOS/iPad: seleccionar ayuda a abrir el teclado tras el gesto. */
+    if (typeof el.select === "function" && el.value) {
+      try {
+        el.select();
+      } catch {
+        /* ignore */
+      }
+    }
+    return document.activeElement === el;
+  }, []);
+
   useEffect(() => {
     if (!navigatedRef.current) return;
     navigatedRef.current = false;
-    const id = window.setTimeout(() => {
-      const el = panelRef.current?.querySelector<HTMLElement>(
-        ".acompanamiento-inquiry-sheet__step input:not([type=checkbox]):not([inputmode=none]):not([data-nofocus]), .acompanamiento-inquiry-sheet__step textarea:not([data-nofocus])",
-      );
-      if (el && !el.closest(".acompanamiento-inquiry-sheet__field--date")) {
-        el.focus({ preventScroll: true });
+    let cancelled = false;
+    let attempts = 0;
+    const tryFocus = () => {
+      if (cancelled) return;
+      if (focusStepTextField()) return;
+      attempts += 1;
+      if (attempts < 6) {
+        window.setTimeout(tryFocus, 50);
       }
-    }, 320);
-    return () => window.clearTimeout(id);
-  }, [stepIndex]);
+    };
+    /* Cerca del gesto (Continuar / chip) para que iPad abra el teclado. */
+    const id = window.setTimeout(tryFocus, 40);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
+  }, [stepIndex, focusStepTextField]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1293,7 +1331,18 @@ export function AcompanamientoInquirySheet({
                 </div>
               ) : null}
               <div className="acompanamiento-inquiry-sheet__success-actions">
-                {alreadySent || embedded ? (
+                {embedded ? (
+                  <button
+                    type="button"
+                    className="acompanamiento-inquiry-sheet__submit"
+                    onClick={() => {
+                      startAnotherInquiry();
+                      onGoHome?.();
+                    }}
+                  >
+                    Ir a inicio
+                  </button>
+                ) : alreadySent ? (
                   <button
                     type="button"
                     className="acompanamiento-inquiry-sheet__submit"
@@ -1532,6 +1581,7 @@ export function AcompanamientoInquirySheet({
                             >
                               <input
                                 id={`${titleId}-nameA`}
+                                type="text"
                                 value={partnerNameA}
                                 onChange={(e) => {
                                   setPartnerNameA(e.target.value);
@@ -1555,6 +1605,7 @@ export function AcompanamientoInquirySheet({
                             >
                               <input
                                 id={`${titleId}-nameB`}
+                                type="text"
                                 value={partnerNameB}
                                 onChange={(e) => setPartnerNameB(e.target.value)}
                                 autoComplete="off"
@@ -1720,6 +1771,7 @@ export function AcompanamientoInquirySheet({
                           >
                             <input
                               id={`${titleId}-venue`}
+                              type="text"
                               value={venue}
                               onChange={(e) => setVenue(e.target.value)}
                               enterKeyHint="next"
@@ -1749,6 +1801,7 @@ export function AcompanamientoInquirySheet({
                                   >
                                     <input
                                       id={nameId}
+                                      type="text"
                                       value={d.name}
                                       onChange={(e) => {
                                         updateDog(idx, { name: e.target.value });
@@ -1991,6 +2044,7 @@ export function AcompanamientoInquirySheet({
                                 >
                                   <input
                                     id={`${titleId}-pickup`}
+                                    type="text"
                                     value={pickupAddress}
                                     onChange={(e) => setPickupAddress(e.target.value)}
                                     enterKeyHint="next"
@@ -2003,6 +2057,7 @@ export function AcompanamientoInquirySheet({
                                 >
                                   <input
                                     id={`${titleId}-delivery`}
+                                    type="text"
                                     value={deliveryAddress}
                                     onChange={(e) =>
                                       setDeliveryAddress(e.target.value)
@@ -2138,7 +2193,15 @@ export function AcompanamientoInquirySheet({
                     ) : null}
 
                     <div className="acompanamiento-inquiry-sheet__nav">
-                      {stepIndex > 1 ? (
+                      {isIntro && embedded && onGoHome ? (
+                        <button
+                          type="button"
+                          className="acompanamiento-inquiry-sheet__nav-back"
+                          onClick={onGoHome}
+                        >
+                          Volver arriba
+                        </button>
+                      ) : stepIndex > 1 ? (
                         <button
                           type="button"
                           className="acompanamiento-inquiry-sheet__nav-back"
