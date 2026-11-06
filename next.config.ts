@@ -31,6 +31,16 @@ const nextConfig: NextConfig = {
         destination: "https://maisonvigo.es/:path*",
         permanent: true,
       },
+      {
+        source: "/bodas.html",
+        destination: "/vigo-bodas",
+        permanent: false,
+      },
+      {
+        source: "/bodas",
+        destination: "/vigo-bodas",
+        permanent: false,
+      },
     ];
   },
 };

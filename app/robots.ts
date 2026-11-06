@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/api/",
         "/mantenimiento",
+        "/vigo-bodas",
         "/tienda/carrito",
         "/tienda/checkout",
         "/tienda/pedido-ok",
