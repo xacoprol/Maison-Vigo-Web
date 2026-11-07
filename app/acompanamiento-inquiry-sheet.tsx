@@ -46,6 +46,7 @@ type StepDef =
   | { id: "eventType" }
   | { id: "dates" }
   | { id: "venue" }
+  | { id: "home" }
   | { id: "dogNames" }
   | { id: "dogBreed"; dog: number }
   | { id: "dogTraits"; dog: number }
@@ -70,6 +71,7 @@ function buildSteps(
     ...(opts.skipEventType ? [] : [{ id: "eventType" } as StepDef]),
     { id: "dates" },
     { id: "venue" },
+    { id: "home" },
     { id: "dogNames" },
     ...perDog,
     { id: "care" },
@@ -91,12 +93,17 @@ const MONTH_LABELS = [
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
 
-/** Próximos 18 meses para «aún no sabemos el día exacto». value = YYYY-MM */
+/** Meses desde hoy hasta diciembre de dentro de 2 años (bodas a largo plazo). value = YYYY-MM */
 function approxMonthOptions(): { value: string; month: string; year: number }[] {
   const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear() + 2, 11, 1); // dic. del año +2
   const out: { value: string; month: string; year: number }[] = [];
-  for (let i = 0; i < 18; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+  for (
+    let d = new Date(start);
+    d.getTime() <= end.getTime();
+    d = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  ) {
     out.push({
       value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
       month: MONTH_LABELS[d.getMonth()]!,
@@ -257,6 +264,7 @@ type InquirySummary = {
   /** «Aún no sabemos el día»: mes aproximado legible (p. ej. «Junio de 2027»). */
   dateApprox?: string | null;
   venue: string;
+  familyAddress?: string | null;
   dogs: InquiryDogSummary[];
   /** Compat resúmenes antiguos (un solo perro). */
   dogName?: string;
@@ -413,6 +421,9 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
     },
     { label: "Lugar", value: summary.venue },
   );
+  if (summary.familyAddress) {
+    rows.push({ label: "Domicilio", value: summary.familyAddress });
+  }
   const dogs = dogsFromSummary(summary);
   dogs.forEach((dog, idx) => {
     const prefix = dogs.length > 1 ? `Perro ${idx + 1}` : "Perro";
@@ -575,6 +586,7 @@ export function AcompanamientoInquirySheet({
   const [dateMode, setDateMode] = useState<DateMode | null>(null);
   const [approxMonth, setApproxMonth] = useState("");
   const [venue, setVenue] = useState("");
+  const [familyAddress, setFamilyAddress] = useState("");
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
   const [eventType, setEventType] = useState<EventType | "">("boda");
@@ -611,6 +623,7 @@ export function AcompanamientoInquirySheet({
     setDateMode(null);
     setApproxMonth("");
     setVenue("");
+    setFamilyAddress("");
     setDogs([emptyDogDraft()]);
     setEventType("boda");
     setNeedsTransfer(false);
@@ -1143,6 +1156,7 @@ export function AcompanamientoInquirySheet({
           email: mail || null,
           eventDates: datesOut,
           venue: place,
+          familyAddress: familyAddress.trim() || null,
           dogs: dogsPayload.map((d) => ({
             name: d.name,
             breed: d.breed || null,
@@ -1186,6 +1200,7 @@ export function AcompanamientoInquirySheet({
         eventDates: datesOut,
         dateApprox: approxLabel,
         venue: place,
+        familyAddress: familyAddress.trim() || null,
         dogs: dogsPayload,
         needsTransfer,
         pickupAddress: needsTransfer
@@ -1371,6 +1386,7 @@ export function AcompanamientoInquirySheet({
               {(() => {
                 const optionalEmpty =
                   (current.id === "venue" && !venue.trim()) ||
+                  (current.id === "home" && !familyAddress.trim()) ||
                   (current.id === "care" && !petCareNotes.trim()) ||
                   (current.id === "hours" && !hoursEstimate.trim());
                 const primaryLabel = current.id === "intro"
@@ -1421,6 +1437,11 @@ export function AcompanamientoInquirySheet({
                     question = "¿Dónde lo celebráis?";
                     lead =
                       "Finca, pazo, restaurante o municipio. Si aún no lo sabéis, podéis saltarlo.";
+                    break;
+                  case "home":
+                    question = "¿Cuál es vuestro domicilio familiar?";
+                    lead =
+                      "Nos ayuda a calcular el desplazamiento. Si aún no lo queréis indicar, podéis saltarlo.";
                     break;
                   case "dogNames":
                     greeting = "Ahora lo más importante";
@@ -1776,6 +1797,35 @@ export function AcompanamientoInquirySheet({
                               onChange={(e) => setVenue(e.target.value)}
                               enterKeyHint="next"
                               placeholder="Lugar o municipio"
+                            />
+                          </InquiryFloatField>
+                        ) : null}
+
+                        {current.id === "home" ? (
+                          <InquiryFloatField
+                            id={`${titleId}-familyAddress`}
+                            label="Domicilio familiar"
+                            error={fieldErrors.familyAddress}
+                          >
+                            <input
+                              id={`${titleId}-familyAddress`}
+                              type="text"
+                              value={familyAddress}
+                              onChange={(e) => {
+                                setFamilyAddress(e.target.value);
+                                clearFieldError("familyAddress");
+                              }}
+                              autoComplete="street-address"
+                              enterKeyHint="next"
+                              placeholder="Calle, número, municipio…"
+                              aria-invalid={
+                                fieldErrors.familyAddress ? true : undefined
+                              }
+                              aria-describedby={
+                                fieldErrors.familyAddress
+                                  ? `${titleId}-familyAddress-error`
+                                  : undefined
+                              }
                             />
                           </InquiryFloatField>
                         ) : null}
