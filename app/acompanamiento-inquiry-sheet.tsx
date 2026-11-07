@@ -46,7 +46,6 @@ type StepDef =
   | { id: "eventType" }
   | { id: "dates" }
   | { id: "venue" }
-  | { id: "home" }
   | { id: "dogNames" }
   | { id: "dogBreed"; dog: number }
   | { id: "dogTraits"; dog: number }
@@ -71,7 +70,6 @@ function buildSteps(
     ...(opts.skipEventType ? [] : [{ id: "eventType" } as StepDef]),
     { id: "dates" },
     { id: "venue" },
-    { id: "home" },
     { id: "dogNames" },
     ...perDog,
     { id: "care" },
@@ -422,7 +420,7 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
     { label: "Lugar", value: summary.venue },
   );
   if (summary.familyAddress) {
-    rows.push({ label: "Domicilio", value: summary.familyAddress });
+    rows.push({ label: "Domicilio / recogida", value: summary.familyAddress });
   }
   const dogs = dogsFromSummary(summary);
   dogs.forEach((dog, idx) => {
@@ -455,7 +453,11 @@ function summaryRows(summary: InquirySummary): { label: string; value: string }[
     label: "Incluido",
     value: INCLUDED_ITEMS.map((i) => i.title).join(" · "),
   });
-  if (summary.needsTransfer && summary.pickupAddress) {
+  if (
+    summary.needsTransfer &&
+    summary.pickupAddress &&
+    summary.pickupAddress !== summary.familyAddress
+  ) {
     rows.push({ label: "Recogida", value: summary.pickupAddress });
   }
   if (summary.needsTransfer && summary.deliveryAddress) {
@@ -495,6 +497,102 @@ function InquiryFloatField({ id, label, error, children }: FloatFieldProps) {
         >
           {error}
         </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Numpad clicable en desktop (ratón / trackpad); en móvil se oculta y se usa el teclado nativo. */
+function useDesktopNumpad() {
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setEnabled(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return enabled;
+}
+
+type InquiryNumpadMode = "tel" | "decimal";
+
+type InquiryNumpadProps = {
+  value: string;
+  onChange: (next: string) => void;
+  mode: InquiryNumpadMode;
+  maxLength?: number;
+  "aria-label"?: string;
+};
+
+function InquiryNumpad({
+  value,
+  onChange,
+  mode,
+  maxLength = mode === "tel" ? 16 : 5,
+  "aria-label": ariaLabel = "Teclado numérico",
+}: InquiryNumpadProps) {
+  const press = (key: string) => {
+    if (key === "back") {
+      onChange(value.slice(0, -1));
+      return;
+    }
+    if (key === "clear") {
+      onChange("");
+      return;
+    }
+    if (value.length >= maxLength) return;
+    if (key === ".") {
+      if (mode !== "decimal" || value.includes(".")) return;
+      onChange(value === "" ? "0." : `${value}.`);
+      return;
+    }
+    if (key === "+") {
+      if (mode !== "tel" || value.length > 0) return;
+      onChange("+");
+      return;
+    }
+    if (!/^\d$/.test(key)) return;
+    onChange(`${value}${key}`);
+  };
+
+  const keys =
+    mode === "decimal"
+      ? (["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "back"] as const)
+      : (["1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "0", "back"] as const);
+
+  return (
+    <div
+      className="acompanamiento-inquiry-sheet__numpad"
+      role="group"
+      aria-label={ariaLabel}
+    >
+      {keys.map((key) => (
+        <button
+          key={key}
+          type="button"
+          className={
+            "acompanamiento-inquiry-sheet__numpad-key" +
+            (key === "back" || key === "+" || key === "."
+              ? " acompanamiento-inquiry-sheet__numpad-key--aux"
+              : "")
+          }
+          aria-label={
+            key === "back" ? "Borrar" : key === "+" ? "Más" : key === "." ? "Decimal" : key
+          }
+          onClick={() => press(key)}
+        >
+          {key === "back" ? "⌫" : key}
+        </button>
+      ))}
+      {value ? (
+        <button
+          type="button"
+          className="acompanamiento-inquiry-sheet__numpad-clear"
+          onClick={() => press("clear")}
+        >
+          Borrar todo
+        </button>
       ) : null}
     </div>
   );
@@ -590,12 +688,10 @@ export function AcompanamientoInquirySheet({
   const [dogs, setDogs] = useState<InquiryDogDraft[]>(() => [emptyDogDraft()]);
   const [breedOptions, setBreedOptions] = useState<string[]>(["Mestizo"]);
   const [eventType, setEventType] = useState<EventType | "">("boda");
-  const [needsTransfer, setNeedsTransfer] = useState(false);
-  const [pickupAddress, setPickupAddress] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [hoursEstimate, setHoursEstimate] = useState("");
   const [petCareNotes, setPetCareNotes] = useState("");
   const [message, setMessage] = useState("");
+  const desktopNumpad = useDesktopNumpad();
   const [leadSource, setLeadSource] = useState<string | null>(
     () => defaultLeadSource,
   );
@@ -629,9 +725,6 @@ export function AcompanamientoInquirySheet({
     setFamilyAddress("");
     setDogs([emptyDogDraft()]);
     setEventType("boda");
-    setNeedsTransfer(false);
-    setPickupAddress("");
-    setDeliveryAddress("");
     setHoursEstimate("");
     setPetCareNotes("");
     setMessage("");
@@ -894,14 +987,6 @@ export function AcompanamientoInquirySheet({
     const names = dogs.map((_, i) => dogDisplayName(i));
     if (names.length <= 1) return names[0] ?? "vuestro perro";
     return `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
-  })();
-
-  /** lo / la / los / las según sexo indicado. */
-  const dogPronoun = (() => {
-    if (dogs.length > 1) {
-      return dogs.every((d) => d.sex === "female") ? "las" : "los";
-    }
-    return dogs[0]?.sex === "female" ? "la" : "lo";
   })();
 
   const focusFirstError = useCallback(
@@ -1168,13 +1253,9 @@ export function AcompanamientoInquirySheet({
             sterilized: d.sterilized,
           })),
           eventType,
-          needsTransfer,
-          pickupAddress: needsTransfer
-            ? pickupAddress.trim() || null
-            : null,
-          deliveryAddress: needsTransfer
-            ? deliveryAddress.trim() || null
-            : null,
+          needsTransfer: Boolean(familyAddress.trim()),
+          pickupAddress: familyAddress.trim() || null,
+          deliveryAddress: null,
           /* Portaalianzas, collar/correa y joyas van incluidos en el servicio:
              no se piden en el formulario, se concretan después con la pareja. */
           jewelryItems: [],
@@ -1201,6 +1282,7 @@ export function AcompanamientoInquirySheet({
       }
       const resolvedLeadSource =
         leadSource || defaultLeadSource || autoLeadSourceRef.current || null;
+      const home = familyAddress.trim() || null;
       const nextSummary: InquirySummary = {
         contactName: name,
         phone: tel,
@@ -1209,15 +1291,11 @@ export function AcompanamientoInquirySheet({
         eventDates: datesOut,
         dateApprox: approxLabel,
         venue: place,
-        familyAddress: familyAddress.trim() || null,
+        familyAddress: home,
         dogs: dogsPayload,
-        needsTransfer,
-        pickupAddress: needsTransfer
-          ? pickupAddress.trim() || null
-          : null,
-        deliveryAddress: needsTransfer
-          ? deliveryAddress.trim() || null
-          : null,
+        needsTransfer: Boolean(home),
+        pickupAddress: home,
+        deliveryAddress: null,
         ringBox: false,
         ringBoxColor: null,
         collarLeash: false,
@@ -1395,7 +1473,7 @@ export function AcompanamientoInquirySheet({
               {(() => {
                 const optionalEmpty =
                   (current.id === "venue" && !venue.trim()) ||
-                  (current.id === "home" && !familyAddress.trim()) ||
+                  (current.id === "transfer" && !familyAddress.trim()) ||
                   (current.id === "care" && !petCareNotes.trim()) ||
                   (current.id === "hours" && !hoursEstimate.trim());
                 const primaryLabel = current.id === "intro"
@@ -1447,11 +1525,6 @@ export function AcompanamientoInquirySheet({
                     lead =
                       "Finca, pazo, restaurante o municipio. Si aún no lo sabéis, podéis saltarlo.";
                     break;
-                  case "home":
-                    question = "¿Cuál es vuestro domicilio familiar?";
-                    lead =
-                      "Nos ayuda a calcular el desplazamiento. Si aún no lo queréis indicar, podéis saltarlo.";
-                    break;
                   case "dogNames":
                     greeting = "Ahora lo más importante";
                     question = "¿Cómo se llama vuestro perro?";
@@ -1475,8 +1548,9 @@ export function AcompanamientoInquirySheet({
                     lead = "Aproximado, lo afinamos después.";
                     break;
                   case "transfer":
-                    question = `¿Recogemos a ${allDogNames} y ${dogPronoun} llevamos al evento?`;
-                    lead = "Y de vuelta a casa, si lo necesitáis.";
+                    question = `¿Dónde recogemos a ${allDogNames}?`;
+                    lead =
+                      "Vuestro domicilio familiar. Nos ayuda a calcular el desplazamiento. Si aún no lo sabéis, podéis saltarlo.";
                     break;
                   case "included":
                     greeting = "Buenas noticias";
@@ -1810,35 +1884,6 @@ export function AcompanamientoInquirySheet({
                           </InquiryFloatField>
                         ) : null}
 
-                        {current.id === "home" ? (
-                          <InquiryFloatField
-                            id={`${titleId}-familyAddress`}
-                            label="Domicilio familiar"
-                            error={fieldErrors.familyAddress}
-                          >
-                            <input
-                              id={`${titleId}-familyAddress`}
-                              type="text"
-                              value={familyAddress}
-                              onChange={(e) => {
-                                setFamilyAddress(e.target.value);
-                                clearFieldError("familyAddress");
-                              }}
-                              autoComplete="street-address"
-                              enterKeyHint="next"
-                              placeholder="Calle, número, municipio…"
-                              aria-invalid={
-                                fieldErrors.familyAddress ? true : undefined
-                              }
-                              aria-describedby={
-                                fieldErrors.familyAddress
-                                  ? `${titleId}-familyAddress-error`
-                                  : undefined
-                              }
-                            />
-                          </InquiryFloatField>
-                        ) : null}
-
                         {current.id === "dogNames" ? (
                           <>
                             {dogs.map((d, idx) => {
@@ -1931,8 +1976,10 @@ export function AcompanamientoInquirySheet({
                             >
                               <input
                                 id={`${titleId}-dog${dogIdx}-age`}
-                                inputMode="decimal"
+                                inputMode={desktopNumpad ? "none" : "decimal"}
                                 enterKeyHint="next"
+                                readOnly={desktopNumpad}
+                                data-nofocus={desktopNumpad ? true : undefined}
                                 value={dog.ageYears}
                                 onChange={(e) => {
                                   updateDog(dogIdx, { ageYears: e.target.value });
@@ -1944,6 +1991,17 @@ export function AcompanamientoInquirySheet({
                                 }
                               />
                             </InquiryFloatField>
+                            {desktopNumpad ? (
+                              <InquiryNumpad
+                                mode="decimal"
+                                value={dog.ageYears}
+                                onChange={(next) => {
+                                  updateDog(dogIdx, { ageYears: next });
+                                  clearFieldError(`dog${dogIdx}-age`);
+                                }}
+                                aria-label="Edad en años"
+                              />
+                            ) : null}
                           </>
                         ) : null}
 
@@ -2064,70 +2122,20 @@ export function AcompanamientoInquirySheet({
                         ) : null}
 
                         {current.id === "transfer" ? (
-                          <>
-                            <div
-                              className="acompanamiento-inquiry-sheet__options"
-                              role="group"
-                              aria-label="Recogida y traslado"
-                            >
-                              <button
-                                type="button"
-                                className={
-                                  "acompanamiento-inquiry-sheet__option" +
-                                  (needsTransfer ? " is-active" : "")
-                                }
-                                aria-pressed={needsTransfer}
-                                onClick={() => setNeedsTransfer(true)}
-                              >
-                                Sí, por favor
-                              </button>
-                              <button
-                                type="button"
-                                className={
-                                  "acompanamiento-inquiry-sheet__option" +
-                                  (!needsTransfer ? " is-active" : "")
-                                }
-                                aria-pressed={!needsTransfer}
-                                onClick={() =>
-                                  pickAndAdvance(() => setNeedsTransfer(false))
-                                }
-                              >
-                                No, nos encargamos nosotros
-                              </button>
-                            </div>
-                            {needsTransfer ? (
-                              <>
-                                <InquiryFloatField
-                                  id={`${titleId}-pickup`}
-                                  label="Dirección de recogida (opcional)"
-                                >
-                                  <input
-                                    id={`${titleId}-pickup`}
-                                    type="text"
-                                    value={pickupAddress}
-                                    onChange={(e) => setPickupAddress(e.target.value)}
-                                    enterKeyHint="next"
-                                    placeholder="Dirección de recogida (opcional)"
-                                  />
-                                </InquiryFloatField>
-                                <InquiryFloatField
-                                  id={`${titleId}-delivery`}
-                                  label="Dirección de vuelta (opcional)"
-                                >
-                                  <input
-                                    id={`${titleId}-delivery`}
-                                    type="text"
-                                    value={deliveryAddress}
-                                    onChange={(e) =>
-                                      setDeliveryAddress(e.target.value)
-                                    }
-                                    enterKeyHint="next"
-                                    placeholder="Dirección de vuelta (opcional)"
-                                  />
-                                </InquiryFloatField>
-                              </>
-                            ) : null}
-                          </>
+                          <InquiryFloatField
+                            id={`${titleId}-familyAddress`}
+                            label="Domicilio familiar"
+                          >
+                            <input
+                              id={`${titleId}-familyAddress`}
+                              type="text"
+                              value={familyAddress}
+                              onChange={(e) => setFamilyAddress(e.target.value)}
+                              autoComplete="street-address"
+                              enterKeyHint="next"
+                              placeholder="Calle, número, municipio…"
+                            />
+                          </InquiryFloatField>
                         ) : null}
 
                         {current.id === "included" ? (
@@ -2193,7 +2201,9 @@ export function AcompanamientoInquirySheet({
                               <input
                                 id={`${titleId}-phone`}
                                 type="tel"
-                                inputMode="tel"
+                                inputMode={desktopNumpad ? "none" : "tel"}
+                                readOnly={desktopNumpad}
+                                data-nofocus={desktopNumpad ? true : undefined}
                                 value={phone}
                                 onChange={(e) => {
                                   setPhone(e.target.value);
@@ -2210,6 +2220,17 @@ export function AcompanamientoInquirySheet({
                                 }
                               />
                             </InquiryFloatField>
+                            {desktopNumpad ? (
+                              <InquiryNumpad
+                                mode="tel"
+                                value={phone}
+                                onChange={(next) => {
+                                  setPhone(next);
+                                  clearFieldError("phone");
+                                }}
+                                aria-label="Teléfono"
+                              />
+                            ) : null}
                             <InquiryFloatField
                               id={`${titleId}-email`}
                               label="Email (opcional)"
