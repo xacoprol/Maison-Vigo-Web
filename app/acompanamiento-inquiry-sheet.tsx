@@ -118,6 +118,13 @@ function approxMonthLabel(value: string): string {
   return `${label.charAt(0).toUpperCase()}${label.slice(1)} de ${m[1]}`;
 }
 
+/** Primera letra de cada palabra en mayúscula (nombres; respeta espacios al escribir). */
+function capitalizeWordsLive(raw: string): string {
+  return raw.replace(/(^|[\s'-])(\S)/g, (_, sep: string, ch: string) => {
+    return `${sep}${ch.toLocaleUpperCase("es-ES")}`;
+  });
+}
+
 function todayDateKey(): string {
   const t = new Date();
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
@@ -1688,7 +1695,7 @@ export function AcompanamientoInquirySheet({
                                 type="text"
                                 value={partnerNameA}
                                 onChange={(e) => {
-                                  setPartnerNameA(e.target.value);
+                                  setPartnerNameA(capitalizeWordsLive(e.target.value));
                                   clearFieldError("nameA");
                                 }}
                                 autoComplete="given-name"
@@ -1711,7 +1718,9 @@ export function AcompanamientoInquirySheet({
                                 id={`${titleId}-nameB`}
                                 type="text"
                                 value={partnerNameB}
-                                onChange={(e) => setPartnerNameB(e.target.value)}
+                                onChange={(e) =>
+                                  setPartnerNameB(capitalizeWordsLive(e.target.value))
+                                }
                                 autoComplete="off"
                                 autoCapitalize="words"
                                 enterKeyHint="next"
@@ -1908,7 +1917,9 @@ export function AcompanamientoInquirySheet({
                                       type="text"
                                       value={d.name}
                                       onChange={(e) => {
-                                        updateDog(idx, { name: e.target.value });
+                                        updateDog(idx, {
+                                          name: capitalizeWordsLive(e.target.value),
+                                        });
                                         clearFieldError(`dog${idx}-name`);
                                       }}
                                       autoCapitalize="words"
