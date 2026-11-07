@@ -340,7 +340,7 @@ export function VigoBodasDeckClient() {
         <section className="vigo-bodas-deck__page vigo-bodas-deck__page--form">
           <AcompanamientoInquirySheet
             embedded
-            defaultLeadSource="vigo-bodas"
+            defaultLeadSource="vigo-bodas-equipo"
             onGoHome={goToFirstSlide}
           />
         </section>

@@ -600,7 +600,10 @@ export function AcompanamientoInquirySheet({
     () => defaultLeadSource,
   );
   /** QR del tótem de la feria Vigo Bodas: saludo propio en el sheet. */
-  const isVigoBodas = leadSource === "vigo-bodas";
+  const isVigoBodas =
+    leadSource === "vigo-bodas" ||
+    leadSource === "vigo-bodas-equipo" ||
+    Boolean(leadSource?.includes("vigo-bodas"));
   /** Tras cerrar el sheet al menos una vez en esta sesión QR. */
   const [vigoBodasDismissed, setVigoBodasDismissed] = useState(false);
   /** Burbuja flotante tras cerrar el modal (solo sesión Vigo Bodas). */
@@ -643,13 +646,13 @@ export function AcompanamientoInquirySheet({
     if (defaultLeadSource) {
       autoLeadSourceRef.current = defaultLeadSource;
       setLeadSource((prev) => prev ?? defaultLeadSource);
-      if (defaultLeadSource === "vigo-bodas") markVigoBodasSession();
+      if (defaultLeadSource.includes("vigo-bodas")) markVigoBodasSession();
     }
     const origen = readLeadSourceFromUrl();
     if (origen) {
       autoLeadSourceRef.current = origen;
       setLeadSource((prev) => prev ?? origen);
-      if (origen === "vigo-bodas") markVigoBodasSession();
+      if (origen.includes("vigo-bodas")) markVigoBodasSession();
     }
   }, [defaultLeadSource]);
 
@@ -660,7 +663,7 @@ export function AcompanamientoInquirySheet({
   useEffect(() => {
     if (!embedded) return;
     trackEvent("acompanamiento_form_open", {
-      lead_source: defaultLeadSource ?? "vigo-bodas",
+      lead_source: defaultLeadSource ?? "vigo-bodas-equipo",
       embedded: true,
     });
   }, [embedded, defaultLeadSource]);
@@ -1178,7 +1181,11 @@ export function AcompanamientoInquirySheet({
           hoursEstimate: hoursEstimate.trim() || null,
           petCareNotes: petCareNotes.trim() || null,
           message: messageOut,
-          leadSource: leadSource || null,
+          leadSource:
+            leadSource ||
+            defaultLeadSource ||
+            autoLeadSourceRef.current ||
+            null,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
@@ -1192,6 +1199,8 @@ export function AcompanamientoInquirySheet({
         );
         return;
       }
+      const resolvedLeadSource =
+        leadSource || defaultLeadSource || autoLeadSourceRef.current || null;
       const nextSummary: InquirySummary = {
         contactName: name,
         phone: tel,
@@ -1219,7 +1228,7 @@ export function AcompanamientoInquirySheet({
       };
       trackEvent("generate_lead", {
         form_name: "acompanamiento",
-        lead_source: leadSource,
+        lead_source: resolvedLeadSource,
         event_type: eventType,
       });
       markInquirySentCookie();
