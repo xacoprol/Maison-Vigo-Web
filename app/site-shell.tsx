@@ -147,7 +147,7 @@ export function SiteShell() {
                 href="/tienda"
                 className="mob-link mob-link--secondary mob-link--wave"
               >
-                <WaveText text="The Selection" />
+                <WaveText text="The Selection | Tienda" />
               </Link>
             </div>
 
