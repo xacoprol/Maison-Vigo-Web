@@ -3,6 +3,10 @@
 import { useEffect } from "react";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+
+/** Intro del logo (logoIntro → wordmark nav). `false` = la home carga directa, sin intro. */
+const LOGO_INTRO_ENABLED = false;
+
 /**
  * Efectos exclusivos de la home: animación de intro (logoIntro → wordmark nav)
  * y parallaxes / reveals de hero, concepto y servicios. La UI persistente
@@ -183,7 +187,8 @@ export function HomeEffects() {
       requestAnimationFrame(() => requestAnimationFrame(finishIntro));
     };
 
-    const skipIntro = prefersReducedMotion || hasSeenIntroRecently();
+    const skipIntro =
+      !LOGO_INTRO_ENABLED || prefersReducedMotion || hasSeenIntroRecently();
     if (skipIntro) {
       body.classList.add("intro-complete");
     } else if (introEl) {

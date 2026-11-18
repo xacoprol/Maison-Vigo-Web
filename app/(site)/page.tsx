@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { siteConfig } from "@/lib/site-config";
+import { defaultOgImage, siteConfig } from "@/lib/site-config";
 
 import { ConceptoSection } from "../concepto-section";
 import { EspacioHorizontalSection } from "../espacio-horizontal-section";
@@ -20,11 +20,20 @@ export const metadata: Metadata = {
     title: siteConfig.defaultTitle,
     description: siteConfig.defaultDescription,
     url: "/",
+    images: [
+      {
+        url: defaultOgImage,
+        width: 1200,
+        height: 630,
+        alt: siteConfig.shortName,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.defaultTitle,
     description: siteConfig.defaultDescription,
+    images: [defaultOgImage],
   },
 };
 
