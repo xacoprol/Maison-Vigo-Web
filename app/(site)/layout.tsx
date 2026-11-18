@@ -1,4 +1,5 @@
 import { ContactFormSectionGate } from "../contact-form-section-gate";
+import { GoldenSnow } from "../golden-snow";
 import { SiteEffects } from "../site-effects";
 import { SiteFooter } from "../site-footer";
 import { SiteShell } from "../site-shell";
@@ -43,6 +44,7 @@ export default function SiteLayout({
         <AcompanamientoInquirySheet />
         <SiteFooter />
         <TiendaCartFab />
+        <GoldenSnow />
       </TiendaLegalProvider>
     </WebStoreCartProvider>
   );
